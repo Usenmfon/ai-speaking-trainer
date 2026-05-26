@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PracticeSessionController;
 use App\Http\Controllers\PracticeSessionRecordingController;
@@ -17,6 +18,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('profile', [UserProfileController::class, 'edit'])->name('user-profile.edit');
     Route::patch('profile', [UserProfileController::class, 'update'])->name('user-profile.update');
 });
+
+Route::middleware(['auth', 'verified', 'admin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
+        Route::get('users', [AdminDashboardController::class, 'users'])->name('users.index');
+        Route::get('sessions', [AdminDashboardController::class, 'sessions'])->name('sessions.index');
+    });
 
 Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');

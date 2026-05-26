@@ -1,4 +1,4 @@
-import { Link } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import {
     BarChart3,
     BrainCircuit,
@@ -7,9 +7,11 @@ import {
     MessageSquareText,
     Mic2,
     Settings,
+    ShieldCheck,
     Trophy,
     Users,
 } from 'lucide-react';
+import { index as adminDashboard } from '@/actions/App/Http/Controllers/AdminDashboardController';
 import {
     create as createPracticeSession,
     index as practiceSessionsIndex,
@@ -74,6 +76,18 @@ const mainNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
+    const { auth } = usePage().props;
+    const navItems = auth.user?.is_admin
+        ? [
+              ...mainNavItems,
+              {
+                  title: 'Admin',
+                  href: adminDashboard(),
+                  icon: ShieldCheck,
+              },
+          ]
+        : mainNavItems;
+
     return (
         <Sidebar
             collapsible="icon"
@@ -93,7 +107,7 @@ export function AppSidebar() {
             </SidebarHeader>
 
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                <NavMain items={navItems} />
             </SidebarContent>
 
             <SidebarFooter>

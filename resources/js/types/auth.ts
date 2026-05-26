@@ -86,6 +86,7 @@ export type PracticeSession = {
     recording?: PracticeSessionRecording | null;
     transcript?: PracticeSessionTranscript | null;
     feedback_report?: SpeakingFeedbackReport | null;
+    user?: User | null;
 };
 
 export type PaginationLink = {
@@ -141,6 +142,7 @@ export type User = {
     public_id: string;
     name: string;
     email: string;
+    is_admin: boolean;
     avatar?: string;
     profile?: UserProfile | null;
     email_verified_at: string | null;
