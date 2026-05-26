@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\ProcessPracticeSessionRecording;
 use App\Models\PracticeSession;
 use App\Models\PracticeSessionRecording;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
@@ -158,6 +160,7 @@ class PracticeSessionTest extends TestCase
 
     public function test_user_can_upload_practice_session_recording(): void
     {
+        Queue::fake();
         Storage::fake('local');
 
         $user = $this->completedUser();
@@ -172,6 +175,7 @@ class PracticeSessionTest extends TestCase
         $recording = PracticeSessionRecording::query()->firstOrFail();
 
         $response->assertRedirect(route('practice-sessions.show', $session));
+        Queue::assertPushed(ProcessPracticeSessionRecording::class);
         Storage::disk('local')->assertExists($recording->audio_path);
 
         $this->assertSame('recorded', $session->fresh()->status);

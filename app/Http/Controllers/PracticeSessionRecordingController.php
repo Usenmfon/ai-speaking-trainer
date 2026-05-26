@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\PracticeSession\StorePracticeSessionRecordingRequest;
+use App\Jobs\ProcessPracticeSessionRecording;
 use App\Models\PracticeSession;
+use App\Models\PracticeSessionRecording;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -76,6 +78,11 @@ class PracticeSessionRecordingController extends Controller
         if ($previousPath !== null && $previousPath !== $path) {
             Storage::disk($disk)->delete($previousPath);
         }
+
+        /** @var PracticeSessionRecording $recording */
+        $recording = $practiceSession->recording()->firstOrFail();
+
+        ProcessPracticeSessionRecording::dispatch($recording->id);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Recording uploaded.')]);
 
