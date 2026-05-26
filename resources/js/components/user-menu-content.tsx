@@ -1,5 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import { LogOut, Settings } from 'lucide-react';
+import { edit as editSpeakingProfile } from '@/actions/App/Http/Controllers/Profile/UserProfileController';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -33,6 +34,17 @@ export function UserMenuContent({ user }: Props) {
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
+                <DropdownMenuItem asChild>
+                    <Link
+                        className="block w-full cursor-pointer"
+                        href={editSpeakingProfile()}
+                        prefetch
+                        onClick={cleanup}
+                    >
+                        <Settings className="mr-2" />
+                        Speaking profile
+                    </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                     <Link
                         className="block w-full cursor-pointer"
