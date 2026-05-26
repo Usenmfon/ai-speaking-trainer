@@ -1,2 +1,2 @@
 # Keep Python dependencies isolated in ai-worker/.venv.
-# The MVP worker currently uses only the Python standard library.
+openai>=1.101.0,<2

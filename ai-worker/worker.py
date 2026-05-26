@@ -73,7 +73,10 @@ def run_task(args: argparse.Namespace, metadata: dict[str, Any]) -> dict[str, An
             metadata=worker_meta(args),
         )
 
-    feedback = generate_feedback(str(transcription.get("text", "")), {**metadata, **preprocessing})
+    feedback = generate_feedback(
+        str(transcription.get("transcript") or transcription.get("text") or ""),
+        {**metadata, **preprocessing},
+    )
 
     return success_response(
         task,

@@ -11,6 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
 use Throwable;
 
 class ProcessPracticeSessionRecording implements ShouldQueue
@@ -58,6 +59,11 @@ class ProcessPracticeSessionRecording implements ShouldQueue
         ]);
 
         $transcription = $response['data']['transcription'] ?? [];
+        $transcriptText = (string) ($transcription['transcript'] ?? $transcription['text'] ?? '');
+
+        if (trim($transcriptText) === '') {
+            throw new RuntimeException('AI worker returned an empty transcript.');
+        }
 
         /** @var PracticeSessionTranscript $transcript */
         $transcript = $recording->practiceSession->transcript()->updateOrCreate(
@@ -65,7 +71,7 @@ class ProcessPracticeSessionRecording implements ShouldQueue
             [
                 'user_id' => $recording->user_id,
                 'practice_session_recording_id' => $recording->id,
-                'text' => (string) ($transcription['text'] ?? ''),
+                'text' => $transcriptText,
                 'segments' => $transcription['segments'] ?? null,
                 'provider' => $transcription['provider'] ?? null,
                 'completed_at' => now(),
