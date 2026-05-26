@@ -59,6 +59,9 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+    --animate-slow-float: slow-float 8s ease-in-out infinite;
+    --animate-gradient-shift: gradient-shift 12s ease infinite;
 }
 
 :root {
@@ -140,4 +143,58 @@
     body {
         @apply bg-background text-foreground;
     }
+}
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+
+    .animation-delay-200 {
+        animation-delay: 200ms;
+    }
+
+    .animation-delay-500 {
+        animation-delay: 500ms;
+    }
+}
+
+@keyframes slow-float {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-14px);
+    }
+}
+
+@keyframes gradient-shift {
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+@keyframes waveform-pulse {
+    0%,
+    100% {
+        transform: scaleY(0.45);
+        opacity: 0.55;
+    }
+
+    50% {
+        transform: scaleY(1);
+        opacity: 1;
+    }
+}
+
+.waveform-bar {
+    animation: waveform-pulse 1.4s ease-in-out infinite;
+    transform-origin: center;
 }
