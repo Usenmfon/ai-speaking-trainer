@@ -1,0 +1,96 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Jobs\AnalyzeSpeakingTranscript;
+use App\Models\PracticeSession;
+use App\Models\PracticeSessionTranscript;
+use App\Models\SpeakingFeedbackReport;
+use App\Models\User;
+use App\Models\UserProfile;
+use App\Services\AI\SpeakingFeedbackService;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Inertia\Testing\AssertableInertia;
+use Tests\TestCase;
+
+class SpeakingFeedbackReportTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_user_can_view_completed_feedback_report(): void
+    {
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->create();
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'text' => 'This is a clear practice transcript.',
+            ]);
+
+        SpeakingFeedbackReport::factory()
+            ->for($user)
+            ->for($session)
+            ->for($transcript, 'transcript')
+            ->create([
+                'overall_score' => 84,
+                'summary_feedback' => 'Strong opening and clear next steps.',
+            ]);
+
+        $response = $this->actingAs($user)->get(route('practice-sessions.feedback-report.show', $session));
+
+        $response
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('PracticeSessions/FeedbackReport')
+                ->where('session.feedback_report.overall_score', 84)
+                ->where('session.feedback_report.summary_feedback', 'Strong opening and clear next steps.')
+                ->where('session.transcript.text', 'This is a clear practice transcript.')
+            );
+    }
+
+    public function test_user_cannot_view_another_users_feedback_report(): void
+    {
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+        $session = PracticeSession::factory()->for($otherUser)->create();
+
+        $response = $this->actingAs($user)->get(route('practice-sessions.feedback-report.show', $session));
+
+        $response->assertNotFound();
+    }
+
+    public function test_analyze_speaking_transcript_completes_report_and_session(): void
+    {
+        config(['speaking_feedback.provider' => 'local']);
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->recorded()
+            ->create();
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'text' => 'Um this is my product pitch. It explains the problem and the next step.',
+            ]);
+
+        (new AnalyzeSpeakingTranscript($transcript->id))->handle(new SpeakingFeedbackService);
+
+        $this->assertSame('analyzed', $session->fresh()->status);
+        $this->assertDatabaseHas('speaking_feedback_reports', [
+            'practice_session_id' => $session->id,
+            'user_id' => $user->id,
+            'transcript_id' => $transcript->id,
+            'status' => 'completed',
+        ]);
+    }
+
+    private function completedUser(): User
+    {
+        return User::factory()
+            ->has(UserProfile::factory(), 'profile')
+            ->create();
+    }
+}

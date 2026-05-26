@@ -62,6 +62,26 @@ class PracticeSession extends Model
     }
 
     /**
+     * Get the transcript for this practice session.
+     *
+     * @return HasOne<PracticeSessionTranscript, $this>
+     */
+    public function transcript(): HasOne
+    {
+        return $this->hasOne(PracticeSessionTranscript::class);
+    }
+
+    /**
+     * Get the speaking feedback report for this practice session.
+     *
+     * @return HasOne<SpeakingFeedbackReport, $this>
+     */
+    public function feedbackReport(): HasOne
+    {
+        return $this->hasOne(SpeakingFeedbackReport::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

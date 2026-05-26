@@ -29,6 +29,45 @@ export type PracticeSessionRecording = {
     uploaded_at: string;
 };
 
+export type PracticeSessionTranscript = {
+    id: string;
+    practice_session_id: string;
+    user_id: number;
+    practice_session_recording_id: string | null;
+    text: string;
+    segments: Array<Record<string, unknown>> | null;
+    provider: string | null;
+    completed_at: string;
+};
+
+export type SpeakingFeedbackReportStatus =
+    | 'pending'
+    | 'processing'
+    | 'completed'
+    | 'failed';
+
+export type SpeakingFeedbackReport = {
+    id: string;
+    practice_session_id: string;
+    user_id: number;
+    transcript_id: string;
+    overall_score: number | null;
+    clarity_score: number | null;
+    structure_score: number | null;
+    confidence_score: number | null;
+    pace_score: number | null;
+    filler_word_score: number | null;
+    summary_feedback: string;
+    strengths: string[] | null;
+    weaknesses: string[] | null;
+    recommendations: string[] | null;
+    filler_words: Array<{ word: string; count: number }> | null;
+    improved_version: string | null;
+    status: SpeakingFeedbackReportStatus;
+    error_message: string | null;
+    processed_at: string | null;
+};
+
 export type PracticeSession = {
     id: string;
     user_id: number;
@@ -43,6 +82,8 @@ export type PracticeSession = {
     created_at: string;
     updated_at: string;
     recording?: PracticeSessionRecording | null;
+    transcript?: PracticeSessionTranscript | null;
+    feedback_report?: SpeakingFeedbackReport | null;
 };
 
 export type UserProfile = {

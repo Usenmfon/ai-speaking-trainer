@@ -1,7 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, Clock3, FilePlus2, Mic2, Target } from 'lucide-react';
+import { ArrowLeft, BarChart3, Clock3, FilePlus2, Mic2, Target } from 'lucide-react';
 import { create, index } from '@/actions/App/Http/Controllers/PracticeSessionController';
 import { store as storeRecording } from '@/actions/App/Http/Controllers/PracticeSessionRecordingController';
+import { show as showFeedbackReport } from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
 import { AudioRecorder } from '@/components/practice/audio-recorder';
 import { Button } from '@/components/ui/button';
 import type { PracticeSession } from '@/types';
@@ -52,12 +53,22 @@ export default function Show({ session }: ShowProps) {
                                 </p>
                             </div>
 
-                            <Button asChild>
-                                <Link href={create()}>
-                                    <FilePlus2 className="size-4" />
-                                    New session
-                                </Link>
-                            </Button>
+                            <div className="flex flex-col gap-3 sm:flex-row">
+                                {session.feedback_report && (
+                                    <Button asChild variant="outline">
+                                        <Link href={showFeedbackReport(session.id)}>
+                                            <BarChart3 className="size-4" />
+                                            View report
+                                        </Link>
+                                    </Button>
+                                )}
+                                <Button asChild>
+                                    <Link href={create()}>
+                                        <FilePlus2 className="size-4" />
+                                        New session
+                                    </Link>
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="mt-8 grid gap-4 md:grid-cols-3">

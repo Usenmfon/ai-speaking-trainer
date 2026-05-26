@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\PracticeSessionRecording;
+use App\Models\PracticeSessionTranscript;
 use App\Services\AiWorker\AiWorkerClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -54,9 +55,22 @@ class ProcessPracticeSessionRecording implements ShouldQueue
             'response' => $response,
         ]);
 
-        $recording->practiceSession->forceFill([
-            'status' => 'analyzed',
-        ])->save();
+        $transcription = $response['data']['transcription'] ?? [];
+
+        /** @var PracticeSessionTranscript $transcript */
+        $transcript = $recording->practiceSession->transcript()->updateOrCreate(
+            ['practice_session_id' => $recording->practice_session_id],
+            [
+                'user_id' => $recording->user_id,
+                'practice_session_recording_id' => $recording->id,
+                'text' => (string) ($transcription['text'] ?? ''),
+                'segments' => $transcription['segments'] ?? null,
+                'provider' => $transcription['provider'] ?? null,
+                'completed_at' => now(),
+            ],
+        );
+
+        AnalyzeSpeakingTranscript::dispatch($transcript->id);
     }
 
     /**

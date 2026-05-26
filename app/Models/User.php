@@ -64,6 +64,26 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * Get the user's practice session transcripts.
+     *
+     * @return HasMany<PracticeSessionTranscript, $this>
+     */
+    public function practiceSessionTranscripts(): HasMany
+    {
+        return $this->hasMany(PracticeSessionTranscript::class);
+    }
+
+    /**
+     * Get the user's speaking feedback reports.
+     *
+     * @return HasMany<SpeakingFeedbackReport, $this>
+     */
+    public function speakingFeedbackReports(): HasMany
+    {
+        return $this->hasMany(SpeakingFeedbackReport::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>
