@@ -33,4 +33,22 @@ class IndexPracticeSessionRequest extends FormRequest
             'sort' => ['nullable', 'string', Rule::in(['newest', 'oldest', 'highest_score', 'lowest_score'])],
         ];
     }
+
+    /**
+     * Get custom messages for validator errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'search.max' => __('Search terms must be 120 characters or fewer.'),
+            'session_type.in' => __('Choose a valid practice mode filter.'),
+            'status.in' => __('Choose a valid session status filter.'),
+            'date_from.date' => __('Choose a valid start date.'),
+            'date_to.date' => __('Choose a valid end date.'),
+            'date_to.after_or_equal' => __('The end date must be the same as or after the start date.'),
+            'sort.in' => __('Choose a valid sorting option.'),
+        ];
+    }
 }

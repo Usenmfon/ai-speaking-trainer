@@ -32,6 +32,7 @@ return new class extends Migration
             $table->text('error_message')->nullable();
             $table->timestamp('processed_at')->nullable();
 
+            $table->index('status');
             $table->index(['user_id', 'status']);
         });
     }

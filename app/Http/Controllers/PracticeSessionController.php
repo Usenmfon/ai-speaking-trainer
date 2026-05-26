@@ -8,6 +8,7 @@ use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -99,7 +100,7 @@ class PracticeSessionController extends Controller
      */
     public function show(Request $request, PracticeSession $practiceSession): Response
     {
-        abort_unless($practiceSession->user_id === $request->user()->id, 404);
+        Gate::authorize('view', $practiceSession);
 
         return Inertia::render('PracticeSessions/Show', [
             'session' => $practiceSession->load(['recording', 'transcript', 'feedbackReport']),

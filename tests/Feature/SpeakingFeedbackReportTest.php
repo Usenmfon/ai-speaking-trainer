@@ -97,7 +97,18 @@ class SpeakingFeedbackReportTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('feedback-reports.show', $report));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
+    }
+
+    public function test_user_cannot_view_another_users_session_feedback_report(): void
+    {
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+        $session = PracticeSession::factory()->for($otherUser)->create();
+
+        $response = $this->actingAs($user)->get(route('practice-sessions.feedback-report.show', $session));
+
+        $response->assertForbidden();
     }
 
     public function test_analyze_speaking_transcript_completes_report_and_session(): void

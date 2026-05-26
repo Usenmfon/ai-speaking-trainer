@@ -7,6 +7,7 @@ use App\Jobs\ProcessPracticeSessionRecording;
 use App\Models\PracticeSession;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -20,7 +21,7 @@ class PracticeSessionRetryController extends Controller
      */
     public function transcription(Request $request, PracticeSession $practiceSession): RedirectResponse
     {
-        abort_unless($practiceSession->user_id === $request->user()->id, 404);
+        Gate::authorize('retry', $practiceSession);
 
         $practiceSession->load(['recording', 'transcript', 'feedbackReport']);
 
@@ -66,7 +67,7 @@ class PracticeSessionRetryController extends Controller
      */
     public function analysis(Request $request, PracticeSession $practiceSession): RedirectResponse
     {
-        abort_unless($practiceSession->user_id === $request->user()->id, 404);
+        Gate::authorize('retry', $practiceSession);
 
         $practiceSession->load(['transcript', 'feedbackReport']);
 

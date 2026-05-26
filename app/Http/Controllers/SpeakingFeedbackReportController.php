@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,7 +30,7 @@ class SpeakingFeedbackReportController extends Controller
      */
     public function show(Request $request, SpeakingFeedbackReport $feedbackReport): Response
     {
-        abort_unless($feedbackReport->user_id === $request->user()->id, 404);
+        Gate::authorize('view', $feedbackReport);
 
         return Inertia::render('FeedbackReports/Show', [
             'report' => $feedbackReport->load(['practiceSession', 'transcript']),
@@ -41,7 +42,7 @@ class SpeakingFeedbackReportController extends Controller
      */
     public function session(Request $request, PracticeSession $practiceSession): Response
     {
-        abort_unless($practiceSession->user_id === $request->user()->id, 404);
+        Gate::authorize('view', $practiceSession);
 
         return Inertia::render('FeedbackReports/Show', [
             'report' => $practiceSession->feedbackReport()

@@ -282,8 +282,13 @@ export function AudioRecorder({
                     setUploadStatus('error');
                     setUploadError(
                         errors.audio ??
+                            errors.duration_seconds ??
                             'The recording could not be uploaded. Please try again.',
                     );
+                },
+                onCancel: () => {
+                    setUploadStatus('idle');
+                    setUploadProgress(null);
                 },
                 onSuccess: () => {
                     setUploadProgress(100);
@@ -306,6 +311,9 @@ export function AudioRecorder({
                     <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                         Capture your speech locally in the browser, review the
                         audio, then re-record until it feels ready.
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                        Nothing leaves your browser until you confirm the upload.
                     </p>
                 </div>
 

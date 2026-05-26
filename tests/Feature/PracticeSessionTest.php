@@ -21,6 +21,12 @@ class PracticeSessionTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_practice_session_routes_require_authentication(): void
+    {
+        $this->get(route('practice-sessions.index'))->assertRedirect(route('login'));
+        $this->get(route('practice-sessions.create'))->assertRedirect(route('login'));
+    }
+
     public function test_index_shows_empty_session_history(): void
     {
         $user = $this->completedUser();
@@ -229,7 +235,7 @@ class PracticeSessionTest extends TestCase
 
         $response = $this->actingAs($user)->get(route('practice-sessions.show', $session));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
     }
 
     public function test_user_can_upload_practice_session_recording(): void
@@ -400,7 +406,7 @@ class PracticeSessionTest extends TestCase
 
         $response = $this->actingAs($user)->post(route('practice-sessions.retry-transcription', $session));
 
-        $response->assertNotFound();
+        $response->assertForbidden();
         Queue::assertNotPushed(ProcessPracticeSessionRecording::class);
     }
 

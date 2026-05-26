@@ -1,5 +1,6 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Bell, Check, Inbox } from 'lucide-react';
+import { Bell, Check, Inbox, LoaderCircle } from 'lucide-react';
+import { useState } from 'react';
 
 import {
     read,
@@ -24,30 +25,46 @@ function formatNotificationTime(value: string | null): string {
     return new Date(value).toLocaleDateString();
 }
 
-function markAsRead(notification: AppNotification): void {
-    router.post(
-        read.url(notification.id),
-        {},
-        {
-            preserveScroll: true,
-            only: ['notifications'],
-        },
-    );
-}
-
-function markAllAsRead(): void {
-    router.post(
-        readAll.url(),
-        {},
-        {
-            preserveScroll: true,
-            only: ['notifications'],
-        },
-    );
-}
-
 export function NotificationsDropdown() {
     const { notifications } = usePage().props;
+    const [readingId, setReadingId] = useState<string | null>(null);
+    const [markingAll, setMarkingAll] = useState(false);
+
+    function markAsRead(notification: AppNotification): void {
+        if (readingId || markingAll) {
+            return;
+        }
+
+        setReadingId(notification.id);
+
+        router.post(
+            read.url(notification.id),
+            {},
+            {
+                preserveScroll: true,
+                only: ['notifications'],
+                onFinish: () => setReadingId(null),
+            },
+        );
+    }
+
+    function markAllAsRead(): void {
+        if (markingAll || readingId) {
+            return;
+        }
+
+        setMarkingAll(true);
+
+        router.post(
+            readAll.url(),
+            {},
+            {
+                preserveScroll: true,
+                only: ['notifications'],
+                onFinish: () => setMarkingAll(false),
+            },
+        );
+    }
 
     return (
         <DropdownMenu>
@@ -79,9 +96,10 @@ export function NotificationsDropdown() {
                         <button
                             type="button"
                             onClick={markAllAsRead}
+                            disabled={markingAll}
                             className="text-xs font-medium text-cyan-700 transition hover:text-cyan-900 dark:text-cyan-200 dark:hover:text-cyan-100"
                         >
-                            Mark all read
+                            {markingAll ? 'Marking...' : 'Mark all read'}
                         </button>
                     )}
                 </div>
@@ -148,10 +166,18 @@ export function NotificationsDropdown() {
                                             onClick={() =>
                                                 markAsRead(notification)
                                             }
+                                            disabled={
+                                                markingAll ||
+                                                readingId === notification.id
+                                            }
                                             className="mt-1 rounded-full p-1 text-muted-foreground transition hover:bg-background hover:text-foreground focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none"
                                             aria-label="Mark notification as read"
                                         >
-                                            <Check className="size-4" />
+                                            {readingId === notification.id ? (
+                                                <LoaderCircle className="size-4 animate-spin" />
+                                            ) : (
+                                                <Check className="size-4" />
+                                            )}
                                         </button>
                                     )}
                                 </div>
