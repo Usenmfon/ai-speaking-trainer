@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 from ai_worker.contracts import error_response, success_response
-from ai_worker.feedback import generate_feedback
 from ai_worker.logging_setup import configure_logging
 from ai_worker.preprocessing import prepare_audio
 from ai_worker.transcription import transcribe_audio
@@ -20,7 +19,11 @@ LOGGER = logging.getLogger("ai_worker")
 def main() -> int:
     configure_logging(WORKER_ROOT)
     parser = argparse.ArgumentParser(prog="ai-worker")
-    parser.add_argument("--task", required=True, choices=["process_recording", "transcribe", "preprocess", "feedback"])
+    parser.add_argument(
+        "--task",
+        required=True,
+        choices=["process_recording", "transcribe", "preprocess", "feedback"],
+    )
     parser.add_argument("--audio-path")
     parser.add_argument("--session-id")
     parser.add_argument("--recording-id")
@@ -36,7 +39,12 @@ def main() -> int:
         return 0 if response["ok"] else 1
     except Exception as exception:
         LOGGER.exception("Worker task failed")
-        print(json.dumps(error_response(args.task, str(exception), exception.__class__.__name__), ensure_ascii=False))
+        print(
+            json.dumps(
+                error_response(args.task, str(exception), exception.__class__.__name__),
+                ensure_ascii=False,
+            )
+        )
 
         return 1
 
@@ -46,12 +54,19 @@ def run_task(args: argparse.Namespace, metadata: dict[str, Any]) -> dict[str, An
     temp_dir = WORKER_ROOT / "temp"
     task = args.task
 
-    LOGGER.info("Starting task=%s session_id=%s recording_id=%s", task, args.session_id, args.recording_id)
+    LOGGER.info(
+        "Starting task=%s session_id=%s recording_id=%s",
+        task,
+        args.session_id,
+        args.recording_id,
+    )
 
     if task == "feedback":
-        transcript = str(metadata.get("transcript", ""))
-
-        return success_response(task, {"feedback": generate_feedback(transcript, metadata)}, metadata=worker_meta(args))
+        return error_response(
+            task,
+            "Feedback generation is handled by Laravel SpeakingFeedbackService in this MVP.",
+            "feedback_disabled",
+        )
 
     if audio_path is None:
         return error_response(task, "--audio-path is required", "missing_audio_path")
@@ -59,7 +74,11 @@ def run_task(args: argparse.Namespace, metadata: dict[str, Any]) -> dict[str, An
     preprocessing = prepare_audio(audio_path, temp_dir)
 
     if task == "preprocess":
-        return success_response(task, {"preprocessing": preprocessing}, metadata=worker_meta(args))
+        return success_response(
+            task,
+            {"preprocessing": preprocessing},
+            metadata=worker_meta(args),
+        )
 
     transcription = transcribe_audio(Path(str(preprocessing["working_path"])))
 
@@ -73,17 +92,11 @@ def run_task(args: argparse.Namespace, metadata: dict[str, Any]) -> dict[str, An
             metadata=worker_meta(args),
         )
 
-    feedback = generate_feedback(
-        str(transcription.get("transcript") or transcription.get("text") or ""),
-        {**metadata, **preprocessing},
-    )
-
     return success_response(
         task,
         {
             "preprocessing": preprocessing,
             "transcription": transcription,
-            "feedback": feedback,
         },
         metadata=worker_meta(args),
     )

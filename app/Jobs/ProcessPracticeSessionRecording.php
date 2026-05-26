@@ -78,6 +78,7 @@ class ProcessPracticeSessionRecording implements ShouldQueue
             ],
         );
 
+        // Feedback generation is intentionally owned by Laravel for this MVP.
         AnalyzeSpeakingTranscript::dispatch($transcript->id);
 
         $recording->user?->notify(new TranscriptionCompleted($transcript));

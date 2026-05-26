@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+# Experimental only. The MVP uses Laravel's SpeakingFeedbackService as the
+# single source of truth for feedback reports after transcription completes.
+# Keep this module around for future microservice extraction experiments, but
+# do not call it from worker.py's default processing flow.
+
 FILLER_WORDS = ("um", "uh", "like", "you know", "actually", "basically")
 
 
