@@ -66,6 +66,8 @@ export type SpeakingFeedbackReport = {
     status: SpeakingFeedbackReportStatus;
     error_message: string | null;
     processed_at: string | null;
+    practice_session?: PracticeSession | null;
+    transcript?: PracticeSessionTranscript | null;
 };
 
 export type PracticeSession = {

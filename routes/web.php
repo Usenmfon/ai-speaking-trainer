@@ -21,9 +21,11 @@ Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->gro
     Route::inertia('practice', 'practice')->name('practice');
     Route::resource('practice-sessions', PracticeSessionController::class)
         ->only(['index', 'create', 'store', 'show']);
+    Route::resource('feedback-reports', SpeakingFeedbackReportController::class)
+        ->only(['index', 'show']);
     Route::post('practice-sessions/{practiceSession}/recording', [PracticeSessionRecordingController::class, 'store'])
         ->name('practice-sessions.recording.store');
-    Route::get('practice-sessions/{practiceSession}/feedback-report', [SpeakingFeedbackReportController::class, 'show'])
+    Route::get('practice-sessions/{practiceSession}/feedback-report', [SpeakingFeedbackReportController::class, 'session'])
         ->name('practice-sessions.feedback-report.show');
 });
 

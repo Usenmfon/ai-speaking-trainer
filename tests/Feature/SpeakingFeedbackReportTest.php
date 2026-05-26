@@ -28,7 +28,7 @@ class SpeakingFeedbackReportTest extends TestCase
                 'text' => 'This is a clear practice transcript.',
             ]);
 
-        SpeakingFeedbackReport::factory()
+        $report = SpeakingFeedbackReport::factory()
             ->for($user)
             ->for($session)
             ->for($transcript, 'transcript')
@@ -37,15 +37,46 @@ class SpeakingFeedbackReportTest extends TestCase
                 'summary_feedback' => 'Strong opening and clear next steps.',
             ]);
 
-        $response = $this->actingAs($user)->get(route('practice-sessions.feedback-report.show', $session));
+        $response = $this->actingAs($user)->get(route('feedback-reports.show', $report));
 
         $response
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
-                ->component('PracticeSessions/FeedbackReport')
-                ->where('session.feedback_report.overall_score', 84)
-                ->where('session.feedback_report.summary_feedback', 'Strong opening and clear next steps.')
-                ->where('session.transcript.text', 'This is a clear practice transcript.')
+                ->component('FeedbackReports/Show')
+                ->where('report.overall_score', 84)
+                ->where('report.summary_feedback', 'Strong opening and clear next steps.')
+                ->where('report.transcript.text', 'This is a clear practice transcript.')
+            );
+    }
+
+    public function test_user_can_view_feedback_report_index(): void
+    {
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->create([
+            'title' => 'Demo practice',
+        ]);
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session)
+            ->create();
+
+        SpeakingFeedbackReport::factory()
+            ->for($user)
+            ->for($session)
+            ->for($transcript, 'transcript')
+            ->create([
+                'overall_score' => 91,
+            ]);
+
+        $response = $this->actingAs($user)->get(route('feedback-reports.index'));
+
+        $response
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('FeedbackReports/Index')
+                ->has('reports', 1)
+                ->where('reports.0.overall_score', 91)
+                ->where('reports.0.practice_session.title', 'Demo practice')
             );
     }
 
@@ -54,8 +85,17 @@ class SpeakingFeedbackReportTest extends TestCase
         $user = $this->completedUser();
         $otherUser = $this->completedUser();
         $session = PracticeSession::factory()->for($otherUser)->create();
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($otherUser)
+            ->for($session)
+            ->create();
+        $report = SpeakingFeedbackReport::factory()
+            ->for($otherUser)
+            ->for($session)
+            ->for($transcript, 'transcript')
+            ->create();
 
-        $response = $this->actingAs($user)->get(route('practice-sessions.feedback-report.show', $session));
+        $response = $this->actingAs($user)->get(route('feedback-reports.show', $report));
 
         $response->assertNotFound();
     }

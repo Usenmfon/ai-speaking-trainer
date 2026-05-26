@@ -14,6 +14,7 @@ import {
     create as createPracticeSession,
     index as practiceSessionsIndex,
 } from '@/actions/App/Http/Controllers/PracticeSessionController';
+import { index as feedbackReportsIndex } from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -47,7 +48,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Analytics',
-        href: '#analytics',
+        href: feedbackReportsIndex(),
         icon: BarChart3,
     },
     {

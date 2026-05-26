@@ -59,7 +59,7 @@ class PracticeSessionController extends Controller
         abort_unless($practiceSession->user_id === $request->user()->id, 404);
 
         return Inertia::render('PracticeSessions/Show', [
-            'session' => $practiceSession->load('recording'),
+            'session' => $practiceSession->load(['recording', 'feedbackReport']),
         ]);
     }
 

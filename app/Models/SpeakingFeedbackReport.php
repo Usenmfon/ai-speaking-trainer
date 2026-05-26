@@ -34,6 +34,8 @@ class SpeakingFeedbackReport extends Model
 {
     use HasUuids;
 
+    public $timestamps = false;
+
     public const Statuses = [
         'pending',
         'processing',

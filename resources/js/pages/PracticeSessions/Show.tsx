@@ -56,7 +56,11 @@ export default function Show({ session }: ShowProps) {
                             <div className="flex flex-col gap-3 sm:flex-row">
                                 {session.feedback_report && (
                                     <Button asChild variant="outline">
-                                        <Link href={showFeedbackReport(session.id)}>
+                                        <Link
+                                            href={showFeedbackReport(
+                                                session.feedback_report.id,
+                                            )}
+                                        >
                                             <BarChart3 className="size-4" />
                                             View report
                                         </Link>
