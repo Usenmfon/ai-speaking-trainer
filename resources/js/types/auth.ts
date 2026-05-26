@@ -156,6 +156,21 @@ export type Auth = {
     user: User;
 };
 
+export type AppNotification = {
+    id: string;
+    type: string;
+    title: string;
+    message: string;
+    url: string | null;
+    read_at: string | null;
+    created_at: string | null;
+};
+
+export type NotificationSummary = {
+    unreadCount: number;
+    recent: AppNotification[];
+};
+
 /* @chisel-passkeys */
 export type Passkey = {
     id: number;

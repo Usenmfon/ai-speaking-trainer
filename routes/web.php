@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminDashboardController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PracticeSessionController;
 use App\Http\Controllers\PracticeSessionRecordingController;
 use App\Http\Controllers\PracticeSessionRetryController;
@@ -17,6 +18,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('profile/complete', [UserProfileController::class, 'store'])->name('user-profile.store');
     Route::get('profile', [UserProfileController::class, 'edit'])->name('user-profile.edit');
     Route::patch('profile', [UserProfileController::class, 'update'])->name('user-profile.update');
+    Route::post('notifications/{notification}/read', [NotificationController::class, 'read'])
+        ->name('notifications.read');
+    Route::post('notifications/read-all', [NotificationController::class, 'readAll'])
+        ->name('notifications.read-all');
 });
 
 Route::middleware(['auth', 'verified', 'admin'])

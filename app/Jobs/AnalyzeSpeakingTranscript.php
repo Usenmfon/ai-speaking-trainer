@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Models\PracticeSessionTranscript;
 use App\Models\SpeakingFeedbackReport;
+use App\Notifications\FeedbackAnalysisCompleted;
+use App\Notifications\FeedbackAnalysisFailed;
 use App\Services\AI\SpeakingFeedbackService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -31,7 +33,7 @@ class AnalyzeSpeakingTranscript implements ShouldQueue
     public function handle(SpeakingFeedbackService $feedback): void
     {
         $transcript = PracticeSessionTranscript::query()
-            ->with('practiceSession')
+            ->with(['practiceSession', 'user'])
             ->findOrFail($this->transcriptId);
 
         $report = SpeakingFeedbackReport::query()->updateOrCreate(
@@ -58,6 +60,8 @@ class AnalyzeSpeakingTranscript implements ShouldQueue
             $transcript->practiceSession->forceFill([
                 'status' => 'analyzed',
             ])->save();
+
+            $transcript->user?->notify(new FeedbackAnalysisCompleted($report));
         } catch (Throwable $exception) {
             $report->forceFill([
                 'status' => 'failed',
@@ -85,7 +89,7 @@ class AnalyzeSpeakingTranscript implements ShouldQueue
     public function failed(Throwable $exception): void
     {
         $transcript = PracticeSessionTranscript::query()
-            ->with('practiceSession.feedbackReport')
+            ->with(['practiceSession.feedbackReport', 'user'])
             ->find($this->transcriptId);
 
         $transcript?->feedbackReport?->forceFill([
@@ -97,6 +101,10 @@ class AnalyzeSpeakingTranscript implements ShouldQueue
         $transcript?->practiceSession?->forceFill([
             'status' => 'failed',
         ])->save();
+
+        if ($transcript?->feedbackReport !== null) {
+            $transcript->user?->notify(new FeedbackAnalysisFailed($transcript->feedbackReport));
+        }
 
         Log::error('Speaking feedback analysis failed.', [
             'transcript_id' => $this->transcriptId,

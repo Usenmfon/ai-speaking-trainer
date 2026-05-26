@@ -1,6 +1,7 @@
 import { usePage } from '@inertiajs/react';
 import { Search, Sparkles } from 'lucide-react';
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import { NotificationsDropdown } from '@/components/notifications-dropdown';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
 
@@ -18,6 +19,7 @@ export function AppSidebarHeader({
                 <Breadcrumbs breadcrumbs={breadcrumbs} />
             </div>
             <div className="flex items-center gap-3">
+                <NotificationsDropdown />
                 <div className="hidden items-center gap-2 rounded-full border border-border bg-muted/50 px-3 py-2 text-sm text-muted-foreground sm:flex">
                     <Search className="size-4" />
                     <span>Search sessions</span>

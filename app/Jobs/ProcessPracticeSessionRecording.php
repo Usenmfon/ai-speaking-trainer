@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Models\PracticeSessionRecording;
 use App\Models\PracticeSessionTranscript;
+use App\Notifications\TranscriptionCompleted;
+use App\Notifications\TranscriptionFailed;
 use App\Services\AiWorker\AiWorkerClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -32,7 +34,7 @@ class ProcessPracticeSessionRecording implements ShouldQueue
     public function handle(AiWorkerClient $worker): void
     {
         $recording = PracticeSessionRecording::query()
-            ->with('practiceSession')
+            ->with(['practiceSession', 'user'])
             ->findOrFail($this->recordingId);
 
         $disk = config('practice.recordings.disk', 'local');
@@ -71,6 +73,8 @@ class ProcessPracticeSessionRecording implements ShouldQueue
         );
 
         AnalyzeSpeakingTranscript::dispatch($transcript->id);
+
+        $recording->user?->notify(new TranscriptionCompleted($transcript));
     }
 
     /**
@@ -79,12 +83,16 @@ class ProcessPracticeSessionRecording implements ShouldQueue
     public function failed(Throwable $exception): void
     {
         $recording = PracticeSessionRecording::query()
-            ->with('practiceSession')
+            ->with(['practiceSession', 'user'])
             ->find($this->recordingId);
 
         $recording?->practiceSession?->forceFill([
             'status' => 'failed',
         ])->save();
+
+        if ($recording?->practiceSession !== null) {
+            $recording->user?->notify(new TranscriptionFailed($recording->practiceSession));
+        }
 
         Log::error('AI worker failed to process practice session recording.', [
             'recording_id' => $this->recordingId,
