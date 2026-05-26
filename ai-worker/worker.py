@@ -4,6 +4,7 @@ import argparse
 import json
 import logging
 import os
+import platform
 import sys
 from pathlib import Path
 from typing import Any
@@ -24,7 +25,7 @@ def main() -> int:
     parser.add_argument(
         "--task",
         required=True,
-        choices=["process_recording", "transcribe", "preprocess", "feedback"],
+        choices=["health_check", "process_recording", "transcribe", "preprocess", "feedback"],
     )
     parser.add_argument("--audio-path")
     parser.add_argument("--session-id")
@@ -38,7 +39,7 @@ def main() -> int:
         response = run_task(args, metadata)
         print(json.dumps(response, ensure_ascii=False))
 
-        return 0 if response["ok"] else 1
+        return 0 if response.get("ok") is True or response.get("success") is True else 1
     except Exception as exception:
         LOGGER.exception("Worker task failed")
         print(
@@ -62,6 +63,14 @@ def run_task(args: argparse.Namespace, metadata: dict[str, Any]) -> dict[str, An
         args.session_id,
         args.recording_id,
     )
+
+    if task == "health_check":
+        return {
+            "success": True,
+            "status": "ok",
+            "python_version": platform.python_version(),
+            "worker": "available",
+        }
 
     if task == "feedback":
         return error_response(
