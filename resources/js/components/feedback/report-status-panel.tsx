@@ -1,6 +1,7 @@
-import { AlertCircle, RotateCcw, Sparkles } from 'lucide-react';
+import { AlertCircle, Sparkles } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
+import { analysis as retryAnalysis } from '@/actions/App/Http/Controllers/PracticeSessionRetryController';
+import { RetryProcessingButton } from '@/components/practice/retry-processing-button';
 import type { SpeakingFeedbackReport } from '@/types';
 
 type ReportStatusPanelProps = {
@@ -22,10 +23,10 @@ export function ReportStatusPanel({ report }: ReportStatusPanelProps) {
                                 'The report could not be generated.'}
                         </p>
                     </div>
-                    <Button type="button" variant="outline" disabled>
-                        <RotateCcw className="size-4" />
-                        Retry analysis
-                    </Button>
+                    <RetryProcessingButton
+                        action={retryAnalysis.url(report.practice_session_id)}
+                        label="Retry analysis"
+                    />
                 </div>
             </div>
         );

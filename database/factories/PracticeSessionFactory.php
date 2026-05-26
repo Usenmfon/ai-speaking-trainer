@@ -42,4 +42,16 @@ class PracticeSessionFactory extends Factory
             'completed_at' => now()->subMinutes(5),
         ]);
     }
+
+    /**
+     * Indicate that the session processing has failed.
+     */
+    public function failed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'failed',
+            'started_at' => now()->subMinutes(10),
+            'completed_at' => now()->subMinutes(5),
+        ]);
+    }
 }

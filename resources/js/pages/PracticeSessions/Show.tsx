@@ -1,9 +1,22 @@
 import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, BarChart3, Clock3, FilePlus2, Mic2, Target } from 'lucide-react';
+import {
+    AlertCircle,
+    ArrowLeft,
+    BarChart3,
+    Clock3,
+    FilePlus2,
+    Mic2,
+    Target,
+} from 'lucide-react';
 import { create, index } from '@/actions/App/Http/Controllers/PracticeSessionController';
 import { store as storeRecording } from '@/actions/App/Http/Controllers/PracticeSessionRecordingController';
+import {
+    analysis as retryAnalysis,
+    transcription as retryTranscription,
+} from '@/actions/App/Http/Controllers/PracticeSessionRetryController';
 import { show as showFeedbackReport } from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
 import { AudioRecorder } from '@/components/practice/audio-recorder';
+import { RetryProcessingButton } from '@/components/practice/retry-processing-button';
 import { Button } from '@/components/ui/button';
 import type { PracticeSession } from '@/types';
 
@@ -25,6 +38,16 @@ function formatDuration(seconds: number): string {
 }
 
 export default function Show({ session }: ShowProps) {
+    const canRetryAnalysis =
+        session.status === 'failed' &&
+        Boolean(session.transcript) &&
+        session.feedback_report?.status === 'failed';
+    const canRetryTranscription =
+        session.status === 'failed' &&
+        Boolean(session.recording) &&
+        !session.transcript &&
+        !session.feedback_report;
+
     return (
         <>
             <Head title={session.title} />
@@ -117,6 +140,35 @@ export default function Show({ session }: ShowProps) {
                                 {session.objective}
                             </p>
                         </div>
+
+                        {(canRetryTranscription || canRetryAnalysis) && (
+                            <div className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/10 p-5 text-destructive">
+                                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                    <div>
+                                        <div className="flex items-center gap-2 font-semibold">
+                                            <AlertCircle className="size-5" />
+                                            Processing failed
+                                        </div>
+                                        <p className="mt-2 text-sm">
+                                            {canRetryAnalysis
+                                                ? 'The transcript is ready, but AI feedback analysis failed. You can queue a fresh analysis attempt.'
+                                                : 'The recording could not be transcribed. You can queue a fresh transcription attempt.'}
+                                        </p>
+                                    </div>
+                                    {canRetryAnalysis ? (
+                                        <RetryProcessingButton
+                                            action={retryAnalysis.url(session.id)}
+                                            label="Retry analysis"
+                                        />
+                                    ) : (
+                                        <RetryProcessingButton
+                                            action={retryTranscription.url(session.id)}
+                                            label="Retry transcription"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <div className="mt-6">

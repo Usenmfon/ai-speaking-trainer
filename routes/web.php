@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PracticeSessionController;
 use App\Http\Controllers\PracticeSessionRecordingController;
+use App\Http\Controllers\PracticeSessionRetryController;
 use App\Http\Controllers\Profile\UserProfileController;
 use App\Http\Controllers\SpeakingFeedbackReportController;
 use App\Http\Middleware\EnsureUserProfileIsComplete;
@@ -26,6 +27,10 @@ Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->gro
         ->only(['index', 'show']);
     Route::post('practice-sessions/{practiceSession}/recording', [PracticeSessionRecordingController::class, 'store'])
         ->name('practice-sessions.recording.store');
+    Route::post('practice-sessions/{practiceSession}/retry-transcription', [PracticeSessionRetryController::class, 'transcription'])
+        ->name('practice-sessions.retry-transcription');
+    Route::post('practice-sessions/{practiceSession}/retry-analysis', [PracticeSessionRetryController::class, 'analysis'])
+        ->name('practice-sessions.retry-analysis');
     Route::get('practice-sessions/{practiceSession}/feedback-report', [SpeakingFeedbackReportController::class, 'session'])
         ->name('practice-sessions.feedback-report.show');
 });

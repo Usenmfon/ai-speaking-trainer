@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Jobs\AnalyzeSpeakingTranscript;
 use App\Jobs\ProcessPracticeSessionRecording;
 use App\Models\PracticeSession;
 use App\Models\PracticeSessionRecording;
@@ -336,6 +337,122 @@ class PracticeSessionTest extends TestCase
 
         $response->assertSessionHasErrors('audio');
         $this->assertDatabaseCount('practice_session_recordings', 0);
+    }
+
+    public function test_user_can_retry_failed_transcription(): void
+    {
+        Queue::fake();
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->failed()
+            ->create();
+        $recording = PracticeSessionRecording::factory()
+            ->for($user)
+            ->for($session)
+            ->create();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.retry-transcription', $session));
+
+        $response->assertRedirect();
+        $this->assertSame('recorded', $session->fresh()->status);
+        Queue::assertPushed(
+            ProcessPracticeSessionRecording::class,
+            fn (ProcessPracticeSessionRecording $job): bool => $job->recordingId === $recording->id,
+        );
+    }
+
+    public function test_transcription_retry_requires_failed_session(): void
+    {
+        Queue::fake();
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->recorded()
+            ->create();
+        PracticeSessionRecording::factory()
+            ->for($user)
+            ->for($session)
+            ->create();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.retry-transcription', $session));
+
+        $response->assertSessionHasErrors('retry');
+        Queue::assertNotPushed(ProcessPracticeSessionRecording::class);
+    }
+
+    public function test_user_cannot_retry_transcription_for_another_users_session(): void
+    {
+        Queue::fake();
+
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($otherUser)
+            ->failed()
+            ->create();
+        PracticeSessionRecording::factory()
+            ->for($otherUser)
+            ->for($session)
+            ->create();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.retry-transcription', $session));
+
+        $response->assertNotFound();
+        Queue::assertNotPushed(ProcessPracticeSessionRecording::class);
+    }
+
+    public function test_user_can_retry_failed_feedback_analysis(): void
+    {
+        Queue::fake();
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->failed()
+            ->create();
+        $report = $this->createReportForSession($session, $user, 41);
+        $report->forceFill([
+            'status' => 'failed',
+            'error_message' => 'AI provider timed out.',
+            'processed_at' => now(),
+        ])->save();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.retry-analysis', $session));
+
+        $response->assertRedirect();
+        $this->assertSame('recorded', $session->fresh()->status);
+        $this->assertSame('processing', $report->fresh()->status);
+        $this->assertNull($report->fresh()->error_message);
+        $this->assertNull($report->fresh()->processed_at);
+        Queue::assertPushed(
+            AnalyzeSpeakingTranscript::class,
+            fn (AnalyzeSpeakingTranscript $job): bool => $job->transcriptId === $report->transcript_id,
+        );
+    }
+
+    public function test_analysis_retry_prevents_duplicate_processing_retry(): void
+    {
+        Queue::fake();
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->failed()
+            ->create();
+        $report = $this->createReportForSession($session, $user, 41);
+        $report->forceFill([
+            'status' => 'processing',
+            'error_message' => null,
+            'processed_at' => null,
+        ])->save();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.retry-analysis', $session));
+
+        $response->assertSessionHasErrors('retry');
+        Queue::assertNotPushed(AnalyzeSpeakingTranscript::class);
     }
 
     private function completedUser(): User
