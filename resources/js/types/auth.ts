@@ -88,6 +88,19 @@ export type PracticeSession = {
     feedback_report?: SpeakingFeedbackReport | null;
 };
 
+export type DashboardAnalytics = {
+    stats: {
+        totalPracticeSessions: number;
+        completedSessions: number;
+        averageOverallScore: number | null;
+        bestScore: number | null;
+    };
+    latestSession: PracticeSession | null;
+    mostCommonWeakness: string | null;
+    recentSessions: PracticeSession[];
+    recentReports: SpeakingFeedbackReport[];
+};
+
 export type UserProfile = {
     id: string;
     user_id: number;

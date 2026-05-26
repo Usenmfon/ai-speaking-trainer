@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PracticeSessionController;
 use App\Http\Controllers\PracticeSessionRecordingController;
 use App\Http\Controllers\Profile\UserProfileController;
@@ -17,7 +18,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->group(function () {
-    Route::inertia('dashboard', 'dashboard')->name('dashboard');
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::inertia('practice', 'practice')->name('practice');
     Route::resource('practice-sessions', PracticeSessionController::class)
         ->only(['index', 'create', 'store', 'show']);
