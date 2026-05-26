@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\PracticeSessionController;
+use App\Http\Controllers\PracticeSessionRecordingController;
 use App\Http\Controllers\Profile\UserProfileController;
 use App\Http\Middleware\EnsureUserProfileIsComplete;
 use Illuminate\Support\Facades\Route;
@@ -19,6 +20,8 @@ Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->gro
     Route::inertia('practice', 'practice')->name('practice');
     Route::resource('practice-sessions', PracticeSessionController::class)
         ->only(['index', 'create', 'store', 'show']);
+    Route::post('practice-sessions/{practiceSession}/recording', [PracticeSessionRecordingController::class, 'store'])
+        ->name('practice-sessions.recording.store');
 });
 
 require __DIR__.'/settings.php';

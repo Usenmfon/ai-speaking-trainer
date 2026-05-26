@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\PracticeSession;
+use App\Models\PracticeSessionRecording;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -151,6 +154,111 @@ class PracticeSessionTest extends TestCase
         $response = $this->actingAs($user)->get(route('practice-sessions.show', $session));
 
         $response->assertNotFound();
+    }
+
+    public function test_user_can_upload_practice_session_recording(): void
+    {
+        Storage::fake('local');
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->create();
+        $file = UploadedFile::fake()->create('speech.webm', 1024, 'audio/webm');
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.recording.store', $session), [
+            'audio' => $file,
+            'duration_seconds' => 185,
+        ]);
+
+        $recording = PracticeSessionRecording::query()->firstOrFail();
+
+        $response->assertRedirect(route('practice-sessions.show', $session));
+        Storage::disk('local')->assertExists($recording->audio_path);
+
+        $this->assertSame('recorded', $session->fresh()->status);
+        $this->assertMatchesRegularExpression(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
+            $recording->id,
+        );
+        $this->assertDatabaseHas('practice_session_recordings', [
+            'practice_session_id' => $session->id,
+            'user_id' => $user->id,
+            'original_filename' => 'speech.webm',
+            'mime_type' => 'audio/webm',
+            'duration_seconds' => 185,
+        ]);
+    }
+
+    public function test_upload_replaces_existing_recording_file(): void
+    {
+        Storage::fake('local');
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->recorded()->create();
+        Storage::disk('local')->put('practice-session-recordings/old.webm', 'old-audio');
+
+        PracticeSessionRecording::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'audio_path' => 'practice-session-recordings/old.webm',
+            ]);
+
+        $file = UploadedFile::fake()->create('replacement.webm', 512, 'audio/webm');
+
+        $this->actingAs($user)->post(route('practice-sessions.recording.store', $session), [
+            'audio' => $file,
+            'duration_seconds' => 90,
+        ]);
+
+        $this->assertDatabaseCount('practice_session_recordings', 1);
+        Storage::disk('local')->assertMissing('practice-session-recordings/old.webm');
+        Storage::disk('local')->assertExists($session->recording()->firstOrFail()->audio_path);
+    }
+
+    public function test_user_cannot_upload_recording_to_another_users_session(): void
+    {
+        Storage::fake('local');
+
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+        $session = PracticeSession::factory()->for($otherUser)->create();
+        $file = UploadedFile::fake()->create('speech.webm', 1024, 'audio/webm');
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.recording.store', $session), [
+            'audio' => $file,
+        ]);
+
+        $response->assertForbidden();
+        $this->assertDatabaseCount('practice_session_recordings', 0);
+    }
+
+    public function test_recording_upload_validates_audio_file(): void
+    {
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->create();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.recording.store', $session), [
+            'audio' => UploadedFile::fake()->create('notes.txt', 12, 'text/plain'),
+        ]);
+
+        $response->assertSessionHasErrors('audio');
+    }
+
+    public function test_recording_cannot_be_uploaded_after_analysis(): void
+    {
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->create([
+                'status' => 'analyzed',
+            ]);
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.recording.store', $session), [
+            'audio' => UploadedFile::fake()->create('speech.webm', 1024, 'audio/webm'),
+        ]);
+
+        $response->assertSessionHasErrors('audio');
+        $this->assertDatabaseCount('practice_session_recordings', 0);
     }
 
     private function completedUser(): User

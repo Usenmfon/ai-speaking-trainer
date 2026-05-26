@@ -17,6 +17,18 @@ export type PracticeSessionType =
 
 export type PracticeSessionStatus = 'draft' | 'recorded' | 'analyzed' | 'failed';
 
+export type PracticeSessionRecording = {
+    id: string;
+    practice_session_id: string;
+    user_id: number;
+    audio_path: string;
+    original_filename: string | null;
+    mime_type: string;
+    size: number;
+    duration_seconds: number | null;
+    uploaded_at: string;
+};
+
 export type PracticeSession = {
     id: string;
     user_id: number;
@@ -30,6 +42,7 @@ export type PracticeSession = {
     completed_at: string | null;
     created_at: string;
     updated_at: string;
+    recording?: PracticeSessionRecording | null;
 };
 
 export type UserProfile = {

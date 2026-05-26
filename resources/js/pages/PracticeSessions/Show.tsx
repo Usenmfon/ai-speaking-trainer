@@ -1,6 +1,8 @@
 import { Head, Link } from '@inertiajs/react';
 import { ArrowLeft, Clock3, FilePlus2, Mic2, Target } from 'lucide-react';
 import { create, index } from '@/actions/App/Http/Controllers/PracticeSessionController';
+import { store as storeRecording } from '@/actions/App/Http/Controllers/PracticeSessionRecordingController';
+import { AudioRecorder } from '@/components/practice/audio-recorder';
 import { Button } from '@/components/ui/button';
 import type { PracticeSession } from '@/types';
 
@@ -100,6 +102,18 @@ export default function Show({ session }: ShowProps) {
                                 {session.objective}
                             </p>
                         </div>
+                    </div>
+
+                    <div className="mt-6">
+                        <AudioRecorder
+                            targetDurationSeconds={
+                                session.target_duration_seconds
+                            }
+                            uploadUrl={storeRecording.url(session.id)}
+                            hasStoredRecording={Boolean(session.recording)}
+                            disabled={session.status === 'analyzed'}
+                            disabledReason="This session has already been analyzed, so recording is locked."
+                        />
                     </div>
                 </div>
             </div>

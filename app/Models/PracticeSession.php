@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 #[UseFactory(PracticeSessionFactory::class)]
 #[Fillable([
@@ -48,6 +49,16 @@ class PracticeSession extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the recording for this practice session.
+     *
+     * @return HasOne<PracticeSessionRecording, $this>
+     */
+    public function recording(): HasOne
+    {
+        return $this->hasOne(PracticeSessionRecording::class);
     }
 
     /**
