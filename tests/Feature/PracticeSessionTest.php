@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Jobs\ProcessPracticeSessionRecording;
 use App\Models\PracticeSession;
 use App\Models\PracticeSessionRecording;
+use App\Models\PracticeSessionTranscript;
+use App\Models\SpeakingFeedbackReport;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,7 +30,10 @@ class PracticeSessionTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('PracticeSessions/Index')
-                ->has('sessions', 0)
+                ->has('sessions.data', 0)
+                ->where('filters.sort', 'newest')
+                ->has('filterOptions.sessionTypes')
+                ->has('filterOptions.statuses')
             );
     }
 
@@ -50,10 +55,78 @@ class PracticeSessionTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('PracticeSessions/Index')
-                ->has('sessions', 1)
-                ->where('sessions.0.title', 'Investor pitch rehearsal')
-                ->where('sessions.0.topic', 'Q3 growth story')
-                ->where('sessions.0.session_type', 'presentation')
+                ->has('sessions.data', 1)
+                ->where('sessions.data.0.title', 'Investor pitch rehearsal')
+                ->where('sessions.data.0.topic', 'Q3 growth story')
+                ->where('sessions.data.0.session_type', 'presentation')
+            );
+    }
+
+    public function test_index_filters_searches_sorts_and_paginates_user_sessions(): void
+    {
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+
+        $matchedSession = PracticeSession::factory()
+            ->for($user)
+            ->create([
+                'title' => 'Executive demo rehearsal',
+                'topic' => 'AI roadmap pitch',
+                'session_type' => 'presentation',
+                'status' => 'analyzed',
+                'created_at' => now()->subDay(),
+            ]);
+
+        $lowerScoreSession = PracticeSession::factory()
+            ->for($user)
+            ->create([
+                'title' => 'Product roadmap pitch',
+                'topic' => 'Leadership update',
+                'session_type' => 'presentation',
+                'status' => 'analyzed',
+                'created_at' => now(),
+            ]);
+
+        PracticeSession::factory()
+            ->for($user)
+            ->create([
+                'title' => 'Interview opener',
+                'topic' => 'Behavioral story',
+                'session_type' => 'interview',
+                'status' => 'draft',
+            ]);
+
+        PracticeSession::factory()
+            ->for($otherUser)
+            ->create([
+                'title' => 'Executive demo rehearsal',
+                'topic' => 'AI roadmap pitch',
+                'session_type' => 'presentation',
+                'status' => 'analyzed',
+            ]);
+
+        $this->createReportForSession($matchedSession, $user, 92);
+        $this->createReportForSession($lowerScoreSession, $user, 62);
+
+        $response = $this->actingAs($user)->get(route('practice-sessions.index', [
+            'search' => 'pitch',
+            'session_type' => 'presentation',
+            'status' => 'analyzed',
+            'sort' => 'highest_score',
+        ]));
+
+        $response
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('PracticeSessions/Index')
+                ->has('sessions.data', 2)
+                ->where('sessions.data.0.id', $matchedSession->id)
+                ->where('sessions.data.0.feedback_report.overall_score', 92)
+                ->where('sessions.data.1.id', $lowerScoreSession->id)
+                ->where('filters.search', 'pitch')
+                ->where('filters.session_type', 'presentation')
+                ->where('filters.status', 'analyzed')
+                ->where('filters.sort', 'highest_score')
             );
     }
 
@@ -270,5 +343,23 @@ class PracticeSessionTest extends TestCase
         return User::factory()
             ->has(UserProfile::factory(), 'profile')
             ->create();
+    }
+
+    private function createReportForSession(PracticeSession $session, User $user, int $score): SpeakingFeedbackReport
+    {
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session, 'practiceSession')
+            ->create([
+                'practice_session_recording_id' => null,
+            ]);
+
+        return SpeakingFeedbackReport::factory()
+            ->for($user)
+            ->for($session, 'practiceSession')
+            ->for($transcript, 'transcript')
+            ->create([
+                'overall_score' => $score,
+            ]);
     }
 }
