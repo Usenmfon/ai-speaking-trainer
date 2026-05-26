@@ -50,8 +50,9 @@ class AdminDashboardController extends Controller
     {
         return Inertia::render('Admin/Users/Index', [
             'users' => User::query()
-                ->select(['id', 'public_id', 'name', 'email', 'is_admin', 'created_at'])
+                ->select(['id', 'public_id', 'name', 'email', 'created_at'])
                 ->with('profile:id,user_id,onboarding_completed')
+                ->with('roles:id,name')
                 ->withCount('practiceSessions')
                 ->latest()
                 ->paginate(15)
