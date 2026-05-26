@@ -316,6 +316,50 @@ class PracticeSessionTest extends TestCase
         $this->assertDatabaseCount('practice_session_recordings', 0);
     }
 
+    public function test_user_can_securely_play_their_uploaded_recording(): void
+    {
+        Storage::fake('local');
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->recorded()->create();
+        Storage::disk('local')->put('practice-session-recordings/speech.webm', 'audio-content');
+
+        PracticeSessionRecording::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'audio_path' => 'practice-session-recordings/speech.webm',
+                'mime_type' => 'audio/webm',
+            ]);
+
+        $response = $this->actingAs($user)->get(route('practice-sessions.recording.playback', $session));
+
+        $response
+            ->assertOk()
+            ->assertHeader('content-type', 'audio/webm');
+    }
+
+    public function test_user_cannot_play_another_users_recording(): void
+    {
+        Storage::fake('local');
+
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+        $session = PracticeSession::factory()->for($otherUser)->recorded()->create();
+        Storage::disk('local')->put('practice-session-recordings/speech.webm', 'audio-content');
+
+        PracticeSessionRecording::factory()
+            ->for($otherUser)
+            ->for($session)
+            ->create([
+                'audio_path' => 'practice-session-recordings/speech.webm',
+            ]);
+
+        $response = $this->actingAs($user)->get(route('practice-sessions.recording.playback', $session));
+
+        $response->assertForbidden();
+    }
+
     public function test_recording_upload_validates_audio_file(): void
     {
         $user = $this->completedUser();

@@ -9,7 +9,10 @@ import {
     Target,
 } from 'lucide-react';
 import { create, index } from '@/actions/App/Http/Controllers/PracticeSessionController';
-import { store as storeRecording } from '@/actions/App/Http/Controllers/PracticeSessionRecordingController';
+import {
+    playback as playbackRecording,
+    store as storeRecording,
+} from '@/actions/App/Http/Controllers/PracticeSessionRecordingController';
 import {
     analysis as retryAnalysis,
     transcription as retryTranscription,
@@ -17,6 +20,7 @@ import {
 import { show as showFeedbackReport } from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
 import { AudioRecorder } from '@/components/practice/audio-recorder';
 import { RetryProcessingButton } from '@/components/practice/retry-processing-button';
+import { StoredRecordingPlayer } from '@/components/practice/stored-recording-player';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { PracticeSession } from '@/types';
@@ -233,6 +237,13 @@ export default function Show({ session }: ShowProps) {
                                 </div>
                             </div>
                         )}
+                    </div>
+
+                    <div className="mt-6">
+                        <StoredRecordingPlayer
+                            recording={session.recording}
+                            playbackUrl={playbackRecording.url(session.id)}
+                        />
                     </div>
 
                     <div className="mt-6">

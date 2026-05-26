@@ -42,6 +42,8 @@ Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->gro
         ->only(['index', 'show']);
     Route::post('practice-sessions/{practiceSession}/recording', [PracticeSessionRecordingController::class, 'store'])
         ->name('practice-sessions.recording.store');
+    Route::get('practice-sessions/{practiceSession}/recording/playback', [PracticeSessionRecordingController::class, 'playback'])
+        ->name('practice-sessions.recording.playback');
     Route::post('practice-sessions/{practiceSession}/retry-transcription', [PracticeSessionRetryController::class, 'transcription'])
         ->name('practice-sessions.retry-transcription');
     Route::post('practice-sessions/{practiceSession}/retry-analysis', [PracticeSessionRetryController::class, 'analysis'])

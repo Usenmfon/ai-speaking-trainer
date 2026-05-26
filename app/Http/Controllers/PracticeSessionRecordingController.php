@@ -9,9 +9,11 @@ use App\Models\PracticeSessionRecording;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Throwable;
 
 class PracticeSessionRecordingController extends Controller
@@ -87,5 +89,52 @@ class PracticeSessionRecordingController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Recording uploaded.')]);
 
         return to_route('practice-sessions.show', $practiceSession);
+    }
+
+    /**
+     * Play the stored audio recording without exposing private storage paths.
+     */
+    public function playback(PracticeSession $practiceSession): RedirectResponse|BinaryFileResponse
+    {
+        Gate::authorize('view', $practiceSession);
+
+        /** @var PracticeSessionRecording $recording */
+        $recording = $practiceSession->recording()->firstOrFail();
+        $disk = config('practice.recordings.disk', 'local');
+        $storage = Storage::disk($disk);
+
+        abort_unless($storage->exists($recording->audio_path), 404);
+
+        $driver = config("filesystems.disks.{$disk}.driver");
+
+        if ($driver === 'local') {
+            return response()->file($storage->path($recording->audio_path), [
+                'Content-Type' => $recording->mime_type,
+                'Content-Disposition' => 'inline; filename="'.$this->safeInlineFilename($recording).'"',
+                'Cache-Control' => 'private, no-store',
+                'X-Content-Type-Options' => 'nosniff',
+            ]);
+        }
+
+        $temporaryUrl = $storage->temporaryUrl(
+            $recording->audio_path,
+            now()->addMinutes(10),
+            [
+                'ResponseContentType' => $recording->mime_type,
+                'ResponseContentDisposition' => 'inline; filename="'.$this->safeInlineFilename($recording).'"',
+            ],
+        );
+
+        return redirect()->away($temporaryUrl);
+    }
+
+    /**
+     * Get a safe filename for inline audio playback headers.
+     */
+    private function safeInlineFilename(PracticeSessionRecording $recording): string
+    {
+        $filename = basename($recording->original_filename ?: 'practice-recording');
+
+        return str_replace(['"', "\r", "\n"], '', $filename);
     }
 }
