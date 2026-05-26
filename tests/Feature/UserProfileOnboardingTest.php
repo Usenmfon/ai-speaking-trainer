@@ -12,6 +12,17 @@ class UserProfileOnboardingTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_user_receives_uuid7_public_id(): void
+    {
+        $user = User::factory()->create();
+
+        $this->assertIsString($user->public_id);
+        $this->assertMatchesRegularExpression(
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
+            $user->public_id,
+        );
+    }
+
     public function test_user_without_completed_profile_is_redirected_from_dashboard(): void
     {
         $user = User::factory()->create();

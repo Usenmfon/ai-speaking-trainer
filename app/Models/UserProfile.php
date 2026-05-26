@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\UserProfileFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -20,6 +21,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class UserProfile extends Model
 {
+    use HasUuids;
+
     public const SpeakingLevels = [
         'beginner',
         'intermediate',

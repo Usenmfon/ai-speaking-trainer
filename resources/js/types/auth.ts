@@ -9,7 +9,7 @@ export type MainGoal =
     | 'pronunciation';
 
 export type UserProfile = {
-    id: number;
+    id: string;
     user_id: number;
     full_name: string;
     speaking_level: SpeakingLevel;
@@ -23,6 +23,7 @@ export type UserProfile = {
 
 export type User = {
     id: number;
+    public_id: string;
     name: string;
     email: string;
     avatar?: string;
