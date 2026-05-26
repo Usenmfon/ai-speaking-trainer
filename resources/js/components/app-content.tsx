@@ -13,7 +13,7 @@ export function AppContent({ variant = 'sidebar', children, ...props }: Props) {
             <SidebarInset
                 {...props}
                 className={cn(
-                    'overflow-hidden bg-[#070a18] text-white md:rounded-2xl',
+                    'overflow-hidden bg-background text-foreground md:rounded-2xl',
                     props.className,
                 )}
             >

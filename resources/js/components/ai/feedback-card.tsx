@@ -9,9 +9,11 @@ type FeedbackCardProps = {
 };
 
 const toneClasses = {
-    info: 'border-cyan-300/20 bg-cyan-300/10 text-cyan-200',
-    success: 'border-emerald-300/20 bg-emerald-300/10 text-emerald-200',
-    warning: 'border-amber-300/20 bg-amber-300/10 text-amber-200',
+    info: 'border-cyan-500/20 bg-cyan-500/10 text-cyan-700 dark:border-cyan-300/20 dark:bg-cyan-300/10 dark:text-cyan-200',
+    success:
+        'border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-200',
+    warning:
+        'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-200',
 };
 
 export function FeedbackCard({
@@ -29,10 +31,10 @@ export function FeedbackCard({
                     <Icon className="size-4" />
                 </div>
                 <div>
-                    <h3 className="text-sm font-semibold text-white">
+                    <h3 className="text-sm font-semibold text-foreground dark:text-white">
                         {title}
                     </h3>
-                    <p className="mt-1 text-sm leading-6 text-slate-300">
+                    <p className="mt-1 text-sm leading-6 text-muted-foreground dark:text-slate-300">
                         {body}
                     </p>
                 </div>

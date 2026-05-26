@@ -85,20 +85,20 @@ export default function Dashboard() {
     return (
         <>
             <Head title="Dashboard" />
-            <div className="min-h-full bg-[#070a18] px-4 py-6 text-white sm:px-6 lg:px-8">
+            <div className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
                 <div className="mx-auto flex max-w-7xl flex-col gap-6">
                     <section className="grid gap-5 lg:grid-cols-[1.4fr_0.6fr]">
                         <GlassCard className="p-6 sm:p-8" glow>
                             <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
                                 <div>
-                                    <p className="flex items-center gap-2 text-sm font-semibold text-cyan-200">
+                                    <p className="flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
                                         <Sparkles className="size-4" />
                                         AI coach dashboard
                                     </p>
                                     <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-4xl">
                                         Welcome back, {auth.user?.name ?? 'speaker'}
                                     </h1>
-                                    <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-300">
+                                    <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground dark:text-slate-300">
                                         Your next best rep is a two-minute
                                         opener drill. Focus on pausing after key
                                         claims and keeping pace under 145 words
@@ -115,10 +115,10 @@ export default function Dashboard() {
                                     ({ label, value, icon: Icon }) => (
                                     <div
                                         key={label}
-                                        className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"
+                                        className="rounded-2xl border border-border bg-muted/40 p-4 dark:border-white/10 dark:bg-white/[0.04]"
                                     >
-                                        <Icon className="size-5 text-cyan-200" />
-                                        <p className="mt-3 text-sm text-slate-400">
+                                        <Icon className="size-5 text-cyan-700 dark:text-cyan-200" />
+                                        <p className="mt-3 text-sm text-muted-foreground dark:text-slate-400">
                                             {label}
                                         </p>
                                         <p className="mt-1 text-xl font-semibold">
@@ -133,14 +133,14 @@ export default function Dashboard() {
                         <GlassCard className="p-6" glow>
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <p className="text-sm text-slate-400">
+                                    <p className="text-sm text-muted-foreground dark:text-slate-400">
                                         Daily streak
                                     </p>
                                     <p className="mt-2 text-4xl font-semibold">
                                         8
                                     </p>
                                 </div>
-                                <div className="rounded-2xl border border-amber-300/20 bg-amber-300/10 p-3 text-amber-200">
+                                <div className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-3 text-amber-700 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-200">
                                     <Flame className="size-6" />
                                 </div>
                             </div>
@@ -152,7 +152,7 @@ export default function Dashboard() {
                                             className={`flex aspect-square items-center justify-center rounded-xl text-xs font-semibold ${
                                                 index < 5
                                                     ? 'bg-cyan-300 text-slate-950'
-                                                    : 'bg-white/8 text-slate-400'
+                                                    : 'bg-muted text-muted-foreground dark:bg-white/8 dark:text-slate-400'
                                             }`}
                                         >
                                             {day}
@@ -160,7 +160,7 @@ export default function Dashboard() {
                                     ),
                                 )}
                             </div>
-                            <p className="mt-5 text-sm leading-6 text-slate-300">
+                            <p className="mt-5 text-sm leading-6 text-muted-foreground dark:text-slate-300">
                                 Complete one practice today to unlock the
                                 Consistent Speaker badge.
                             </p>
@@ -180,12 +180,12 @@ export default function Dashboard() {
                                     <h2 className="text-xl font-semibold">
                                         Speech analytics summary
                                     </h2>
-                                    <p className="mt-1 text-sm text-slate-400">
+                                    <p className="mt-1 text-sm text-muted-foreground dark:text-slate-400">
                                         Confidence, fluency, and tone over your
                                         last ten practice sessions.
                                     </p>
                                 </div>
-                                <span className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-sm text-emerald-200">
+                                <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-sm text-emerald-700 dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-200">
                                     +18% improvement
                                 </span>
                             </div>
@@ -197,7 +197,7 @@ export default function Dashboard() {
                                 <h2 className="text-xl font-semibold">
                                     Live readiness
                                 </h2>
-                                <BarChart3 className="size-5 text-cyan-200" />
+                                <BarChart3 className="size-5 text-cyan-700 dark:text-cyan-200" />
                             </div>
                             <WaveformMock className="mt-5 h-32" bars={28} />
                             <div className="mt-5 grid grid-cols-3 gap-3">
@@ -208,9 +208,9 @@ export default function Dashboard() {
                                 ].map(([label, value]) => (
                                     <div
                                         key={label}
-                                        className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-center"
+                                        className="rounded-2xl border border-border bg-muted/40 p-3 text-center dark:border-white/10 dark:bg-white/[0.04]"
                                     >
-                                        <p className="text-xs text-slate-400">
+                                        <p className="text-xs text-muted-foreground dark:text-slate-400">
                                             {label}
                                         </p>
                                         <p className="mt-1 text-sm font-semibold">
@@ -230,7 +230,7 @@ export default function Dashboard() {
                                 </h2>
                                 <Link
                                     href="#"
-                                    className="text-sm text-cyan-200 hover:text-cyan-100"
+                                    className="text-sm text-cyan-700 hover:text-cyan-600 dark:text-cyan-200 dark:hover:text-cyan-100"
                                 >
                                     View all
                                 </Link>
@@ -268,19 +268,19 @@ export default function Dashboard() {
 
                         <GlassCard className="p-6" glow>
                             <div className="mb-5 flex items-center gap-3">
-                                <div className="rounded-2xl border border-violet-300/20 bg-violet-300/10 p-3 text-violet-200">
+                                <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-3 text-violet-700 dark:border-violet-300/20 dark:bg-violet-300/10 dark:text-violet-200">
                                     <BrainCircuit className="size-5" />
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-semibold">
                                         AI coach
                                     </h2>
-                                    <p className="text-sm text-slate-400">
+                                    <p className="text-sm text-muted-foreground dark:text-slate-400">
                                         Ready with your next drill
                                     </p>
                                 </div>
                             </div>
-                            <p className="text-sm leading-6 text-slate-300">
+                            <p className="text-sm leading-6 text-muted-foreground dark:text-slate-300">
                                 Try a 90-second answer to: "Tell me about a
                                 time you handled ambiguity." I will score
                                 structure, specificity, and confidence.

@@ -17,12 +17,5 @@ export function AppShell({ children, variant = 'sidebar' }: Props) {
         );
     }
 
-    return (
-        <SidebarProvider
-            defaultOpen={isOpen}
-            className="bg-[#070a18] text-white"
-        >
-            {children}
-        </SidebarProvider>
-    );
+    return <SidebarProvider defaultOpen={isOpen}>{children}</SidebarProvider>;
 }

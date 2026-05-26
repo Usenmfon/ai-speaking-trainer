@@ -7,10 +7,10 @@ export default function AppLogo() {
                 <Mic2 className="size-5" />
             </div>
             <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-semibold text-white">
+                <span className="mb-0.5 truncate leading-tight font-semibold text-sidebar-foreground">
                     SpeakAI Coach
                 </span>
-                <span className="truncate text-xs text-slate-400">
+                <span className="truncate text-xs text-sidebar-foreground/60">
                     Speaking trainer
                 </span>
             </div>

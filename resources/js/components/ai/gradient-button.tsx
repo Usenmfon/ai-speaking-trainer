@@ -22,7 +22,7 @@ export function GradientButton({
         'inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition duration-300 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 focus-visible:outline-none',
         variant === 'primary'
             ? 'bg-linear-to-r from-cyan-300 via-blue-400 to-violet-500 text-slate-950 shadow-[0_0_32px_rgba(34,211,238,0.35)] hover:-translate-y-0.5 hover:shadow-[0_0_46px_rgba(139,92,246,0.42)]'
-            : 'border border-white/12 bg-white/8 text-white hover:-translate-y-0.5 hover:border-cyan-300/50 hover:bg-white/12',
+            : 'border border-border bg-card/80 text-foreground hover:-translate-y-0.5 hover:border-cyan-500/50 hover:bg-accent dark:border-white/12 dark:bg-white/8 dark:text-white dark:hover:border-cyan-300/50 dark:hover:bg-white/12',
         className,
     );
 

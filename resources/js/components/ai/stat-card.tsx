@@ -13,16 +13,22 @@ export function StatCard({ label, value, trend, icon: Icon }: StatCardProps) {
         <GlassCard className="p-5 hover:-translate-y-1" glow>
             <div className="flex items-start justify-between gap-4">
                 <div>
-                    <p className="text-sm text-slate-400">{label}</p>
-                    <p className="mt-3 text-3xl font-semibold text-white">
+                    <p className="text-sm text-muted-foreground dark:text-slate-400">
+                        {label}
+                    </p>
+                    <p className="mt-3 text-3xl font-semibold text-foreground dark:text-white">
                         {value}
                     </p>
                 </div>
-                <div className="rounded-xl border border-cyan-300/20 bg-cyan-300/10 p-2 text-cyan-200">
+                <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/10 p-2 text-cyan-700 dark:border-cyan-300/20 dark:bg-cyan-300/10 dark:text-cyan-200">
                     <Icon className="size-5" />
                 </div>
             </div>
-            {trend && <p className="mt-4 text-sm text-emerald-300">{trend}</p>}
+            {trend && (
+                <p className="mt-4 text-sm text-emerald-700 dark:text-emerald-300">
+                    {trend}
+                </p>
+            )}
         </GlassCard>
     );
 }

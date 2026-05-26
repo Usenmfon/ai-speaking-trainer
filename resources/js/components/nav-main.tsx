@@ -14,7 +14,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
 
     return (
         <SidebarGroup className="px-2 py-0">
-            <SidebarGroupLabel className="text-cyan-100/60">
+            <SidebarGroupLabel className="text-sidebar-foreground/60">
                 Coach workspace
             </SidebarGroupLabel>
             <SidebarMenu>
@@ -24,7 +24,7 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                             asChild
                             isActive={isCurrentUrl(item.href)}
                             tooltip={{ children: item.title }}
-                            className="text-slate-300 transition hover:bg-white/8 hover:text-white data-[active=true]:bg-cyan-300/12 data-[active=true]:text-cyan-100"
+                            className="text-sidebar-foreground/75 transition hover:bg-sidebar-accent hover:text-sidebar-accent-foreground data-[active=true]:bg-cyan-500/10 data-[active=true]:text-cyan-700 dark:data-[active=true]:text-cyan-100"
                         >
                             <Link href={item.href} prefetch>
                                 {item.icon && <item.icon />}

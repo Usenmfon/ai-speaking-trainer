@@ -11,6 +11,7 @@ export function WaveformMock({ className, bars = 36 }: WaveformMockProps) {
         <div
             className={cn(
                 'flex h-28 items-center justify-center gap-1.5 overflow-hidden rounded-2xl border border-cyan-300/10 bg-slate-950/55 p-5',
+                'border-cyan-500/15 bg-muted/60 dark:border-cyan-300/10 dark:bg-slate-950/55',
                 className,
             )}
             aria-hidden="true"

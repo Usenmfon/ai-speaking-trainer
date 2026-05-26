@@ -73,7 +73,7 @@ export function AppSidebar() {
         <Sidebar
             collapsible="icon"
             variant="inset"
-            className="border-white/10 bg-[#070a18]"
+            className="border-sidebar-border bg-sidebar text-sidebar-foreground"
         >
             <SidebarHeader>
                 <SidebarMenu>
@@ -92,12 +92,12 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
-                <div className="mx-2 rounded-2xl border border-cyan-300/15 bg-cyan-300/10 p-3 text-cyan-100 group-data-[collapsible=icon]:hidden">
+                <div className="mx-2 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-cyan-700 group-data-[collapsible=icon]:hidden dark:text-cyan-100">
                     <div className="flex items-center gap-2 text-sm font-semibold">
                         <Trophy className="size-4" />
                         Fluency Pro
                     </div>
-                    <p className="mt-2 text-xs leading-5 text-cyan-100/75">
+                    <p className="mt-2 text-xs leading-5 text-cyan-800/75 dark:text-cyan-100/75">
                         Two more sessions to unlock your next badge.
                     </p>
                 </div>

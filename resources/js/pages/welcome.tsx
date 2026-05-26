@@ -172,7 +172,7 @@ export default function Welcome() {
     return (
         <>
             <Head title="AI Speaking Coach" />
-            <main className="min-h-screen overflow-hidden bg-[#060817] text-white">
+            <main className="dark min-h-screen overflow-hidden bg-[#060817] text-white">
                 <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.22),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(139,92,246,0.22),transparent_32%),linear-gradient(135deg,rgba(14,165,233,0.06),rgba(124,58,237,0.08),transparent)]" />
                 <div className="relative">
                     <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-6 lg:px-8">
