@@ -8,6 +8,30 @@ export type MainGoal =
     | 'confidence'
     | 'pronunciation';
 
+export type PracticeSessionType =
+    | 'presentation'
+    | 'interview'
+    | 'storytelling'
+    | 'elevator_pitch'
+    | 'impromptu';
+
+export type PracticeSessionStatus = 'draft' | 'recorded' | 'analyzed' | 'failed';
+
+export type PracticeSession = {
+    id: string;
+    user_id: number;
+    title: string;
+    topic: string;
+    session_type: PracticeSessionType;
+    target_duration_seconds: number;
+    objective: string;
+    status: PracticeSessionStatus;
+    started_at: string | null;
+    completed_at: string | null;
+    created_at: string;
+    updated_at: string;
+};
+
 export type UserProfile = {
     id: string;
     user_id: number;

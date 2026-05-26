@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -40,6 +41,16 @@ class User extends Authenticatable implements PasskeyUser
     public function profile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
+    }
+
+    /**
+     * Get the user's practice sessions.
+     *
+     * @return HasMany<PracticeSession, $this>
+     */
+    public function practiceSessions(): HasMany
+    {
+        return $this->hasMany(PracticeSession::class);
     }
 
     /**

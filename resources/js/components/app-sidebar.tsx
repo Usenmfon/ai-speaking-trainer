@@ -10,6 +10,10 @@ import {
     Trophy,
     Users,
 } from 'lucide-react';
+import {
+    create as createPracticeSession,
+    index as practiceSessionsIndex,
+} from '@/actions/App/Http/Controllers/PracticeSessionController';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -22,7 +26,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard, practice } from '@/routes';
+import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -33,12 +37,12 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Practice',
-        href: practice(),
+        href: createPracticeSession(),
         icon: Mic2,
     },
     {
         title: 'Sessions',
-        href: '#sessions',
+        href: practiceSessionsIndex(),
         icon: MessageSquareText,
     },
     {
