@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import { Clock3, Mic2 } from 'lucide-react';
 
 import { show } from '@/actions/App/Http/Controllers/PracticeSessionController';
+import { cn } from '@/lib/utils';
 import type { PracticeSession } from '@/types';
 
 type RecentSessionListProps = {
@@ -13,7 +14,30 @@ function formatDate(value: string): string {
 }
 
 function formatStatus(status: string): string {
-    return status.charAt(0).toUpperCase() + status.slice(1);
+    return status
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+}
+
+function statusClass(status: PracticeSession['status']): string {
+    if (status === 'failed') {
+        return 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-200';
+    }
+
+    if (status === 'analyzed') {
+        return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200';
+    }
+
+    if (status === 'transcribing' || status === 'analyzing') {
+        return 'border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-200';
+    }
+
+    if (status === 'recorded' || status === 'transcribed') {
+        return 'border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-200';
+    }
+
+    return 'border-border text-muted-foreground';
 }
 
 export function RecentSessionList({ sessions }: RecentSessionListProps) {
@@ -51,7 +75,12 @@ export function RecentSessionList({ sessions }: RecentSessionListProps) {
                                         {session.topic}
                                     </p>
                                 </div>
-                                <span className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
+                                <span
+                                    className={cn(
+                                        'rounded-full border px-2.5 py-1 text-xs',
+                                        statusClass(session.status),
+                                    )}
+                                >
                                     {formatStatus(session.status)}
                                 </span>
                             </div>

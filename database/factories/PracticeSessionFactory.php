@@ -44,6 +44,30 @@ class PracticeSessionFactory extends Factory
     }
 
     /**
+     * Indicate that the session has been transcribed.
+     */
+    public function transcribed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'transcribed',
+            'started_at' => now()->subMinutes(10),
+            'completed_at' => now()->subMinutes(5),
+        ]);
+    }
+
+    /**
+     * Indicate that the session has been analyzed.
+     */
+    public function analyzed(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status' => 'analyzed',
+            'started_at' => now()->subMinutes(10),
+            'completed_at' => now()->subMinutes(5),
+        ]);
+    }
+
+    /**
      * Indicate that the session processing has failed.
      */
     public function failed(): static

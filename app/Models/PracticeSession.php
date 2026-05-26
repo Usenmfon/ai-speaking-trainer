@@ -37,6 +37,9 @@ class PracticeSession extends Model
     public const Statuses = [
         'draft',
         'recorded',
+        'transcribing',
+        'transcribed',
+        'analyzing',
         'analyzed',
         'failed',
     ];

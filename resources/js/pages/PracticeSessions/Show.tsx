@@ -18,6 +18,7 @@ import { show as showFeedbackReport } from '@/actions/App/Http/Controllers/Speak
 import { AudioRecorder } from '@/components/practice/audio-recorder';
 import { RetryProcessingButton } from '@/components/practice/retry-processing-button';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import type { PracticeSession } from '@/types';
 
 type ShowProps = {
@@ -37,7 +38,50 @@ function formatDuration(seconds: number): string {
     return `${minutes} minute${minutes === 1 ? '' : 's'}`;
 }
 
+function statusTone(status: PracticeSession['status']): string {
+    if (status === 'failed') {
+        return 'border-destructive/30 bg-destructive/10 text-destructive';
+    }
+
+    if (status === 'analyzed') {
+        return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200';
+    }
+
+    if (status === 'transcribing' || status === 'analyzing') {
+        return 'border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-200';
+    }
+
+    if (status === 'recorded' || status === 'transcribed') {
+        return 'border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-200';
+    }
+
+    return 'border-border bg-muted text-muted-foreground';
+}
+
+function processingMessage(status: PracticeSession['status']): string | null {
+    if (status === 'transcribing') {
+        return 'Your recording is being transcribed. The transcript will appear before AI analysis begins.';
+    }
+
+    if (status === 'transcribed') {
+        return 'Your transcript is ready and queued for AI feedback analysis.';
+    }
+
+    if (status === 'analyzing') {
+        return 'Your AI coach is analyzing clarity, pace, confidence, structure, and filler words.';
+    }
+
+    return null;
+}
+
 export default function Show({ session }: ShowProps) {
+    const message = processingMessage(session.status);
+    const recordingLocked = [
+        'transcribing',
+        'transcribed',
+        'analyzing',
+        'analyzed',
+    ].includes(session.status);
     const canRetryAnalysis =
         session.status === 'failed' &&
         Boolean(session.transcript) &&
@@ -68,6 +112,14 @@ export default function Show({ session }: ShowProps) {
                                 <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-200">
                                     {formatOption(session.status)} session
                                 </p>
+                                <span
+                                    className={cn(
+                                        'mt-3 inline-flex rounded-full border px-3 py-1 text-xs font-semibold',
+                                        statusTone(session.status),
+                                    )}
+                                >
+                                    {formatOption(session.status)}
+                                </span>
                                 <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-4xl">
                                     {session.title}
                                 </h1>
@@ -141,6 +193,18 @@ export default function Show({ session }: ShowProps) {
                             </p>
                         </div>
 
+                        {message && (
+                            <div className="mt-6 rounded-2xl border border-violet-500/25 bg-violet-500/10 p-5 text-violet-900 dark:text-violet-100">
+                                <div className="flex items-center gap-2 font-semibold">
+                                    <Clock3 className="size-5 animate-pulse" />
+                                    Processing update
+                                </div>
+                                <p className="mt-2 text-sm leading-6">
+                                    {message}
+                                </p>
+                            </div>
+                        )}
+
                         {(canRetryTranscription || canRetryAnalysis) && (
                             <div className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/10 p-5 text-destructive">
                                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -178,8 +242,12 @@ export default function Show({ session }: ShowProps) {
                             }
                             uploadUrl={storeRecording.url(session.id)}
                             hasStoredRecording={Boolean(session.recording)}
-                            disabled={session.status === 'analyzed'}
-                            disabledReason="This session has already been analyzed, so recording is locked."
+                            disabled={recordingLocked}
+                            disabledReason={
+                                session.status === 'analyzed'
+                                    ? 'This session has already been analyzed, so recording is locked.'
+                                    : 'This session is already being processed, so recording is locked.'
+                            }
                         />
                     </div>
                 </div>

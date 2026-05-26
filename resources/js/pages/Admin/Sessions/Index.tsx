@@ -35,7 +35,11 @@ function statusClass(value: string | null | undefined): string {
         return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200';
     }
 
-    if (value === 'recorded' || value === 'processing') {
+    if (value === 'transcribing' || value === 'analyzing' || value === 'processing') {
+        return 'border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-200';
+    }
+
+    if (value === 'recorded' || value === 'transcribed') {
         return 'border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-200';
     }
 

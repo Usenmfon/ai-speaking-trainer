@@ -20,7 +20,7 @@ class AdminDashboardController extends Controller
                 'totalUsers' => User::query()->count(),
                 'totalPracticeSessions' => PracticeSession::query()->count(),
                 'completedSessions' => PracticeSession::query()
-                    ->whereIn('status', ['recorded', 'analyzed'])
+                    ->whereIn('status', ['recorded', 'transcribing', 'transcribed', 'analyzing', 'analyzed'])
                     ->count(),
                 'failedTranscriptions' => PracticeSession::query()
                     ->where('status', 'failed')

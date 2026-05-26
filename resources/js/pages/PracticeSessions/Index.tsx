@@ -88,6 +88,26 @@ function scoreTone(score: number | null | undefined): string {
     return 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-200';
 }
 
+function statusTone(status: PracticeSessionStatus): string {
+    if (status === 'failed') {
+        return 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-200';
+    }
+
+    if (status === 'analyzed') {
+        return 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200';
+    }
+
+    if (status === 'transcribing' || status === 'analyzing') {
+        return 'border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-200';
+    }
+
+    if (status === 'recorded' || status === 'transcribed') {
+        return 'border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-200';
+    }
+
+    return 'border-border bg-muted text-muted-foreground';
+}
+
 function compactFilters(filters: PracticeSessionFilters): Record<string, string> {
     return Object.fromEntries(
         Object.entries(filters).filter(([, value]) => value !== null && value !== ''),
@@ -348,7 +368,12 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
                                                         {session.topic}
                                                     </p>
                                                 </div>
-                                                <span className="rounded-full bg-cyan-500/10 px-3 py-1 text-xs font-medium text-cyan-700 dark:text-cyan-200">
+                                                <span
+                                                    className={cn(
+                                                        'rounded-full border px-3 py-1 text-xs font-medium',
+                                                        statusTone(session.status),
+                                                    )}
+                                                >
                                                     {formatOption(session.status)}
                                                 </span>
                                             </div>

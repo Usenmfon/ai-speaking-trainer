@@ -68,11 +68,16 @@ class StorePracticeSessionRecordingRequest extends FormRequest
 
                 if (
                     $practiceSession instanceof PracticeSession
-                    && $practiceSession->status === 'analyzed'
+                    && in_array($practiceSession->status, [
+                        'transcribing',
+                        'transcribed',
+                        'analyzing',
+                        'analyzed',
+                    ], true)
                 ) {
                     $validator->errors()->add(
                         'audio',
-                        __('This practice session has already been analyzed.'),
+                        __('This practice session is already being processed or has been analyzed.'),
                     );
                 }
             },

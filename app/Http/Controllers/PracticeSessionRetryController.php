@@ -96,7 +96,7 @@ class PracticeSessionRetryController extends Controller
         ])->save();
 
         $practiceSession->forceFill([
-            'status' => 'recorded',
+            'status' => 'transcribed',
         ])->save();
 
         Log::info('Practice session feedback analysis retry requested.', [

@@ -15,7 +15,14 @@ export type PracticeSessionType =
     | 'elevator_pitch'
     | 'impromptu';
 
-export type PracticeSessionStatus = 'draft' | 'recorded' | 'analyzed' | 'failed';
+export type PracticeSessionStatus =
+    | 'draft'
+    | 'recorded'
+    | 'transcribing'
+    | 'transcribed'
+    | 'analyzing'
+    | 'analyzed'
+    | 'failed';
 
 export type PracticeSessionRecording = {
     id: string;

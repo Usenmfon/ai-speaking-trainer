@@ -36,6 +36,10 @@ class AnalyzeSpeakingTranscript implements ShouldQueue
             ->with(['practiceSession', 'user'])
             ->findOrFail($this->transcriptId);
 
+        $transcript->practiceSession->forceFill([
+            'status' => 'analyzing',
+        ])->save();
+
         $report = SpeakingFeedbackReport::query()->updateOrCreate(
             ['transcript_id' => $transcript->id],
             [

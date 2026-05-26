@@ -429,7 +429,7 @@ class PracticeSessionTest extends TestCase
         $response = $this->actingAs($user)->post(route('practice-sessions.retry-analysis', $session));
 
         $response->assertRedirect();
-        $this->assertSame('recorded', $session->fresh()->status);
+        $this->assertSame('transcribed', $session->fresh()->status);
         $this->assertSame('processing', $report->fresh()->status);
         $this->assertNull($report->fresh()->error_message);
         $this->assertNull($report->fresh()->processed_at);

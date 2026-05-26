@@ -71,7 +71,7 @@ class DashboardController extends Controller
                 'stats' => [
                     'totalPracticeSessions' => (clone $sessionQuery)->count(),
                     'completedSessions' => (clone $sessionQuery)
-                        ->whereIn('status', ['recorded', 'analyzed'])
+                        ->whereIn('status', ['recorded', 'transcribing', 'transcribed', 'analyzing', 'analyzed'])
                         ->count(),
                     'averageOverallScore' => $this->roundedNullable((clone $reportQuery)
                         ->whereNotNull('overall_score')

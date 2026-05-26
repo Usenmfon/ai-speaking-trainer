@@ -98,7 +98,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                             icon={CheckCircle2}
                             label="Completed sessions"
                             value={`${analytics.stats.completedSessions}`}
-                            helper="Recorded or analyzed sessions ready for review."
+                            helper="Uploaded sessions that are recorded, processing, or analyzed."
                         />
                         <StatCard
                             icon={BarChart3}

@@ -38,6 +38,10 @@ class ProcessPracticeSessionRecording implements ShouldQueue
             ->with(['practiceSession', 'user'])
             ->findOrFail($this->recordingId);
 
+        $recording->practiceSession->forceFill([
+            'status' => 'transcribing',
+        ])->save();
+
         $disk = config('practice.recordings.disk', 'local');
         $audioPath = Storage::disk($disk)->path($recording->audio_path);
 
@@ -77,6 +81,10 @@ class ProcessPracticeSessionRecording implements ShouldQueue
                 'completed_at' => now(),
             ],
         );
+
+        $recording->practiceSession->forceFill([
+            'status' => 'transcribed',
+        ])->save();
 
         // Feedback generation is intentionally owned by Laravel for this MVP.
         AnalyzeSpeakingTranscript::dispatch($transcript->id);

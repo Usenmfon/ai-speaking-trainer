@@ -35,7 +35,10 @@ function formatStatus(value: string | null | undefined): string {
         return 'No report';
     }
 
-    return value.charAt(0).toUpperCase() + value.slice(1);
+    return value
+        .split('_')
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
 }
 
 export default function Dashboard({ stats, recentSessions }: DashboardProps) {
@@ -90,13 +93,13 @@ export default function Dashboard({ stats, recentSessions }: DashboardProps) {
                             icon={FileText}
                             label="Practice sessions"
                             value={`${stats.totalPracticeSessions}`}
-                            helper="Draft, recorded, analyzed, and failed sessions."
+                            helper="Drafts, processing sessions, analyzed sessions, and failures."
                         />
                         <StatCard
                             icon={CheckCircle2}
                             label="Completed sessions"
                             value={`${stats.completedSessions}`}
-                            helper="Recorded or analyzed sessions."
+                            helper="Recorded or processing sessions with uploaded audio."
                         />
                         <StatCard
                             icon={AlertTriangle}
