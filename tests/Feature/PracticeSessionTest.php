@@ -274,6 +274,7 @@ class PracticeSessionTest extends TestCase
 
     public function test_upload_replaces_existing_recording_file(): void
     {
+        Queue::fake();
         Storage::fake('local');
 
         $user = $this->completedUser();
@@ -287,6 +288,8 @@ class PracticeSessionTest extends TestCase
                 'audio_path' => 'practice-session-recordings/old.webm',
             ]);
 
+        $this->createReportForSession($session, $user, 84);
+
         $file = UploadedFile::fake()->create('replacement.webm', 512, 'audio/webm');
 
         $this->actingAs($user)->post(route('practice-sessions.recording.store', $session), [
@@ -295,8 +298,37 @@ class PracticeSessionTest extends TestCase
         ]);
 
         $this->assertDatabaseCount('practice_session_recordings', 1);
+        $this->assertDatabaseCount('practice_session_transcripts', 0);
+        $this->assertDatabaseCount('speaking_feedback_reports', 0);
+        Queue::assertPushed(ProcessPracticeSessionRecording::class);
         Storage::disk('local')->assertMissing('practice-session-recordings/old.webm');
         Storage::disk('local')->assertExists($session->recording()->firstOrFail()->audio_path);
+    }
+
+    public function test_deleting_practice_session_cleans_related_recording_and_analysis(): void
+    {
+        Storage::fake('local');
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->recorded()->create();
+        Storage::disk('local')->put('practice-session-recordings/delete-me.webm', 'old-audio');
+
+        PracticeSessionRecording::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'audio_path' => 'practice-session-recordings/delete-me.webm',
+            ]);
+
+        $this->createReportForSession($session, $user, 74);
+
+        $session->delete();
+
+        Storage::disk('local')->assertMissing('practice-session-recordings/delete-me.webm');
+        $this->assertDatabaseMissing('practice_sessions', ['id' => $session->id]);
+        $this->assertDatabaseCount('practice_session_recordings', 0);
+        $this->assertDatabaseCount('practice_session_transcripts', 0);
+        $this->assertDatabaseCount('speaking_feedback_reports', 0);
     }
 
     public function test_user_cannot_upload_recording_to_another_users_session(): void

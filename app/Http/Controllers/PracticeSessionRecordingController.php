@@ -6,6 +6,7 @@ use App\Http\Requests\PracticeSession\StorePracticeSessionRecordingRequest;
 use App\Jobs\ProcessPracticeSessionRecording;
 use App\Models\PracticeSession;
 use App\Models\PracticeSessionRecording;
+use App\Services\PracticeSessions\PracticeSessionRecordingCleanupService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,7 @@ class PracticeSessionRecordingController extends Controller
     public function store(
         StorePracticeSessionRecordingRequest $request,
         PracticeSession $practiceSession,
+        PracticeSessionRecordingCleanupService $cleanupService,
     ): RedirectResponse {
         $disk = config('practice.recordings.disk', 'local');
 
@@ -49,9 +51,13 @@ class PracticeSessionRecordingController extends Controller
         $previousPath = null;
 
         try {
-            DB::transaction(function () use ($file, $path, $practiceSession, $request, &$previousPath): void {
+            DB::transaction(function () use ($cleanupService, $file, $path, $practiceSession, $request, &$previousPath): void {
                 $existingRecording = $practiceSession->recording()->first();
                 $previousPath = $existingRecording?->audio_path;
+
+                if ($existingRecording !== null) {
+                    $cleanupService->deleteStaleAnalysis($practiceSession, 'recording_replaced');
+                }
 
                 $practiceSession->recording()->updateOrCreate(
                     ['practice_session_id' => $practiceSession->id],
@@ -72,13 +78,21 @@ class PracticeSessionRecordingController extends Controller
                 ])->save();
             });
         } catch (Throwable $exception) {
-            Storage::disk($disk)->delete($path);
+            $cleanupService->deleteRecordingPath($path, $disk, [
+                'reason' => 'recording_upload_rolled_back',
+                'practice_session_id' => $practiceSession->id,
+                'user_id' => $request->user()->id,
+            ]);
 
             throw $exception;
         }
 
         if ($previousPath !== null && $previousPath !== $path) {
-            Storage::disk($disk)->delete($previousPath);
+            $cleanupService->deleteRecordingPath($previousPath, $disk, [
+                'reason' => 'recording_replaced',
+                'practice_session_id' => $practiceSession->id,
+                'user_id' => $request->user()->id,
+            ]);
         }
 
         /** @var PracticeSessionRecording $recording */

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
+use App\Observers\PracticeSessionObserver;
 use App\Policies\FeedbackReportPolicy;
 use App\Policies\PracticeSessionPolicy;
 use Carbon\CarbonImmutable;
@@ -36,6 +37,8 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function configureDefaults(): void
     {
+        PracticeSession::observe(PracticeSessionObserver::class);
+
         Gate::policy(PracticeSession::class, PracticeSessionPolicy::class);
         Gate::policy(SpeakingFeedbackReport::class, FeedbackReportPolicy::class);
 

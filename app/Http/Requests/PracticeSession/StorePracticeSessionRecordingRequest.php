@@ -27,11 +27,15 @@ class StorePracticeSessionRecordingRequest extends FormRequest
      */
     public function rules(): array
     {
+        $extensions = implode(',', config('practice.recordings.allowed_extensions', []));
+        $mimeTypes = implode(',', config('practice.recordings.allowed_mime_types', []));
+
         return [
             'audio' => [
                 'required',
                 'file',
-                'mimetypes:audio/webm,audio/mp3,audio/wav,audio/mpeg,audio/ogg',
+                'extensions:'.$extensions,
+                'mimetypes:'.$mimeTypes,
                 'max:'.config('practice.recordings.max_audio_kb'),
             ],
             'duration_seconds' => ['nullable', 'integer', 'min:0', 'max:7200'],
@@ -48,7 +52,8 @@ class StorePracticeSessionRecordingRequest extends FormRequest
         return [
             'audio.required' => __('Please choose a recorded audio file before uploading.'),
             'audio.file' => __('The recording must be uploaded as an audio file.'),
-            'audio.mimetypes' => __('The recording must be a WebM, MP3, WAV, MPEG, or OGG audio file.'),
+            'audio.extensions' => __('The recording filename must use a supported audio extension.'),
+            'audio.mimetypes' => __('The recording must be a supported audio file such as WebM, MP3, WAV, OGG, M4A, MP4, or FLAC.'),
             'audio.max' => __('The recording is too large. Please record a shorter take or reduce the file size.'),
             'duration_seconds.integer' => __('The recording duration must be a whole number of seconds.'),
             'duration_seconds.max' => __('Recordings can be no longer than two hours.'),
