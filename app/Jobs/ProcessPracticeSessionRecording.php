@@ -9,8 +9,10 @@ use App\Notifications\TranscriptionFailed;
 use App\Services\AiWorker\AiWorkerClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
@@ -43,18 +45,24 @@ class ProcessPracticeSessionRecording implements ShouldQueue
         ])->save();
 
         $disk = config('practice.recordings.disk', 'local');
-        $audioPath = Storage::disk($disk)->path($recording->audio_path);
+        $workerAudio = $this->prepareWorkerAudioPath($recording, $disk);
 
-        $response = $worker->processRecording(
-            audioPath: $audioPath,
-            sessionId: $recording->practice_session_id,
-            recordingId: $recording->id,
-            metadata: [
-                'duration_seconds' => $recording->duration_seconds,
-                'mime_type' => $recording->mime_type,
-                'size' => $recording->size,
-            ],
-        );
+        try {
+            $response = $worker->processRecording(
+                audioPath: $workerAudio['path'],
+                sessionId: $recording->practice_session_id,
+                recordingId: $recording->id,
+                metadata: [
+                    'duration_seconds' => $recording->duration_seconds,
+                    'mime_type' => $recording->mime_type,
+                    'size' => $recording->size,
+                ],
+            );
+        } finally {
+            if ($workerAudio['temporary_path'] !== null) {
+                File::delete($workerAudio['temporary_path']);
+            }
+        }
 
         Log::info('AI worker processed practice session recording.', [
             'practice_session_id' => $recording->practice_session_id,
@@ -113,5 +121,62 @@ class ProcessPracticeSessionRecording implements ShouldQueue
             'recording_id' => $this->recordingId,
             'exception' => $exception->getMessage(),
         ]);
+    }
+
+    /**
+     * Resolve a local file path for the Python worker.
+     *
+     * R2/S3 recordings stay private. When the configured recording disk is
+     * remote, this copies the object into a local temporary worker input file.
+     *
+     * @return array{path: string, temporary_path: string|null}
+     */
+    private function prepareWorkerAudioPath(PracticeSessionRecording $recording, string $disk): array
+    {
+        $storage = Storage::disk($disk);
+        $driver = config("filesystems.disks.{$disk}.driver");
+
+        if ($driver === 'local') {
+            return [
+                'path' => $storage->path($recording->audio_path),
+                'temporary_path' => null,
+            ];
+        }
+
+        $stream = $storage->readStream($recording->audio_path);
+
+        if ($stream === false) {
+            throw new RuntimeException('Unable to read the private recording for transcription.');
+        }
+
+        $directory = storage_path('app/private/ai-worker-inputs');
+        File::ensureDirectoryExists($directory);
+
+        $extension = pathinfo($recording->original_filename ?: $recording->audio_path, PATHINFO_EXTENSION) ?: 'audio';
+        $temporaryPath = $directory.'/'.Str::uuid().'.'.$extension;
+        $output = fopen($temporaryPath, 'wb');
+
+        if ($output === false) {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+
+            throw new RuntimeException('Unable to create a temporary worker audio file.');
+        }
+
+        try {
+            stream_copy_to_stream($stream, $output);
+        } finally {
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
+
+            fclose($output);
+        }
+
+        return [
+            'path' => $temporaryPath,
+            'temporary_path' => $temporaryPath,
+        ];
     }
 }

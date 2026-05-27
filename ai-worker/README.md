@@ -48,6 +48,8 @@ python ai-worker/worker.py --task process_recording --audio-path /path/to/audio
 
 The worker returns JSON with `preprocessing` and `transcription` data. Laravel stores the transcript, then dispatches `AnalyzeSpeakingTranscript` so Laravel can generate the feedback report.
 
+The worker does not generate feedback in the MVP. The `feedback` task returns a disabled response, and `ai_worker/feedback.py` is kept only as future experimental code for a possible microservice extraction.
+
 ## Manual Test
 
 Use a real audio file supported by OpenAI, such as WebM, MP3, WAV, OGG, M4A, MP4, MPEG, MPGA, or FLAC.

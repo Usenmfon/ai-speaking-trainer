@@ -94,6 +94,10 @@ class AiWorkerClient
             throw AiWorkerException::invalidJson($output);
         }
 
+        if (! is_array($response) || ! array_key_exists('ok', $response)) {
+            throw AiWorkerException::failed('AI worker returned an invalid response envelope.');
+        }
+
         if (! $process->isSuccessful() || $response['ok'] !== true) {
             $message = $response['errors'][0]['message']
                 ?? $process->getErrorOutput()
