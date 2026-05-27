@@ -46,11 +46,13 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Sessions',
         href: practiceSessionsIndex(),
+        activeHref: '/practice-sessions',
         icon: MessageSquareText,
     },
     {
         title: 'Analytics',
         href: feedbackReportsIndex(),
+        activeHref: '/feedback-reports',
         icon: BarChart3,
     },
     {
@@ -71,6 +73,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Settings',
         href: '/settings/profile',
+        activeHref: '/settings',
         icon: Settings,
     },
 ];
