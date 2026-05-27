@@ -86,6 +86,28 @@ Expected successful output keeps the worker envelope:
 }
 ```
 
+## Automated Tests
+
+The worker uses `pytest` for offline tests. The tests mock transcription/OpenAI behavior and do not call the real OpenAI API.
+
+macOS or Linux:
+
+```sh
+ai-worker/.venv/bin/python -m pytest ai-worker/tests
+```
+
+Windows:
+
+```bat
+ai-worker\.venv\Scripts\python.exe -m pytest ai-worker\tests
+```
+
+Run the setup script again if `pytest` is missing:
+
+```sh
+ai-worker/.venv/bin/python -m pip install -r ai-worker/requirements.txt
+```
+
 ## Common Errors
 
 `OPENAI_API_KEY is required for OpenAI transcription.`
