@@ -11,6 +11,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -40,11 +41,38 @@ class PracticeSessionRecordingController extends Controller
             ]);
         }
 
-        $path = $file->store("practice-session-recordings/{$request->user()->id}", $disk);
+        try {
+            $path = $file->store("practice-session-recordings/{$request->user()->id}", $disk);
+        } catch (Throwable $exception) {
+            Log::error('Practice session recording upload failed during storage write.', [
+                'practice_session_id' => $practiceSession->id,
+                'user_id' => $request->user()->id,
+                'disk' => $disk,
+                'driver' => config("filesystems.disks.{$disk}.driver"),
+                'filename' => $file->getClientOriginalName(),
+                'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
+                'size' => $file->getSize(),
+                'exception' => $exception->getMessage(),
+            ]);
+
+            throw ValidationException::withMessages([
+                'audio' => __('The audio recording could not be saved to storage. Please check the recording storage configuration and try again.'),
+            ]);
+        }
 
         if (! is_string($path)) {
+            Log::error('Practice session recording upload returned no storage path.', [
+                'practice_session_id' => $practiceSession->id,
+                'user_id' => $request->user()->id,
+                'disk' => $disk,
+                'driver' => config("filesystems.disks.{$disk}.driver"),
+                'filename' => $file->getClientOriginalName(),
+                'mime_type' => $file->getMimeType() ?? $file->getClientMimeType(),
+                'size' => $file->getSize(),
+            ]);
+
             throw ValidationException::withMessages([
-                'audio' => __('The audio recording could not be stored. Please try again.'),
+                'audio' => __('The audio recording could not be saved to storage. Please check the recording storage configuration and try again.'),
             ]);
         }
 
