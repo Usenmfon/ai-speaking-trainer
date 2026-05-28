@@ -262,16 +262,30 @@ export function AudioRecorder({
             return;
         }
 
+        const audioFile = getRecordingFile(recordedBlob);
+        const formData = new FormData();
+        formData.append('audio', audioFile, audioFile.name);
+
+        if (elapsedSeconds > 0) {
+            formData.append('duration_seconds', String(elapsedSeconds));
+        }
+
+        if (import.meta.env.DEV) {
+            console.info('Uploading practice recording', {
+                name: audioFile.name,
+                size: audioFile.size,
+                type: audioFile.type,
+                uploadUrl,
+            });
+        }
+
         setUploadError(null);
         setUploadProgress(0);
         setUploadStatus('uploading');
 
         router.post(
             uploadUrl,
-            {
-                audio: getRecordingFile(recordedBlob),
-                duration_seconds: elapsedSeconds || null,
-            },
+            formData,
             {
                 forceFormData: true,
                 preserveScroll: true,

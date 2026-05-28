@@ -18,6 +18,7 @@ return [
         ],
         'allowed_mime_types' => [
             'audio/webm',
+            'video/webm',
             'audio/mp3',
             'audio/wav',
             'audio/x-wav',
