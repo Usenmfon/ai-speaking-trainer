@@ -88,7 +88,7 @@ def run_task(args: argparse.Namespace, metadata: dict[str, Any]) -> dict[str, An
         return success_response(
             task,
             {"preprocessing": preprocessing},
-            metadata=worker_meta(args),
+            meta=worker_meta(args),
         )
 
     transcription = transcribe_audio(Path(str(preprocessing["working_path"])))
@@ -100,7 +100,7 @@ def run_task(args: argparse.Namespace, metadata: dict[str, Any]) -> dict[str, An
                 "preprocessing": preprocessing,
                 "transcription": transcription,
             },
-            metadata=worker_meta(args),
+            meta=worker_meta(args),
         )
 
     return success_response(
@@ -109,7 +109,7 @@ def run_task(args: argparse.Namespace, metadata: dict[str, Any]) -> dict[str, An
             "preprocessing": preprocessing,
             "transcription": transcription,
         },
-        metadata=worker_meta(args),
+        meta=worker_meta(args),
     )
 
 

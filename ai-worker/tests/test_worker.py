@@ -12,7 +12,14 @@ WORKER_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(WORKER_ROOT))
 
 import worker  # noqa: E402
-from ai_worker.transcription import TranscriptionError, transcribe_with_openai  # noqa: E402
+from ai_worker.transcription import (  # noqa: E402
+    TranscriptionError,
+    gemini_audio_mime_type,
+    normalize_gemini_response,
+    transcribe_audio,
+    transcribe_with_gemini,
+    transcribe_with_openai,
+)
 
 
 def run_worker(
@@ -160,6 +167,211 @@ def test_successful_mocked_transcription_response(
     assert response["data"]["transcription"]["segments"][0]["text"] == "Practice makes confident speakers."
     assert response["meta"]["session_id"] == "session-1"
     assert response["meta"]["recording_id"] == "recording-1"
+
+
+def test_preprocess_success_response_uses_worker_meta(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    def fake_prepare_audio(path: Path, temp_dir: Path) -> dict[str, object]:
+        assert path == audio_path
+
+        return {
+            "source_path": str(path),
+            "working_path": str(path),
+            "sha256": "abc123",
+            "mime_type": "audio/webm",
+            "size": path.stat().st_size,
+            "duration_seconds": None,
+        }
+
+    monkeypatch.setattr(worker, "prepare_audio", fake_prepare_audio)
+
+    exit_code, response = run_worker(
+        monkeypatch,
+        capsys,
+        tmp_path,
+        [
+            "--task",
+            "preprocess",
+            "--audio-path",
+            str(audio_path),
+            "--session-id",
+            "session-1",
+            "--recording-id",
+            "recording-1",
+        ],
+    )
+
+    assert exit_code == 0
+    assert response["ok"] is True
+    assert response["data"]["preprocessing"]["mime_type"] == "audio/webm"
+    assert response["meta"]["session_id"] == "session-1"
+    assert response["meta"]["recording_id"] == "recording-1"
+
+
+def test_laravel_transcription_provider_env_does_not_override_worker_provider(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    monkeypatch.setenv("AI_TRANSCRIPTION_PROVIDER", "python_worker")
+    monkeypatch.setenv("AI_WORKER_TRANSCRIPTION_PROVIDER", "openai")
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+
+    def fake_transcribe_with_openai(path: Path, api_key: str) -> dict[str, object]:
+        assert path == audio_path
+        assert api_key == "test-key"
+
+        return {
+            "success": True,
+            "transcript": "Provider separation works.",
+            "text": "Provider separation works.",
+            "language": "en",
+            "duration_seconds": 1,
+            "segments": [],
+            "provider": "openai",
+            "model": "whisper-1",
+        }
+
+    monkeypatch.setattr(
+        "ai_worker.transcription.transcribe_with_openai",
+        fake_transcribe_with_openai,
+    )
+
+    response = transcribe_audio(audio_path)
+
+    assert response["transcript"] == "Provider separation works."
+
+
+def test_local_transcription_provider_returns_placeholder(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    monkeypatch.setenv("AI_WORKER_TRANSCRIPTION_PROVIDER", "local")
+    monkeypatch.setenv("LOCAL_TRANSCRIPTION_TEXT", "This came from the local provider.")
+    monkeypatch.setenv("LOCAL_TRANSCRIPTION_LANGUAGE", "en")
+
+    response = transcribe_audio(audio_path)
+
+    assert response["provider"] == "local"
+    assert response["model"] == "placeholder"
+    assert response["transcript"] == "This came from the local provider."
+
+
+def test_unknown_transcription_provider_lists_supported_providers(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    monkeypatch.setenv("AI_WORKER_TRANSCRIPTION_PROVIDER", "unknown")
+
+    with pytest.raises(TranscriptionError, match="Supported providers are: openai, gemini, local"):
+        transcribe_audio(audio_path)
+
+
+def test_successful_mocked_gemini_transcription_response(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    monkeypatch.setenv("GEMINI_TRANSCRIPTION_MODEL", "gemini-2.5-flash")
+
+    def fake_post_json(
+        url: str,
+        payload: dict[str, object],
+        headers: dict[str, str],
+        timeout: float,
+    ) -> dict[str, object]:
+        assert url.endswith("/models/gemini-2.5-flash:generateContent")
+        assert headers["x-goog-api-key"] == "test-gemini-key"
+        assert timeout == 120
+
+        return {
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [
+                            {
+                                "text": "Gemini heard this clearly.",
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+
+    monkeypatch.setattr("ai_worker.transcription.post_json", fake_post_json)
+
+    response = transcribe_with_gemini(audio_path, "test-gemini-key")
+
+    assert response["provider"] == "gemini"
+    assert response["model"] == "gemini-2.5-flash"
+    assert response["transcript"] == "Gemini heard this clearly."
+
+
+def test_gemini_webm_upload_uses_audio_mime_type(tmp_path: Path) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    assert gemini_audio_mime_type(audio_path) == "audio/webm"
+
+
+def test_gemini_provider_is_switchable_from_worker_env(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    monkeypatch.setenv("AI_WORKER_TRANSCRIPTION_PROVIDER", "gemini")
+    monkeypatch.setenv("GEMINI_API_KEY", "test-gemini-key")
+
+    def fake_transcribe_with_gemini(path: Path, api_key: str) -> dict[str, object]:
+        assert path == audio_path
+        assert api_key == "test-gemini-key"
+
+        return {
+            "success": True,
+            "transcript": "Gemini provider selected.",
+            "text": "Gemini provider selected.",
+            "language": None,
+            "duration_seconds": None,
+            "segments": [],
+            "provider": "gemini",
+            "model": "gemini-2.5-flash",
+        }
+
+    monkeypatch.setattr(
+        "ai_worker.transcription.transcribe_with_gemini",
+        fake_transcribe_with_gemini,
+    )
+
+    response = transcribe_audio(audio_path)
+
+    assert response["provider"] == "gemini"
+    assert response["transcript"] == "Gemini provider selected."
+
+
+def test_gemini_blocked_response_is_wrapped() -> None:
+    with pytest.raises(TranscriptionError, match="blocked"):
+        normalize_gemini_response(
+            {"promptFeedback": {"blockReason": "SAFETY"}},
+            "gemini-2.5-flash",
+        )
 
 
 def test_openai_api_failure_is_wrapped(

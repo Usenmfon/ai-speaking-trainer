@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\UserProfile;
 use App\Services\AI\SpeakingFeedbackService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
@@ -136,6 +137,70 @@ class SpeakingFeedbackReportTest extends TestCase
             'transcript_id' => $transcript->id,
             'status' => 'completed',
         ]);
+    }
+
+    public function test_analyze_speaking_transcript_can_use_gemini_provider(): void
+    {
+        config([
+            'speaking_feedback.provider' => 'gemini',
+            'speaking_feedback.gemini.api_key' => 'test-gemini-key',
+            'speaking_feedback.gemini.endpoint' => 'https://generativelanguage.googleapis.com/v1beta',
+            'speaking_feedback.gemini.model' => 'gemini-2.5-flash',
+        ]);
+
+        Http::fake([
+            'generativelanguage.googleapis.com/*' => Http::response([
+                'candidates' => [
+                    [
+                        'content' => [
+                            'parts' => [
+                                [
+                                    'text' => json_encode([
+                                        'overall_score' => 88,
+                                        'clarity_score' => 87,
+                                        'structure_score' => 86,
+                                        'confidence_score' => 85,
+                                        'pace_score' => 84,
+                                        'filler_word_score' => 83,
+                                        'summary_feedback' => 'Clear, confident delivery with useful structure.',
+                                        'strengths' => ['Strong opening'],
+                                        'weaknesses' => ['Add a clearer close'],
+                                        'recommendations' => ['End with one direct call to action'],
+                                        'filler_words' => [],
+                                        'improved_version' => 'Open with the point, support it, and close with a direct action.',
+                                    ]),
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->recorded()
+            ->create();
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'text' => 'This is my product pitch with a clear problem and recommendation.',
+            ]);
+
+        (new AnalyzeSpeakingTranscript($transcript->id))->handle(new SpeakingFeedbackService);
+
+        $this->assertDatabaseHas('speaking_feedback_reports', [
+            'practice_session_id' => $session->id,
+            'user_id' => $user->id,
+            'transcript_id' => $transcript->id,
+            'overall_score' => 88,
+            'status' => 'completed',
+        ]);
+
+        Http::assertSent(fn ($request): bool => $request->hasHeader('x-goog-api-key', 'test-gemini-key')
+            && str_contains($request->url(), '/models/gemini-2.5-flash:generateContent'));
     }
 
     private function completedUser(): User

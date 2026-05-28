@@ -2,11 +2,13 @@
 
 namespace Tests\Fakes;
 
+use App\Contracts\AI\TranscriptionProvider;
 use App\Exceptions\AiWorkerException;
 use App\Services\AiWorker\AiWorkerClient;
+use RuntimeException;
 use Throwable;
 
-class FakeAiWorkerClient extends AiWorkerClient
+class FakeAiWorkerClient extends AiWorkerClient implements TranscriptionProvider
 {
     /**
      * @param  array{ok: bool, task?: string, data?: array<string, mixed>, errors?: array<int, array<string, string>>, meta?: array<string, mixed>}|Throwable  $response
@@ -44,6 +46,26 @@ class FakeAiWorkerClient extends AiWorkerClient
             'errors' => $this->response['errors'] ?? [],
             'meta' => $this->response['meta'] ?? [],
         ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $metadata
+     * @return array<string, mixed>
+     */
+    public function transcribeRecording(
+        string $audioPath,
+        string $sessionId,
+        string $recordingId,
+        array $metadata = [],
+    ): array {
+        $response = $this->processRecording($audioPath, $sessionId, $recordingId, $metadata);
+        $transcription = $response['data']['transcription'] ?? null;
+
+        if (! is_array($transcription)) {
+            throw new RuntimeException('Transcription provider returned an invalid response.');
+        }
+
+        return $transcription;
     }
 
     /**

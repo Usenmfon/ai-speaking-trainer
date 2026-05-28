@@ -2,11 +2,11 @@
 
 namespace App\Jobs;
 
+use App\Contracts\AI\TranscriptionProvider;
 use App\Models\PracticeSessionRecording;
 use App\Models\PracticeSessionTranscript;
 use App\Notifications\TranscriptionCompleted;
 use App\Notifications\TranscriptionFailed;
-use App\Services\AiWorker\AiWorkerClient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\File;
@@ -34,7 +34,7 @@ class ProcessPracticeSessionRecording implements ShouldQueue
      *
      * @throws Throwable
      */
-    public function handle(AiWorkerClient $worker): void
+    public function handle(TranscriptionProvider $transcriptionProvider): void
     {
         $recording = PracticeSessionRecording::query()
             ->with(['practiceSession', 'user'])
@@ -48,7 +48,7 @@ class ProcessPracticeSessionRecording implements ShouldQueue
         $workerAudio = $this->prepareWorkerAudioPath($recording, $disk);
 
         try {
-            $response = $worker->processRecording(
+            $transcription = $transcriptionProvider->transcribeRecording(
                 audioPath: $workerAudio['path'],
                 sessionId: $recording->practice_session_id,
                 recordingId: $recording->id,
@@ -64,13 +64,12 @@ class ProcessPracticeSessionRecording implements ShouldQueue
             }
         }
 
-        Log::info('AI worker processed practice session recording.', [
+        Log::info('Transcription provider processed practice session recording.', [
             'practice_session_id' => $recording->practice_session_id,
             'recording_id' => $recording->id,
-            'response' => $response,
+            'provider' => $transcription['provider'] ?? config('ai.transcription.provider'),
         ]);
 
-        $transcription = $response['data']['transcription'] ?? [];
         $transcriptText = (string) ($transcription['transcript'] ?? $transcription['text'] ?? '');
 
         if (trim($transcriptText) === '') {

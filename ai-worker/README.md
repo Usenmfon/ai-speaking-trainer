@@ -22,9 +22,45 @@ After setup, add your OpenAI key:
 
 ```ini
 OPENAI_API_KEY=your-api-key
+AI_WORKER_TRANSCRIPTION_PROVIDER=openai
 ```
 
 `worker.py` loads `ai-worker/.env` automatically for manual runs. Laravel queue workers should still have the same key available from the main Laravel environment, especially in production.
+
+Laravel's main `.env` may use `AI_TRANSCRIPTION_PROVIDER=python_worker` to select the Python worker. Do not use that value inside `ai-worker/.env`; the worker's internal provider should use `AI_WORKER_TRANSCRIPTION_PROVIDER`.
+
+Supported worker transcription providers:
+
+```ini
+AI_WORKER_TRANSCRIPTION_PROVIDER=openai
+```
+
+Gemini can be used for transcription through the worker's multimodal `generateContent` adapter:
+
+```ini
+AI_WORKER_TRANSCRIPTION_PROVIDER=gemini
+GEMINI_API_KEY=your-google-ai-studio-key
+GEMINI_TRANSCRIPTION_MODEL=gemini-2.5-flash
+GEMINI_TRANSCRIPTION_ENDPOINT=https://generativelanguage.googleapis.com/v1beta
+GEMINI_TRANSCRIPTION_TIMEOUT=120
+GEMINI_TRANSCRIPTION_MAX_BYTES=15728640
+GEMINI_TRANSCRIPTION_MIME_TYPE=
+GEMINI_TRANSCRIPTION_PROMPT="Transcribe this audio exactly. Return only the transcript text."
+```
+
+The Gemini adapter currently sends audio inline, so keep recordings below `GEMINI_TRANSCRIPTION_MAX_BYTES`. For larger production recordings, add a Files API based adapter or use OpenAI transcription.
+
+Browser recordings may arrive as WebM containers. The worker maps `.webm` to `audio/webm` for Gemini so audio-only files are not treated as video. If a provider needs a specific MIME type, set `GEMINI_TRANSCRIPTION_MIME_TYPE`.
+
+For development or demos without an external API, you can use the local placeholder provider:
+
+```ini
+AI_WORKER_TRANSCRIPTION_PROVIDER=local
+LOCAL_TRANSCRIPTION_TEXT="This is a local placeholder transcript."
+LOCAL_TRANSCRIPTION_LANGUAGE=en
+```
+
+Do not use the local placeholder provider in production. It does not inspect the audio content.
 
 Also set Laravel's worker Python path in the main Laravel `.env`:
 

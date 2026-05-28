@@ -1,8 +1,18 @@
 <?php
 
 return [
-    'provider' => env('SPEAKING_FEEDBACK_PROVIDER', 'local'),
+    'provider' => env('AI_FEEDBACK_PROVIDER', env('SPEAKING_FEEDBACK_PROVIDER', 'local')),
     'endpoint' => env('SPEAKING_FEEDBACK_ENDPOINT'),
-    'api_key' => env('SPEAKING_FEEDBACK_API_KEY', env('OPENAI_API_KEY')),
-    'timeout' => (int) env('SPEAKING_FEEDBACK_TIMEOUT', 60),
+    'api_key' => env('AI_FEEDBACK_API_KEY', env('SPEAKING_FEEDBACK_API_KEY', env('OPENAI_API_KEY'))),
+    'timeout' => (int) env('AI_FEEDBACK_TIMEOUT', env('SPEAKING_FEEDBACK_TIMEOUT', 60)),
+    'openai' => [
+        'endpoint' => env('OPENAI_FEEDBACK_ENDPOINT', 'https://api.openai.com/v1/chat/completions'),
+        'model' => env('OPENAI_FEEDBACK_MODEL', 'gpt-4o-mini'),
+    ],
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY', env('GOOGLE_API_KEY')),
+        'endpoint' => env('GEMINI_FEEDBACK_ENDPOINT', 'https://generativelanguage.googleapis.com/v1beta'),
+        'model' => env('GEMINI_FEEDBACK_MODEL', 'gemini-2.5-flash'),
+        'temperature' => env('GEMINI_FEEDBACK_TEMPERATURE', 0.3),
+    ],
 ];
