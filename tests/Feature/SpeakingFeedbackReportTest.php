@@ -203,6 +203,68 @@ class SpeakingFeedbackReportTest extends TestCase
             && str_contains($request->url(), '/models/gemini-2.5-flash:generateContent'));
     }
 
+    public function test_analyze_speaking_transcript_can_use_grok_provider(): void
+    {
+        config([
+            'speaking_feedback.provider' => 'grok',
+            'speaking_feedback.grok.api_key' => 'test-xai-key',
+            'speaking_feedback.grok.endpoint' => 'https://api.x.ai/v1/chat/completions',
+            'speaking_feedback.grok.model' => 'grok-4.3',
+        ]);
+
+        Http::fake([
+            'api.x.ai/*' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => json_encode([
+                                'overall_score' => 90,
+                                'clarity_score' => 89,
+                                'structure_score' => 88,
+                                'confidence_score' => 87,
+                                'pace_score' => 86,
+                                'filler_word_score' => 85,
+                                'summary_feedback' => 'Focused delivery with a persuasive structure.',
+                                'strengths' => ['Specific examples'],
+                                'weaknesses' => ['Tighten the conclusion'],
+                                'recommendations' => ['Close with one memorable next step'],
+                                'filler_words' => [],
+                                'improved_version' => 'State the point, prove it with one example, then close with the next step.',
+                            ]),
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->recorded()
+            ->create();
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'text' => 'This is my product pitch with a focused problem and clear recommendation.',
+            ]);
+
+        (new AnalyzeSpeakingTranscript($transcript->id))->handle(new SpeakingFeedbackService);
+
+        $this->assertDatabaseHas('speaking_feedback_reports', [
+            'practice_session_id' => $session->id,
+            'user_id' => $user->id,
+            'transcript_id' => $transcript->id,
+            'overall_score' => 90,
+            'status' => 'completed',
+        ]);
+
+        Http::assertSent(fn ($request): bool => $request->hasHeader('Authorization', 'Bearer test-xai-key')
+            && $request->url() === 'https://api.x.ai/v1/chat/completions'
+            && $request['model'] === 'grok-4.3'
+            && $request['response_format']['type'] === 'json_object');
+    }
+
     private function completedUser(): User
     {
         return User::factory()

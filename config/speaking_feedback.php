@@ -15,4 +15,10 @@ return [
         'model' => env('GEMINI_FEEDBACK_MODEL', 'gemini-2.5-flash'),
         'temperature' => env('GEMINI_FEEDBACK_TEMPERATURE', 0.3),
     ],
+    'grok' => [
+        'api_key' => env('XAI_API_KEY', env('GROK_API_KEY')),
+        'endpoint' => env('GROK_FEEDBACK_ENDPOINT', 'https://api.x.ai/v1/chat/completions'),
+        'model' => env('GROK_FEEDBACK_MODEL', 'grok-4.3'),
+        'temperature' => env('GROK_FEEDBACK_TEMPERATURE', 0.3),
+    ],
 ];
