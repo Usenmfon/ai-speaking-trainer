@@ -30,6 +30,7 @@ SUPPORTED_AUDIO_EXTENSIONS = {
 OPENAI_MAX_AUDIO_BYTES = 25 * 1024 * 1024
 GEMINI_INLINE_MAX_AUDIO_BYTES = 15 * 1024 * 1024
 XAI_MAX_AUDIO_BYTES = 500 * 1024 * 1024
+GROQ_MAX_AUDIO_BYTES = 25 * 1024 * 1024
 
 
 class TranscriptionError(RuntimeError):
@@ -71,6 +72,14 @@ def transcribe_audio(audio_path: Path) -> dict[str, object]:
 
         return transcribe_with_grok(audio_path, api_key)
 
+    if provider == "groq":
+        api_key = os.getenv("GROQ_API_KEY", "").strip()
+
+        if not api_key:
+            raise TranscriptionError("GROQ_API_KEY is required for Groq transcription.")
+
+        return transcribe_with_groq(audio_path, api_key)
+
     supported = ", ".join(supported_transcription_providers())
     raise TranscriptionError(
         f"Unsupported transcription provider: {provider}. Supported providers are: {supported}."
@@ -78,7 +87,7 @@ def transcribe_audio(audio_path: Path) -> dict[str, object]:
 
 
 def supported_transcription_providers() -> tuple[str, ...]:
-    return ("openai", "gemini", "grok", "local")
+    return ("openai", "gemini", "grok", "groq", "local")
 
 
 def transcribe_with_local_placeholder(audio_path: Path) -> dict[str, object]:
@@ -279,6 +288,75 @@ def transcribe_with_grok(audio_path: Path, api_key: str) -> dict[str, object]:
     return normalized
 
 
+def transcribe_with_groq(audio_path: Path, api_key: str) -> dict[str, object]:
+    if not api_key:
+        raise TranscriptionError("GROQ_API_KEY is required for Groq transcription.")
+
+    try:
+        from openai import APIError, APITimeoutError, OpenAI, OpenAIError
+    except ImportError as exception:
+        raise TranscriptionError(
+            "The openai Python package is not installed. Run pip install -r requirements.txt."
+        ) from exception
+
+    model = (
+        os.getenv("GROQ_TRANSCRIPTION_MODEL", "whisper-large-v3-turbo").strip()
+        or "whisper-large-v3-turbo"
+    )
+    timeout = float(os.getenv("GROQ_TRANSCRIPTION_TIMEOUT", "120"))
+    client = OpenAI(
+        api_key=api_key,
+        base_url=groq_base_url(),
+        timeout=timeout,
+    )
+    request: dict[str, Any] = {
+        "model": model,
+        "response_format": "verbose_json",
+    }
+    language = os.getenv("GROQ_TRANSCRIPTION_LANGUAGE", "").strip()
+    prompt = os.getenv("GROQ_TRANSCRIPTION_PROMPT", "").strip()
+
+    if language:
+        request["language"] = language
+
+    if prompt:
+        request["prompt"] = prompt
+
+    try:
+        with audio_path.open("rb") as audio_file:
+            response = client.audio.transcriptions.create(
+                file=audio_file,
+                **request,
+            )
+    except APITimeoutError as exception:
+        raise TranscriptionError("Groq transcription request timed out.") from exception
+    except APIError as exception:
+        raise TranscriptionError(f"Groq API error: {exception}") from exception
+    except OpenAIError as exception:
+        raise TranscriptionError(f"Groq transcription failed: {exception}") from exception
+
+    normalized = normalize_groq_response(response, model)
+
+    if not str(normalized["transcript"]).strip():
+        raise TranscriptionError("Groq returned an empty transcript.")
+
+    return normalized
+
+
+def groq_base_url() -> str:
+    configured = os.getenv("GROQ_BASE_URL", "").strip()
+
+    if configured:
+        return configured.rstrip("/")
+
+    endpoint = os.getenv("GROQ_TRANSCRIPTION_ENDPOINT", "").strip()
+
+    if endpoint.endswith("/audio/transcriptions"):
+        return endpoint.removesuffix("/audio/transcriptions").rstrip("/")
+
+    return "https://api.groq.com/openai/v1"
+
+
 def model_path(model: str) -> str:
     return model if model.startswith("models/") else f"models/{model}"
 
@@ -313,6 +391,16 @@ def xai_audio_mime_type(audio_path: Path) -> str:
 
     if configured:
         return configured
+
+    return audio_mime_type(audio_path)
+
+
+def audio_mime_type(audio_path: Path, env_name: str | None = None) -> str:
+    if env_name is not None:
+        configured = os.getenv(env_name, "").strip()
+
+        if configured:
+            return configured
 
     extension = audio_path.suffix.lower()
 
@@ -546,6 +634,29 @@ def normalize_grok_response(response: dict[str, object], model: str) -> dict[str
     }
 
 
+def normalize_groq_response(response: dict[str, object], model: str) -> dict[str, object]:
+    if hasattr(response, "model_dump"):
+        response = response.model_dump(mode="json")
+
+    if not isinstance(response, dict):
+        raise TranscriptionError("Groq returned an unexpected transcription response.")
+
+    transcript = str(response.get("text") or "")
+    language = response.get("language")
+    duration = response.get("duration")
+
+    return {
+        "success": True,
+        "transcript": transcript,
+        "text": transcript,
+        "language": language,
+        "duration_seconds": duration,
+        "segments": normalize_segments(response.get("segments")),
+        "provider": "groq",
+        "model": model,
+    }
+
+
 def validate_audio_file(audio_path: Path, provider: str = "openai") -> None:
     if not audio_path.exists() or not audio_path.is_file():
         raise FileNotFoundError(f"Audio file does not exist: {audio_path}")
@@ -572,6 +683,9 @@ def max_audio_bytes(provider: str) -> int:
                 os.getenv("GROK_TRANSCRIPTION_MAX_BYTES", str(XAI_MAX_AUDIO_BYTES)),
             )
         )
+
+    if provider == "groq":
+        return int(os.getenv("GROQ_TRANSCRIPTION_MAX_BYTES", str(GROQ_MAX_AUDIO_BYTES)))
 
     if provider == "gemini":
         return int(

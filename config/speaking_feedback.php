@@ -21,4 +21,10 @@ return [
         'model' => env('GROK_FEEDBACK_MODEL', 'grok-4.3'),
         'temperature' => env('GROK_FEEDBACK_TEMPERATURE', 0.3),
     ],
+    'groq' => [
+        'api_key' => env('GROQ_API_KEY'),
+        'endpoint' => env('GROQ_FEEDBACK_ENDPOINT', 'https://api.groq.com/openai/v1/chat/completions'),
+        'model' => env('GROQ_FEEDBACK_MODEL', 'llama-3.3-70b-versatile'),
+        'temperature' => env('GROQ_FEEDBACK_TEMPERATURE', 0.3),
+    ],
 ];

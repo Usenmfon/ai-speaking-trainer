@@ -11,6 +11,7 @@ use App\Policies\FeedbackReportPolicy;
 use App\Policies\PracticeSessionPolicy;
 use App\Services\AI\Feedback\GeminiSpeakingFeedbackProvider;
 use App\Services\AI\Feedback\GrokSpeakingFeedbackProvider;
+use App\Services\AI\Feedback\GroqSpeakingFeedbackProvider;
 use App\Services\AI\Feedback\HttpSpeakingFeedbackProvider;
 use App\Services\AI\Feedback\LocalSpeakingFeedbackProvider;
 use App\Services\AI\Feedback\OpenAiSpeakingFeedbackProvider;
@@ -50,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
                 'openai' => app(OpenAiSpeakingFeedbackProvider::class),
                 'gemini' => app(GeminiSpeakingFeedbackProvider::class),
                 'grok' => app(GrokSpeakingFeedbackProvider::class),
+                'groq' => app(GroqSpeakingFeedbackProvider::class),
                 default => throw new InvalidArgumentException("Unsupported speaking feedback provider [{$provider}]."),
             };
         });

@@ -265,6 +265,68 @@ class SpeakingFeedbackReportTest extends TestCase
             && $request['response_format']['type'] === 'json_object');
     }
 
+    public function test_analyze_speaking_transcript_can_use_groq_provider(): void
+    {
+        config([
+            'speaking_feedback.provider' => 'groq',
+            'speaking_feedback.groq.api_key' => 'test-groq-key',
+            'speaking_feedback.groq.endpoint' => 'https://api.groq.com/openai/v1/chat/completions',
+            'speaking_feedback.groq.model' => 'llama-3.3-70b-versatile',
+        ]);
+
+        Http::fake([
+            'api.groq.com/*' => Http::response([
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => json_encode([
+                                'overall_score' => 91,
+                                'clarity_score' => 90,
+                                'structure_score' => 89,
+                                'confidence_score' => 88,
+                                'pace_score' => 87,
+                                'filler_word_score' => 86,
+                                'summary_feedback' => 'Fast, specific feedback with a clear coaching plan.',
+                                'strengths' => ['Clear next step'],
+                                'weaknesses' => ['Shorten the middle section'],
+                                'recommendations' => ['Lead with the audience outcome'],
+                                'filler_words' => [],
+                                'improved_version' => 'Lead with the outcome, support it briefly, and end with a direct next step.',
+                            ]),
+                        ],
+                    ],
+                ],
+            ]),
+        ]);
+
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->recorded()
+            ->create();
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'text' => 'This is my product pitch with a direct audience outcome and clear recommendation.',
+            ]);
+
+        (new AnalyzeSpeakingTranscript($transcript->id))->handle(new SpeakingFeedbackService);
+
+        $this->assertDatabaseHas('speaking_feedback_reports', [
+            'practice_session_id' => $session->id,
+            'user_id' => $user->id,
+            'transcript_id' => $transcript->id,
+            'overall_score' => 91,
+            'status' => 'completed',
+        ]);
+
+        Http::assertSent(fn ($request): bool => $request->hasHeader('Authorization', 'Bearer test-groq-key')
+            && $request->url() === 'https://api.groq.com/openai/v1/chat/completions'
+            && $request['model'] === 'llama-3.3-70b-versatile'
+            && $request['response_format']['type'] === 'json_object');
+    }
+
     private function completedUser(): User
     {
         return User::factory()

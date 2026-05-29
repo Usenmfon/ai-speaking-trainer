@@ -15,12 +15,15 @@ import worker  # noqa: E402
 from ai_worker.transcription import (  # noqa: E402
     TranscriptionError,
     gemini_audio_mime_type,
+    groq_base_url,
     normalize_gemini_response,
     normalize_grok_response,
+    normalize_groq_response,
     provider_error_message,
     transcribe_audio,
     transcribe_with_gemini,
     transcribe_with_grok,
+    transcribe_with_groq,
     transcribe_with_openai,
 )
 
@@ -280,7 +283,7 @@ def test_unknown_transcription_provider_lists_supported_providers(
 
     monkeypatch.setenv("AI_WORKER_TRANSCRIPTION_PROVIDER", "unknown")
 
-    with pytest.raises(TranscriptionError, match="Supported providers are: openai, gemini, grok, local"):
+    with pytest.raises(TranscriptionError, match="Supported providers are: openai, gemini, grok, groq, local"):
         transcribe_audio(audio_path)
 
 
@@ -476,6 +479,125 @@ def test_normalize_grok_response_handles_word_timestamps() -> None:
     assert response["transcript"] == "Hello from Grok."
     assert response["provider"] == "grok"
     assert response["segments"][0]["speaker"] == 0
+
+
+def test_successful_mocked_groq_transcription_response(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    monkeypatch.setenv("GROQ_TRANSCRIPTION_LANGUAGE", "en")
+    monkeypatch.setenv("GROQ_TRANSCRIPTION_PROMPT", "Industry terms: Laravel, Inertia")
+
+    class FakeTranscriptions:
+        def create(self, **kwargs: object) -> object:
+            assert kwargs["model"] == "whisper-large-v3-turbo"
+            assert kwargs["response_format"] == "verbose_json"
+            assert kwargs["language"] == "en"
+            assert kwargs["prompt"] == "Industry terms: Laravel, Inertia"
+            assert kwargs["file"].read() == b"webm-audio"
+
+            return {
+                "text": "Groq transcribed this clearly.",
+                "language": "en",
+                "duration": 2.35,
+                "segments": [
+                    {"id": 0, "start": 0.0, "end": 2.35, "text": "Groq transcribed this clearly."},
+                ],
+            }
+
+    class FakeAudio:
+        transcriptions = FakeTranscriptions()
+
+    class FakeOpenAI:
+        def __init__(self, **kwargs: object) -> None:
+            assert kwargs["api_key"] == "test-groq-key"
+            assert str(kwargs["base_url"]) == "https://api.groq.com/openai/v1"
+            assert kwargs["timeout"] == 120
+            self.audio = FakeAudio()
+
+    fake_openai_module = types.SimpleNamespace(
+        APIError=Exception,
+        APITimeoutError=type("FakeTimeoutError", (Exception,), {}),
+        OpenAI=FakeOpenAI,
+        OpenAIError=Exception,
+    )
+
+    monkeypatch.setitem(sys.modules, "openai", fake_openai_module)
+
+    response = transcribe_with_groq(audio_path, "test-groq-key")
+
+    assert response["provider"] == "groq"
+    assert response["model"] == "whisper-large-v3-turbo"
+    assert response["transcript"] == "Groq transcribed this clearly."
+    assert response["language"] == "en"
+    assert response["duration_seconds"] == 2.35
+    assert response["segments"][0]["text"] == "Groq transcribed this clearly."
+
+
+def test_groq_base_url_can_be_derived_from_endpoint(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(
+        "GROQ_TRANSCRIPTION_ENDPOINT",
+        "https://api.groq.com/openai/v1/audio/transcriptions",
+    )
+
+    assert groq_base_url() == "https://api.groq.com/openai/v1"
+
+
+def test_groq_provider_is_switchable_from_worker_env(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    monkeypatch.setenv("AI_WORKER_TRANSCRIPTION_PROVIDER", "groq")
+    monkeypatch.setenv("GROQ_API_KEY", "test-groq-key")
+
+    def fake_transcribe_with_groq(path: Path, api_key: str) -> dict[str, object]:
+        assert path == audio_path
+        assert api_key == "test-groq-key"
+
+        return {
+            "success": True,
+            "transcript": "Groq provider selected.",
+            "text": "Groq provider selected.",
+            "language": "en",
+            "duration_seconds": 1.2,
+            "segments": [],
+            "provider": "groq",
+            "model": "whisper-large-v3-turbo",
+        }
+
+    monkeypatch.setattr(
+        "ai_worker.transcription.transcribe_with_groq",
+        fake_transcribe_with_groq,
+    )
+
+    response = transcribe_audio(audio_path)
+
+    assert response["provider"] == "groq"
+    assert response["transcript"] == "Groq provider selected."
+
+
+def test_normalize_groq_response_handles_segments() -> None:
+    response = normalize_groq_response(
+        {
+            "text": "Hello from Groq.",
+            "language": "en",
+            "duration": 1.5,
+            "segments": [
+                {"id": 0, "start": 0.0, "end": 1.5, "text": "Hello from Groq."},
+            ],
+        },
+        "whisper-large-v3-turbo",
+    )
+
+    assert response["transcript"] == "Hello from Groq."
+    assert response["provider"] == "groq"
+    assert response["segments"][0]["id"] == 0
 
 
 def test_provider_error_message_accepts_string_error_body() -> None:
