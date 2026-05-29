@@ -16,8 +16,11 @@ from ai_worker.transcription import (  # noqa: E402
     TranscriptionError,
     gemini_audio_mime_type,
     normalize_gemini_response,
+    normalize_grok_response,
+    provider_error_message,
     transcribe_audio,
     transcribe_with_gemini,
+    transcribe_with_grok,
     transcribe_with_openai,
 )
 
@@ -277,7 +280,7 @@ def test_unknown_transcription_provider_lists_supported_providers(
 
     monkeypatch.setenv("AI_WORKER_TRANSCRIPTION_PROVIDER", "unknown")
 
-    with pytest.raises(TranscriptionError, match="Supported providers are: openai, gemini, local"):
+    with pytest.raises(TranscriptionError, match="Supported providers are: openai, gemini, grok, local"):
         transcribe_audio(audio_path)
 
 
@@ -364,6 +367,121 @@ def test_gemini_provider_is_switchable_from_worker_env(
 
     assert response["provider"] == "gemini"
     assert response["transcript"] == "Gemini provider selected."
+
+
+def test_successful_mocked_grok_transcription_response(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    monkeypatch.setenv("XAI_TRANSCRIPTION_LANGUAGE", "en")
+    monkeypatch.setenv("XAI_TRANSCRIPTION_FORMAT", "true")
+    monkeypatch.setenv("XAI_TRANSCRIPTION_KEYTERMS", "AI Speaking Coach, Laravel")
+
+    def fake_post_multipart(
+        url: str,
+        fields: list[tuple[str, str]],
+        file_path: Path,
+        file_mime_type: str,
+        headers: dict[str, str],
+        timeout: float,
+        provider_name: str,
+    ) -> dict[str, object]:
+        assert url == "https://api.x.ai/v1/stt"
+        assert fields == [
+            ("language", "en"),
+            ("format", "true"),
+            ("keyterm", "AI Speaking Coach"),
+            ("keyterm", "Laravel"),
+        ]
+        assert file_path == audio_path
+        assert file_mime_type == "audio/webm"
+        assert headers["Authorization"] == "Bearer test-xai-key"
+        assert timeout == 120
+        assert provider_name == "Grok"
+
+        return {
+            "text": "Grok transcribed this clearly.",
+            "language": "English",
+            "duration": 2.35,
+            "words": [
+                {"text": "Grok", "start": 0.0, "end": 0.4},
+                {"text": "transcribed", "start": 0.4, "end": 1.1},
+            ],
+        }
+
+    monkeypatch.setattr("ai_worker.transcription.post_multipart", fake_post_multipart)
+
+    response = transcribe_with_grok(audio_path, "test-xai-key")
+
+    assert response["provider"] == "grok"
+    assert response["model"] == "grok-speech-to-text"
+    assert response["transcript"] == "Grok transcribed this clearly."
+    assert response["language"] == "English"
+    assert response["duration_seconds"] == 2.35
+    assert response["segments"][0]["text"] == "Grok"
+
+
+def test_grok_provider_is_switchable_from_worker_env(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    audio_path = tmp_path / "speech.webm"
+    audio_path.write_bytes(b"webm-audio")
+
+    monkeypatch.setenv("AI_WORKER_TRANSCRIPTION_PROVIDER", "grok")
+    monkeypatch.setenv("XAI_API_KEY", "test-xai-key")
+
+    def fake_transcribe_with_grok(path: Path, api_key: str) -> dict[str, object]:
+        assert path == audio_path
+        assert api_key == "test-xai-key"
+
+        return {
+            "success": True,
+            "transcript": "Grok provider selected.",
+            "text": "Grok provider selected.",
+            "language": "English",
+            "duration_seconds": 1.2,
+            "segments": [],
+            "provider": "grok",
+            "model": "grok-speech-to-text",
+        }
+
+    monkeypatch.setattr(
+        "ai_worker.transcription.transcribe_with_grok",
+        fake_transcribe_with_grok,
+    )
+
+    response = transcribe_audio(audio_path)
+
+    assert response["provider"] == "grok"
+    assert response["transcript"] == "Grok provider selected."
+
+
+def test_normalize_grok_response_handles_word_timestamps() -> None:
+    response = normalize_grok_response(
+        {
+            "text": "Hello from Grok.",
+            "language": "English",
+            "duration": 1.5,
+            "words": [
+                {"text": "Hello", "start": 0.0, "end": 0.5, "speaker": 0},
+            ],
+        },
+        "grok-speech-to-text",
+    )
+
+    assert response["transcript"] == "Hello from Grok."
+    assert response["provider"] == "grok"
+    assert response["segments"][0]["speaker"] == 0
+
+
+def test_provider_error_message_accepts_string_error_body() -> None:
+    assert provider_error_message({"error": "Forbidden"}, "fallback") == "Forbidden"
+    assert provider_error_message({"error": {"message": "Invalid API key"}}, "fallback") == "Invalid API key"
+    assert provider_error_message({"message": "Rate limited"}, "fallback") == "Rate limited"
 
 
 def test_gemini_blocked_response_is_wrapped() -> None:
