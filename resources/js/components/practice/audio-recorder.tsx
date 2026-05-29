@@ -109,11 +109,19 @@ export function AudioRecorder({
         }
 
         const interval = window.setInterval(() => {
-            setElapsedSeconds((seconds) => seconds + 1);
+            setElapsedSeconds((seconds) =>
+                Math.min(seconds + 1, targetDurationSeconds),
+            );
         }, 1000);
 
         return () => window.clearInterval(interval);
-    }, [isRecording]);
+    }, [isRecording, targetDurationSeconds]);
+
+    useEffect(() => {
+        if (isRecording && elapsedSeconds >= targetDurationSeconds) {
+            stopRecording();
+        }
+    }, [elapsedSeconds, isRecording, targetDurationSeconds]);
 
     useEffect(() => {
         return () => {
