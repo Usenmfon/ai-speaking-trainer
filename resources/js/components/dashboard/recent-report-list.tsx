@@ -12,9 +12,9 @@ type RecentReportListProps = {
 
 export function RecentReportList({ reports }: RecentReportListProps) {
     return (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                     <h2 className="text-lg font-semibold">
                         Recent feedback reports
                     </h2>
@@ -22,7 +22,7 @@ export function RecentReportList({ reports }: RecentReportListProps) {
                         Scores and coaching summaries.
                     </p>
                 </div>
-                <BarChart3 className="size-5 text-cyan-700 dark:text-cyan-200" />
+                <BarChart3 className="size-5 shrink-0 text-cyan-700 dark:text-cyan-200" />
             </div>
 
             <div className="mt-5 flex flex-col gap-3">
@@ -41,9 +41,9 @@ export function RecentReportList({ reports }: RecentReportListProps) {
                                 href={show(report.id)}
                                 className="rounded-xl border border-border bg-background p-4 transition hover:border-cyan-400/50 hover:bg-accent"
                             >
-                                <div className="flex items-start justify-between gap-3">
-                                    <div>
-                                        <p className="font-medium">
+                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                    <div className="min-w-0">
+                                        <p className="font-medium break-words">
                                             {report.practice_session?.title ??
                                                 'Feedback report'}
                                         </p>
@@ -54,7 +54,7 @@ export function RecentReportList({ reports }: RecentReportListProps) {
                                     </div>
                                     <span
                                         className={cn(
-                                            'rounded-full border px-2.5 py-1 text-xs font-semibold',
+                                            'w-fit rounded-full border px-2.5 py-1 text-xs font-semibold',
                                             tone.badge,
                                         )}
                                     >

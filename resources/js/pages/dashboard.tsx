@@ -36,17 +36,17 @@ export default function Dashboard({ analytics }: DashboardProps) {
         <>
             <Head title="Dashboard" />
 
-            <div className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
-                <div className="mx-auto flex max-w-7xl flex-col gap-6">
+            <div className="min-h-full bg-background px-4 py-5 text-foreground sm:px-6 sm:py-6 lg:px-8">
+                <div className="mx-auto flex max-w-7xl min-w-0 flex-col gap-5 sm:gap-6">
                     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
                         <div className="bg-linear-to-br from-cyan-500/10 via-violet-500/10 to-background p-5 sm:p-8">
                             <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-                                <div>
+                                <div className="min-w-0">
                                     <p className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
-                                        <Sparkles className="size-4" />
+                                        <Sparkles className="size-4 shrink-0" />
                                         AI coach dashboard
                                     </p>
-                                    <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-4xl">
+                                    <h1 className="mt-3 text-2xl font-semibold tracking-normal break-words sm:text-4xl">
                                         Welcome back,{' '}
                                         {auth.user?.name ?? 'speaker'}
                                     </h1>
@@ -57,7 +57,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                                     </p>
                                 </div>
 
-                                <Button asChild size="lg">
+                                <Button asChild size="lg" className="w-full sm:w-auto">
                                     <Link href={create()}>
                                         <Mic2 className="size-4" />
                                         Start New Practice
@@ -68,7 +68,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                     </section>
 
                     {!hasActivity && (
-                        <section className="rounded-2xl border border-dashed border-border bg-card p-8 text-center shadow-sm">
+                        <section className="rounded-2xl border border-dashed border-border bg-card p-5 text-center shadow-sm sm:p-8">
                             <FileText className="mx-auto size-10 text-cyan-700 dark:text-cyan-200" />
                             <h2 className="mt-4 text-xl font-semibold">
                                 Your analytics will appear here
@@ -78,7 +78,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                                 and AI feedback will turn into a clean progress
                                 overview on this dashboard.
                             </p>
-                            <Button asChild className="mt-5">
+                            <Button asChild className="mt-5 w-full sm:w-auto">
                                 <Link href={create()}>
                                     <Mic2 className="size-4" />
                                     Start New Practice
@@ -87,7 +87,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                         </section>
                     )}
 
-                    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <section className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <StatCard
                             icon={CalendarDays}
                             label="Total practice sessions"
@@ -116,7 +116,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                         />
                     </section>
 
-                    <section className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
+                    <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
                         <ImprovementInsightCard
                             latestSessionTitle={
                                 analytics.latestSession?.title ?? null
@@ -126,7 +126,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                             }
                         />
 
-                        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
                             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                                 <div>
                                     <h2 className="text-lg font-semibold">
@@ -137,7 +137,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                                         activity at a glance.
                                     </p>
                                 </div>
-                                <Button asChild variant="outline">
+                                <Button asChild variant="outline" className="w-full sm:w-auto">
                                     <Link href={reportsIndex()}>
                                         <Award className="size-4" />
                                         View reports
@@ -176,7 +176,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                         </section>
                     </section>
 
-                    <section className="grid gap-5 xl:grid-cols-2">
+                    <section className="grid min-w-0 gap-5 xl:grid-cols-2">
                         <RecentSessionList
                             sessions={analytics.recentSessions}
                         />

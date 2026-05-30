@@ -42,15 +42,15 @@ function statusClass(status: PracticeSession['status']): string {
 
 export function RecentSessionList({ sessions }: RecentSessionListProps) {
     return (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                     <h2 className="text-lg font-semibold">Recent sessions</h2>
                     <p className="mt-1 text-sm text-muted-foreground">
                         Your latest practice work.
                     </p>
                 </div>
-                <Mic2 className="size-5 text-cyan-700 dark:text-cyan-200" />
+                <Mic2 className="size-5 shrink-0 text-cyan-700 dark:text-cyan-200" />
             </div>
 
             <div className="mt-5 flex flex-col gap-3">
@@ -66,9 +66,9 @@ export function RecentSessionList({ sessions }: RecentSessionListProps) {
                             href={show(session.id)}
                             className="rounded-xl border border-border bg-background p-4 transition hover:border-cyan-400/50 hover:bg-accent"
                         >
-                            <div className="flex items-start justify-between gap-3">
-                                <div>
-                                    <p className="font-medium">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                                <div className="min-w-0">
+                                    <p className="font-medium break-words">
                                         {session.title}
                                     </p>
                                     <p className="mt-1 line-clamp-1 text-sm text-muted-foreground">
@@ -77,7 +77,7 @@ export function RecentSessionList({ sessions }: RecentSessionListProps) {
                                 </div>
                                 <span
                                     className={cn(
-                                        'rounded-full border px-2.5 py-1 text-xs',
+                                        'w-fit rounded-full border px-2.5 py-1 text-xs',
                                         statusClass(session.status),
                                     )}
                                 >

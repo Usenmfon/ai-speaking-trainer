@@ -10,12 +10,12 @@ export function ImprovementInsightCard({
     mostCommonWeakness,
 }: ImprovementInsightCardProps) {
     return (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
             <div className="flex items-center gap-3">
-                <div className="rounded-2xl border border-violet-500/20 bg-violet-500/10 p-3 text-violet-700 dark:text-violet-200">
+                <div className="shrink-0 rounded-2xl border border-violet-500/20 bg-violet-500/10 p-3 text-violet-700 dark:text-violet-200">
                     <Lightbulb className="size-5" />
                 </div>
-                <div>
+                <div className="min-w-0">
                     <h2 className="text-lg font-semibold">
                         Improvement insight
                     </h2>
@@ -28,8 +28,8 @@ export function ImprovementInsightCard({
             <div className="mt-5 rounded-2xl border border-border bg-background p-4">
                 <div className="flex gap-3">
                     <Target className="mt-0.5 size-5 shrink-0 text-cyan-700 dark:text-cyan-200" />
-                    <div>
-                        <p className="font-medium">
+                    <div className="min-w-0">
+                        <p className="font-medium break-words">
                             {mostCommonWeakness ??
                                 'Complete a session to unlock insights'}
                         </p>
@@ -43,7 +43,7 @@ export function ImprovementInsightCard({
             </div>
 
             {latestSessionTitle && (
-                <p className="mt-4 text-sm text-muted-foreground">
+                <p className="mt-4 break-words text-sm text-muted-foreground">
                     Latest session: {latestSessionTitle}
                 </p>
             )}

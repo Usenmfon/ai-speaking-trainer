@@ -175,12 +175,12 @@ export default function Welcome() {
             <main className="dark min-h-screen overflow-hidden bg-[#060817] text-white">
                 <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.22),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(139,92,246,0.22),transparent_32%),linear-gradient(135deg,rgba(14,165,233,0.06),rgba(124,58,237,0.08),transparent)]" />
                 <div className="relative">
-                    <header className="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 sm:px-6 lg:px-8">
-                        <Link href="/" className="flex items-center gap-3">
+                    <header className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
+                        <Link href="/" className="flex min-w-0 items-center gap-3">
                             <span className="flex size-10 items-center justify-center rounded-2xl bg-linear-to-br from-cyan-300 to-violet-500 text-slate-950 shadow-[0_0_30px_rgba(34,211,238,0.28)]">
                                 <Mic2 className="size-5" />
                             </span>
-                            <span className="text-sm font-semibold">
+                            <span className="truncate text-sm font-semibold">
                                 SpeakAI Coach
                             </span>
                         </Link>
@@ -195,9 +195,9 @@ export default function Welcome() {
                                 Pricing
                             </a>
                         </nav>
-                        <div className="flex items-center gap-3">
+                        <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:flex-none sm:gap-3">
                             {auth.user ? (
-                                <GradientButton href={dashboard()}>
+                                <GradientButton href={dashboard()} className="px-4 sm:px-5">
                                     Dashboard
                                 </GradientButton>
                             ) : (
@@ -208,7 +208,10 @@ export default function Welcome() {
                                     >
                                         Log in
                                     </Link>
-                                    <GradientButton href={register()}>
+                                    <GradientButton
+                                        href={register()}
+                                        className="min-w-0 px-4 sm:px-5"
+                                    >
                                         Start Practicing
                                     </GradientButton>
                                 </>
@@ -216,59 +219,62 @@ export default function Welcome() {
                         </div>
                     </header>
 
-                    <section className="mx-auto grid max-w-7xl items-center gap-12 px-5 pt-14 pb-24 sm:px-6 lg:grid-cols-[1fr_0.95fr] lg:px-8 lg:pt-20">
-                        <div>
+                    <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pt-10 pb-20 sm:px-6 sm:pt-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:px-8 lg:pt-20 lg:pb-24">
+                        <div className="min-w-0">
                             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100">
                                 <Sparkles className="size-4" />
-                                Real-time coaching for every speaking moment
+                                <span>Real-time coaching for every speaking moment</span>
                             </div>
-                            <h1 className="text-balance text-5xl font-semibold tracking-normal text-white sm:text-6xl lg:text-7xl">
+                            <h1 className="text-balance text-4xl font-semibold tracking-normal text-white sm:text-5xl lg:text-7xl">
                                 Master Public Speaking with AI
                             </h1>
-                            <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-300">
+                            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
                                 Practice speeches, presentations, interviews,
                                 and conversations with real-time AI feedback.
                             </p>
                             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
                                 <GradientButton
                                     href={auth.user ? dashboard() : register()}
-                                    className="px-7"
+                                    className="w-full px-7 sm:w-auto"
                                 >
                                     Start Practicing
                                     <ChevronRight className="size-4" />
                                 </GradientButton>
-                                <GradientButton variant="secondary">
+                                <GradientButton
+                                    variant="secondary"
+                                    className="w-full sm:w-auto"
+                                >
                                     Watch Demo
                                 </GradientButton>
                             </div>
-                            <div className="mt-8 grid grid-cols-3 gap-3 text-sm text-slate-300 sm:max-w-xl">
+                            <div className="mt-8 grid gap-3 text-sm text-slate-300 sm:max-w-xl sm:grid-cols-3">
                                 {['30k sessions analyzed', '4.9 coach rating', 'Private by design'].map(
                                     (item) => (
                                         <div
                                             key={item}
-                                            className="flex items-center gap-2"
+                                            className="flex min-w-0 items-center gap-2"
                                         >
-                                            <CheckCircle2 className="size-4 text-cyan-300" />
-                                            <span>{item}</span>
+                                            <CheckCircle2 className="size-4 shrink-0 text-cyan-300" />
+                                            <span className="min-w-0">{item}</span>
                                         </div>
                                     ),
                                 )}
                             </div>
                         </div>
 
-                        <div className="relative">
+                        <div className="relative min-w-0">
                             <GlassCard className="animate-slow-float p-4 sm:p-5" glow>
                                 <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
-                                    <div className="mb-5 flex items-center justify-between">
-                                        <div>
+                                    <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <div className="min-w-0">
                                             <p className="text-sm text-slate-400">
                                                 Live session
                                             </p>
-                                            <h2 className="text-xl font-semibold">
+                                            <h2 className="text-lg font-semibold sm:text-xl">
                                                 Investor pitch rehearsal
                                             </h2>
                                         </div>
-                                        <span className="rounded-full bg-emerald-300/10 px-3 py-1 text-xs text-emerald-200">
+                                        <span className="w-fit rounded-full bg-emerald-300/10 px-3 py-1 text-xs text-emerald-200">
                                             Recording
                                         </span>
                                     </div>
@@ -294,7 +300,7 @@ export default function Welcome() {
                                     </div>
                                 </div>
                             </GlassCard>
-                            <GlassCard className="absolute -right-3 -bottom-8 max-w-xs p-4 sm:-right-8" glow>
+                            <GlassCard className="mt-4 p-4 sm:absolute sm:-right-4 sm:-bottom-8 sm:mt-0 sm:max-w-xs lg:-right-8" glow>
                                 <p className="text-sm font-semibold text-cyan-100">
                                     AI coach note
                                 </p>
@@ -307,7 +313,7 @@ export default function Welcome() {
                         </div>
                     </section>
 
-                    <section id="features" className="px-5 py-20 sm:px-6 lg:px-8">
+                    <section id="features" className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
                         <SectionHeading
                             eyebrow="Coach every signal"
                             title="Everything you need to become a clearer speaker"
@@ -320,7 +326,7 @@ export default function Welcome() {
                         </div>
                     </section>
 
-                    <section className="mx-auto grid max-w-7xl gap-5 px-5 py-20 sm:px-6 lg:grid-cols-3 lg:px-8">
+                    <section className="mx-auto grid max-w-7xl gap-5 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-3 lg:px-8">
                         {[
                             'Record or upload your speech',
                             'AI analyzes your speaking patterns',
@@ -341,14 +347,14 @@ export default function Welcome() {
                         ))}
                     </section>
 
-                    <section className="mx-auto grid max-w-7xl gap-8 px-5 py-20 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
+                    <section className="mx-auto grid max-w-7xl gap-8 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:px-8">
                         <SectionHeading
                             align="left"
                             eyebrow="Analytics preview"
                             title="A speaking dashboard that tells you what to fix next"
                             description="Your coaching view brings confidence, speed, filler words, pronunciation, tone, and recommendations into one clean workspace."
                         />
-                        <GlassCard className="p-5" glow>
+                        <GlassCard className="min-w-0 p-5" glow>
                             <div className="grid gap-4 sm:grid-cols-2">
                                 {[
                                     ['Confidence score', '88%'],
@@ -370,7 +376,7 @@ export default function Welcome() {
                                 ))}
                             </div>
                             <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                                <div className="mb-4 flex items-center justify-between">
+                                <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <p className="font-semibold">Progress chart</p>
                                     <span className="text-sm text-cyan-200">
                                         +18% this month
@@ -381,7 +387,7 @@ export default function Welcome() {
                         </GlassCard>
                     </section>
 
-                    <section id="modes" className="px-5 py-20 sm:px-6 lg:px-8">
+                    <section id="modes" className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
                         <SectionHeading
                             eyebrow="Practice modes"
                             title="Train for the exact room you need to walk into"
@@ -394,7 +400,7 @@ export default function Welcome() {
                         </div>
                     </section>
 
-                    <section className="px-5 py-20 sm:px-6 lg:px-8">
+                    <section className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
                         <SectionHeading
                             eyebrow="Loved by practice-first teams"
                             title="Speakers use SpeakAI Coach to show up prepared"
@@ -426,7 +432,7 @@ export default function Welcome() {
                         </div>
                     </section>
 
-                    <section id="pricing" className="px-5 py-20 sm:px-6 lg:px-8">
+                    <section id="pricing" className="px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
                         <SectionHeading
                             eyebrow="Pricing"
                             title="Start free, scale when practice becomes a habit"
@@ -438,9 +444,9 @@ export default function Welcome() {
                         </div>
                     </section>
 
-                    <section className="mx-auto max-w-5xl px-5 py-20 sm:px-6 lg:px-8">
-                        <GlassCard className="p-8 text-center sm:p-12" glow>
-                            <h2 className="text-3xl font-semibold sm:text-4xl">
+                    <section className="mx-auto max-w-5xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
+                        <GlassCard className="p-6 text-center sm:p-12" glow>
+                            <h2 className="text-2xl font-semibold sm:text-4xl">
                                 Build a voice people remember
                             </h2>
                             <p className="mx-auto mt-4 max-w-2xl text-slate-300">
@@ -457,15 +463,18 @@ export default function Welcome() {
                                     placeholder="you@example.com"
                                     className="min-h-12 flex-1 rounded-full border border-white/10 bg-white/8 px-5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/30"
                                 />
-                                <GradientButton type="submit">
+                                <GradientButton
+                                    type="submit"
+                                    className="w-full sm:w-auto"
+                                >
                                     Join waitlist
                                 </GradientButton>
                             </form>
                         </GlassCard>
                     </section>
 
-                    <footer className="border-t border-white/10 px-5 py-12 sm:px-6 lg:px-8">
-                        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[1.2fr_2fr_1fr]">
+                    <footer className="border-t border-white/10 px-4 py-12 sm:px-6 lg:px-8">
+                        <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)_minmax(0,1fr)]">
                             <div>
                                 <div className="flex items-center gap-3">
                                     <span className="flex size-9 items-center justify-center rounded-2xl bg-cyan-300 text-slate-950">
