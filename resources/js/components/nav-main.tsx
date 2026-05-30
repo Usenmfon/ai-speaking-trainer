@@ -5,6 +5,7 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn } from '@/lib/utils';
@@ -20,6 +21,13 @@ export function NavMain({
     label = 'Coach workspace',
 }: NavMainProps) {
     const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
+    const { isMobile, setOpenMobile } = useSidebar();
+
+    function closeMobileSidebar(): void {
+        if (isMobile) {
+            setOpenMobile(false);
+        }
+    }
 
     return (
         <SidebarGroup className="px-2 py-0">
@@ -49,6 +57,7 @@ export function NavMain({
                                 <Link
                                     href={item.href}
                                     prefetch
+                                    onClick={closeMobileSidebar}
                                     aria-current={isActive ? 'page' : undefined}
                                 >
                                     {item.icon && <item.icon />}
