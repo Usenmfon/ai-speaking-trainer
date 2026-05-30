@@ -25,6 +25,17 @@ class AdminPanelTest extends TestCase
         $response->assertForbidden();
     }
 
+    public function test_non_admin_user_cannot_access_admin_management_sections(): void
+    {
+        $user = User::factory()->create();
+
+        foreach ($this->adminManagementRoutes() as $route) {
+            $this->actingAs($user)
+                ->get(route($route))
+                ->assertForbidden();
+        }
+    }
+
     public function test_admin_can_view_dashboard_metrics(): void
     {
         $admin = User::factory()->admin()->create();
@@ -120,6 +131,38 @@ class AdminPanelTest extends TestCase
                 ->where('sessions.data.0.status', 'failed')
                 ->where('sessions.data.0.feedback_report.status', 'failed')
             );
+    }
+
+    public function test_admin_can_view_management_sections(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        foreach ($this->adminManagementRoutes() as $route) {
+            $this->actingAs($admin)
+                ->get(route($route))
+                ->assertOk()
+                ->assertInertia(fn (AssertableInertia $page) => $page
+                    ->component('Admin/ManagementSection')
+                    ->has('section.title')
+                    ->has('section.eyebrow')
+                    ->has('section.description')
+                    ->has('section.items')
+                );
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function adminManagementRoutes(): array
+    {
+        return [
+            'admin.content.index',
+            'admin.processing.index',
+            'admin.notifications.index',
+            'admin.settings.index',
+            'admin.audit-logs.index',
+        ];
     }
 
     private function createReportForSession(PracticeSession $session, User $user, string $status): SpeakingFeedbackReport

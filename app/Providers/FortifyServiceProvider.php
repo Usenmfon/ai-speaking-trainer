@@ -27,6 +27,10 @@ class FortifyServiceProvider extends ServiceProvider
         {
             public function toResponse($request): RedirectResponse
             {
+                if ($request->user()->isAdmin()) {
+                    return to_route('admin.dashboard');
+                }
+
                 if (! $request->user()->profile?->onboarding_completed) {
                     return to_route('user-profile.complete');
                 }

@@ -1,16 +1,26 @@
 import { Head, Link } from '@inertiajs/react';
 import {
+    Activity,
     AlertTriangle,
     BarChart3,
+    Bell,
+    Bot,
     CheckCircle2,
+    FileCog,
     FileText,
+    Settings,
     ShieldCheck,
     Users,
 } from 'lucide-react';
 
 import {
+    auditLogs as adminAuditLogs,
+    content as adminContent,
     index as adminDashboard,
+    notifications as adminNotifications,
+    processing as adminProcessing,
     sessions as adminSessions,
+    settings as adminSettings,
     users as adminUsers,
 } from '@/actions/App/Http/Controllers/AdminDashboardController';
 import { StatCard } from '@/components/dashboard/stat-card';
@@ -41,6 +51,39 @@ function formatStatus(value: string | null | undefined): string {
         .join(' ');
 }
 
+const managementLinks = [
+    {
+        title: 'Content',
+        description: 'CMS copy, prompts, session types, and coaching guidance.',
+        href: adminContent(),
+        icon: FileCog,
+    },
+    {
+        title: 'Processing',
+        description: 'Transcription, analysis, failed jobs, and provider health.',
+        href: adminProcessing(),
+        icon: Bot,
+    },
+    {
+        title: 'Notifications',
+        description: 'Announcements, email templates, and in-app messages.',
+        href: adminNotifications(),
+        icon: Bell,
+    },
+    {
+        title: 'System settings',
+        description: 'Recording limits, AI settings, and feature flags.',
+        href: adminSettings(),
+        icon: Settings,
+    },
+    {
+        title: 'Audit logs',
+        description: 'Admin actions, security events, and error visibility.',
+        href: adminAuditLogs(),
+        icon: Activity,
+    },
+];
+
 export default function Dashboard({ stats, recentSessions }: DashboardProps) {
     return (
         <>
@@ -56,12 +99,12 @@ export default function Dashboard({ stats, recentSessions }: DashboardProps) {
                                     Admin overview
                                 </p>
                                 <h1 className="mt-3 text-3xl font-semibold tracking-normal sm:text-4xl">
-                                    Speaking coach operations
+                                    System management
                                 </h1>
                                 <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
-                                    Monitor users, practice volume, and failed AI
-                                    processing states without changing customer
-                                    data.
+                                    Manage users, content, AI processing,
+                                    notifications, and product-wide controls
+                                    from one admin workspace.
                                 </p>
                             </div>
 
@@ -113,6 +156,24 @@ export default function Dashboard({ stats, recentSessions }: DashboardProps) {
                             value={`${stats.failedAnalyses}`}
                             helper="Feedback reports currently marked failed."
                         />
+                    </section>
+
+                    <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+                        {managementLinks.map((item) => (
+                            <Link
+                                key={item.title}
+                                href={item.href}
+                                className="rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:border-cyan-500/40 hover:bg-cyan-500/5"
+                            >
+                                <item.icon className="size-5 text-cyan-700 dark:text-cyan-200" />
+                                <h2 className="mt-4 text-base font-semibold">
+                                    {item.title}
+                                </h2>
+                                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                    {item.description}
+                                </p>
+                            </Link>
+                        ))}
                     </section>
 
                     <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">

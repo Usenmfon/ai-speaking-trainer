@@ -31,6 +31,11 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('users', [AdminDashboardController::class, 'users'])->name('users.index');
         Route::get('sessions', [AdminDashboardController::class, 'sessions'])->name('sessions.index');
+        Route::get('content', [AdminDashboardController::class, 'content'])->name('content.index');
+        Route::get('processing', [AdminDashboardController::class, 'processing'])->name('processing.index');
+        Route::get('notifications', [AdminDashboardController::class, 'notifications'])->name('notifications.index');
+        Route::get('settings', [AdminDashboardController::class, 'settings'])->name('settings.index');
+        Route::get('audit-logs', [AdminDashboardController::class, 'auditLogs'])->name('audit-logs.index');
     });
 
 Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->group(function () {

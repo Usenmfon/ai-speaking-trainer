@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -14,9 +15,13 @@ class DashboardController extends Controller
     /**
      * Display the authenticated user's analytics dashboard.
      */
-    public function index(Request $request): Response
+    public function index(Request $request): RedirectResponse|Response
     {
         $user = $request->user();
+
+        if ($user->isAdmin()) {
+            return to_route('admin.dashboard');
+        }
 
         $sessionQuery = PracticeSession::query()
             ->whereBelongsTo($user);

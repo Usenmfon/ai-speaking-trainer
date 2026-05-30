@@ -10,13 +10,21 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { cn } from '@/lib/utils';
 import type { NavItem } from '@/types';
 
-export function NavMain({ items = [] }: { items: NavItem[] }) {
+type NavMainProps = {
+    items?: NavItem[];
+    label?: string;
+};
+
+export function NavMain({
+    items = [],
+    label = 'Coach workspace',
+}: NavMainProps) {
     const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
 
     return (
         <SidebarGroup className="px-2 py-0">
             <SidebarGroupLabel className="text-sidebar-foreground/60">
-                Coach workspace
+                {label}
             </SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {
