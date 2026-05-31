@@ -44,7 +44,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { aiCoach, dashboard, progress } from '@/routes';
+import { aiCoach, community, dashboard, progress } from '@/routes';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -84,7 +84,8 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Community',
-        href: '#community',
+        href: community(),
+        activeHref: '/community',
         icon: Users,
     },
     {

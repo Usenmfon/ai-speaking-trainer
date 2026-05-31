@@ -42,6 +42,7 @@ Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->gro
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::inertia('ai-coach', 'ai-coach')->name('ai-coach');
     Route::inertia('progress', 'progress')->name('progress');
+    Route::inertia('community', 'community')->name('community');
     Route::inertia('practice', 'practice')->name('practice');
     Route::resource('practice-sessions', PracticeSessionController::class)
         ->only(['index', 'create', 'store', 'show']);
