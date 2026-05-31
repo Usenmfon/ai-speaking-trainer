@@ -22,6 +22,7 @@ export function NavMain({
 }: NavMainProps) {
     const { isCurrentUrl, isCurrentOrParentUrl } = useCurrentUrl();
     const { isMobile, setOpenMobile } = useSidebar();
+    const hasExactActiveItem = items.some((item) => isCurrentUrl(item.href));
 
     function closeMobileSidebar(): void {
         if (isMobile) {
@@ -36,11 +37,13 @@ export function NavMain({
             </SidebarGroupLabel>
             <SidebarMenu>
                 {items.map((item) => {
+                    const isExactActive = isCurrentUrl(item.href);
                     const isActive =
                         item.isActive ??
-                        (item.activeHref
-                            ? isCurrentOrParentUrl(item.activeHref)
-                            : isCurrentUrl(item.href));
+                        (isExactActive ||
+                            (!hasExactActiveItem && item.activeHref
+                                ? isCurrentOrParentUrl(item.activeHref)
+                                : false));
 
                     return (
                         <SidebarMenuItem key={item.title}>
