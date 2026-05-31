@@ -44,7 +44,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
-import { dashboard } from '@/routes';
+import { aiCoach, dashboard, progress } from '@/routes';
 import type { NavItem } from '@/types';
 
 const mainNavItems: NavItem[] = [
@@ -72,12 +72,14 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'AI Coach',
-        href: '#coach',
+        href: aiCoach(),
+        activeHref: '/ai-coach',
         icon: BrainCircuit,
     },
     {
         title: 'Progress',
-        href: '#progress',
+        href: progress(),
+        activeHref: '/progress',
         icon: ChartNoAxesCombined,
     },
     {

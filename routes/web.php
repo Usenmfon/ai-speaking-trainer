@@ -40,6 +40,8 @@ Route::middleware(['auth', 'verified', 'admin'])
 
 Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::inertia('ai-coach', 'ai-coach')->name('ai-coach');
+    Route::inertia('progress', 'progress')->name('progress');
     Route::inertia('practice', 'practice')->name('practice');
     Route::resource('practice-sessions', PracticeSessionController::class)
         ->only(['index', 'create', 'store', 'show']);
