@@ -8,10 +8,13 @@ import {
     LineChart,
     MessageSquareText,
     Mic2,
+    Monitor,
+    Moon,
     Presentation,
     Radio,
     Sparkles,
     Speech,
+    Sun,
     Target,
     Volume2,
     WandSparkles,
@@ -24,6 +27,7 @@ import { PricingCard } from '@/components/ai/pricing-card';
 import { ProgressChartMock } from '@/components/ai/progress-chart-mock';
 import { SectionHeading } from '@/components/ai/section-heading';
 import { WaveformMock } from '@/components/ai/waveform-mock';
+import { useAppearance } from '@/hooks/use-appearance';
 import { dashboard, login, register } from '@/routes';
 
 const features = [
@@ -168,12 +172,21 @@ const pricing = [
 
 export default function Welcome() {
     const { auth } = usePage().props;
+    const { appearance, resolvedAppearance, updateAppearance } = useAppearance();
+
+    const nextAppearance = resolvedAppearance === 'dark' ? 'light' : 'dark';
+    const ThemeIcon =
+        appearance === 'system'
+            ? Monitor
+            : resolvedAppearance === 'dark'
+              ? Moon
+              : Sun;
 
     return (
         <>
             <Head title="AI Speaking Coach" />
-            <main className="dark min-h-screen overflow-hidden bg-[#060817] text-white">
-                <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.22),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(139,92,246,0.22),transparent_32%),linear-gradient(135deg,rgba(14,165,233,0.06),rgba(124,58,237,0.08),transparent)]" />
+            <main className="min-h-screen overflow-hidden bg-slate-50 text-slate-950 dark:bg-[#060817] dark:text-white">
+                <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_10%,rgba(14,165,233,0.16),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(124,58,237,0.14),transparent_32%),linear-gradient(135deg,rgba(14,165,233,0.08),rgba(124,58,237,0.06),transparent)] dark:bg-[radial-gradient(circle_at_20%_10%,rgba(34,211,238,0.22),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(139,92,246,0.22),transparent_32%),linear-gradient(135deg,rgba(14,165,233,0.06),rgba(124,58,237,0.08),transparent)]" />
                 <div className="relative">
                     <header className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
                         <Link href="/" className="flex min-w-0 items-center gap-3">
@@ -184,18 +197,36 @@ export default function Welcome() {
                                 SpeakAI Coach
                             </span>
                         </Link>
-                        <nav className="hidden items-center gap-7 text-sm text-slate-300 md:flex">
-                            <a href="#features" className="hover:text-white">
+                        <nav className="hidden items-center gap-7 text-sm text-slate-600 md:flex dark:text-slate-300">
+                            <a
+                                href="#features"
+                                className="hover:text-slate-950 dark:hover:text-white"
+                            >
                                 Features
                             </a>
-                            <a href="#modes" className="hover:text-white">
+                            <a
+                                href="#modes"
+                                className="hover:text-slate-950 dark:hover:text-white"
+                            >
                                 Modes
                             </a>
-                            <a href="#pricing" className="hover:text-white">
+                            <a
+                                href="#pricing"
+                                className="hover:text-slate-950 dark:hover:text-white"
+                            >
                                 Pricing
                             </a>
                         </nav>
                         <div className="flex min-w-0 flex-1 items-center justify-end gap-2 sm:flex-none sm:gap-3">
+                            <button
+                                type="button"
+                                onClick={() => updateAppearance(nextAppearance)}
+                                className="inline-flex size-11 items-center justify-center rounded-full border border-slate-200 bg-white/80 text-slate-700 shadow-sm transition hover:border-cyan-500/40 hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none dark:border-white/10 dark:bg-white/8 dark:text-slate-200 dark:hover:border-cyan-300/50 dark:hover:text-white"
+                                aria-label={`Switch to ${nextAppearance} theme`}
+                                title={`Switch to ${nextAppearance} theme`}
+                            >
+                                <ThemeIcon className="size-4" />
+                            </button>
                             {auth.user ? (
                                 <GradientButton href={dashboard()} className="px-4 sm:px-5">
                                     Dashboard
@@ -204,7 +235,7 @@ export default function Welcome() {
                                 <>
                                     <Link
                                         href={login()}
-                                        className="hidden rounded-full px-4 py-2 text-sm text-slate-300 transition hover:text-white focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none sm:inline-flex"
+                                        className="hidden rounded-full px-4 py-2 text-sm text-slate-600 transition hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none sm:inline-flex dark:text-slate-300 dark:hover:text-white"
                                     >
                                         Log in
                                     </Link>
@@ -221,14 +252,14 @@ export default function Welcome() {
 
                     <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pt-10 pb-20 sm:px-6 sm:pt-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)] lg:px-8 lg:pt-20 lg:pb-24">
                         <div className="min-w-0">
-                            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-sm text-cyan-100">
+                            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-700 dark:border-cyan-300/20 dark:bg-cyan-300/10 dark:text-cyan-100">
                                 <Sparkles className="size-4" />
                                 <span>Real-time coaching for every speaking moment</span>
                             </div>
-                            <h1 className="text-balance text-4xl font-semibold tracking-normal text-white sm:text-5xl lg:text-7xl">
+                            <h1 className="text-balance text-4xl font-semibold tracking-normal text-slate-950 sm:text-5xl lg:text-7xl dark:text-white">
                                 Master Public Speaking with AI
                             </h1>
-                            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-300 sm:text-lg sm:leading-8">
+                            <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8 dark:text-slate-300">
                                 Practice speeches, presentations, interviews,
                                 and conversations with real-time AI feedback.
                             </p>
@@ -247,7 +278,7 @@ export default function Welcome() {
                                     Watch Demo
                                 </GradientButton>
                             </div>
-                            <div className="mt-8 grid gap-3 text-sm text-slate-300 sm:max-w-xl sm:grid-cols-3">
+                            <div className="mt-8 grid gap-3 text-sm text-slate-600 sm:max-w-xl sm:grid-cols-3 dark:text-slate-300">
                                 {['30k sessions analyzed', '4.9 coach rating', 'Private by design'].map(
                                     (item) => (
                                         <div
@@ -264,17 +295,17 @@ export default function Welcome() {
 
                         <div className="relative min-w-0">
                             <GlassCard className="animate-slow-float p-4 sm:p-5" glow>
-                                <div className="rounded-2xl border border-white/10 bg-slate-950/70 p-4">
+                                <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 dark:border-white/10 dark:bg-slate-950/70">
                                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                         <div className="min-w-0">
-                                            <p className="text-sm text-slate-400">
+                                            <p className="text-sm text-slate-500 dark:text-slate-400">
                                                 Live session
                                             </p>
                                             <h2 className="text-lg font-semibold sm:text-xl">
                                                 Investor pitch rehearsal
                                             </h2>
                                         </div>
-                                        <span className="w-fit rounded-full bg-emerald-300/10 px-3 py-1 text-xs text-emerald-200">
+                                        <span className="w-fit rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-700 dark:bg-emerald-300/10 dark:text-emerald-200">
                                             Recording
                                         </span>
                                     </div>
@@ -287,12 +318,12 @@ export default function Welcome() {
                                         ].map(([label, value]) => (
                                             <div
                                                 key={label}
-                                                className="rounded-xl border border-white/10 bg-white/[0.05] p-3"
+                                                className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/[0.05]"
                                             >
-                                                <p className="text-xs text-slate-400">
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">
                                                     {label}
                                                 </p>
-                                                <p className="mt-1 text-lg font-semibold text-white">
+                                                <p className="mt-1 text-lg font-semibold text-slate-950 dark:text-white">
                                                     {value}
                                                 </p>
                                             </div>
@@ -301,10 +332,10 @@ export default function Welcome() {
                                 </div>
                             </GlassCard>
                             <GlassCard className="mt-4 p-4 sm:absolute sm:-right-4 sm:-bottom-8 sm:mt-0 sm:max-w-xs lg:-right-8" glow>
-                                <p className="text-sm font-semibold text-cyan-100">
+                                <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-100">
                                     AI coach note
                                 </p>
-                                <p className="mt-2 text-sm leading-6 text-slate-300">
+                                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
                                     Strong opening. Slow down before the pricing
                                     slide and replace two filler words with a
                                     pause.
@@ -333,13 +364,13 @@ export default function Welcome() {
                             'Receive actionable improvement insights',
                         ].map((step, index) => (
                             <GlassCard key={step} className="p-6" glow>
-                                <span className="text-sm font-semibold text-cyan-200">
+                                <span className="text-sm font-semibold text-cyan-700 dark:text-cyan-200">
                                     Step {index + 1}
                                 </span>
                                 <h3 className="mt-4 text-xl font-semibold">
                                     {step}
                                 </h3>
-                                <p className="mt-3 text-sm leading-6 text-slate-300">
+                                <p className="mt-3 text-sm leading-6 text-slate-600 dark:text-slate-300">
                                     Practice in a guided flow that turns raw
                                     speaking data into next-step coaching.
                                 </p>
@@ -364,9 +395,9 @@ export default function Welcome() {
                                 ].map(([label, value]) => (
                                     <div
                                         key={label}
-                                        className="rounded-2xl border border-white/10 bg-white/[0.04] p-4"
+                                        className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.04]"
                                     >
-                                        <p className="text-sm text-slate-400">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">
                                             {label}
                                         </p>
                                         <p className="mt-2 text-2xl font-semibold">
@@ -375,10 +406,10 @@ export default function Welcome() {
                                     </div>
                                 ))}
                             </div>
-                            <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+                            <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-white/10 dark:bg-white/[0.04]">
                                 <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                                     <p className="font-semibold">Progress chart</p>
-                                    <span className="text-sm text-cyan-200">
+                                    <span className="text-sm text-cyan-700 dark:text-cyan-200">
                                         +18% this month
                                     </span>
                                 </div>
@@ -408,7 +439,7 @@ export default function Welcome() {
                         <div className="mx-auto mt-12 grid max-w-7xl gap-4 md:grid-cols-3">
                             {testimonials.map((testimonial) => (
                                 <GlassCard key={testimonial.name} className="p-6">
-                                    <p className="text-sm leading-7 text-slate-200">
+                                    <p className="text-sm leading-7 text-slate-700 dark:text-slate-200">
                                         "{testimonial.quote}"
                                     </p>
                                     <div className="mt-6 flex items-center gap-3">
@@ -422,7 +453,7 @@ export default function Welcome() {
                                             <p className="text-sm font-semibold">
                                                 {testimonial.name}
                                             </p>
-                                            <p className="text-xs text-slate-400">
+                                            <p className="text-xs text-slate-500 dark:text-slate-400">
                                                 {testimonial.role}
                                             </p>
                                         </div>
@@ -449,7 +480,7 @@ export default function Welcome() {
                             <h2 className="text-2xl font-semibold sm:text-4xl">
                                 Build a voice people remember
                             </h2>
-                            <p className="mx-auto mt-4 max-w-2xl text-slate-300">
+                            <p className="mx-auto mt-4 max-w-2xl text-slate-600 dark:text-slate-300">
                                 Get a weekly practice plan, AI coaching notes,
                                 and confidence-building drills in your inbox.
                             </p>
@@ -461,7 +492,7 @@ export default function Welcome() {
                                     id="cta-email"
                                     type="email"
                                     placeholder="you@example.com"
-                                    className="min-h-12 flex-1 rounded-full border border-white/10 bg-white/8 px-5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/30"
+                                    className="min-h-12 flex-1 rounded-full border border-slate-200 bg-white px-5 text-sm text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-300/30 dark:border-white/10 dark:bg-white/8 dark:text-white dark:placeholder:text-slate-500"
                                 />
                                 <GradientButton
                                     type="submit"
@@ -473,7 +504,7 @@ export default function Welcome() {
                         </GlassCard>
                     </section>
 
-                    <footer className="border-t border-white/10 px-4 py-12 sm:px-6 lg:px-8">
+                    <footer className="border-t border-slate-200 px-4 py-12 sm:px-6 lg:px-8 dark:border-white/10">
                         <div className="mx-auto grid max-w-7xl gap-8 md:grid-cols-[minmax(0,1.2fr)_minmax(0,2fr)_minmax(0,1fr)]">
                             <div>
                                 <div className="flex items-center gap-3">
@@ -484,7 +515,7 @@ export default function Welcome() {
                                         SpeakAI Coach
                                     </span>
                                 </div>
-                                <p className="mt-4 text-sm leading-6 text-slate-400">
+                                <p className="mt-4 text-sm leading-6 text-slate-600 dark:text-slate-400">
                                     AI speaking practice for presentations,
                                     interviews, and confident conversations.
                                 </p>
@@ -499,12 +530,12 @@ export default function Welcome() {
                                         <h3 className="text-sm font-semibold">
                                             {heading}
                                         </h3>
-                                        <ul className="mt-4 flex flex-col gap-3 text-sm text-slate-400">
+                                        <ul className="mt-4 flex flex-col gap-3 text-sm text-slate-600 dark:text-slate-400">
                                             {links.map((link) => (
                                                 <li key={link}>
                                                     <a
                                                         href="#"
-                                                        className="hover:text-white"
+                                                        className="hover:text-slate-950 dark:hover:text-white"
                                                     >
                                                         {link}
                                                     </a>
@@ -525,7 +556,7 @@ export default function Welcome() {
                                     id="footer-email"
                                     type="email"
                                     placeholder="Email address"
-                                    className="min-h-11 rounded-full border border-white/10 bg-white/8 px-4 text-sm outline-none placeholder:text-slate-500 focus:border-cyan-300 focus:ring-2 focus:ring-cyan-300/30"
+                                    className="min-h-11 rounded-full border border-slate-200 bg-white px-4 text-sm text-slate-950 outline-none placeholder:text-slate-400 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-300/30 dark:border-white/10 dark:bg-white/8 dark:text-white dark:placeholder:text-slate-500"
                                 />
                             </form>
                         </div>
