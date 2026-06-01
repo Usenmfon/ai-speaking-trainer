@@ -1,4 +1,5 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
+import GoogleIcon from '@/components/google-icon';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
 import TextLink from '@/components/text-link';
@@ -7,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
+import { redirect as googleRedirect } from '@/routes/auth/google';
 import { store } from '@/routes/register';
 
 type Props = {
@@ -17,6 +19,23 @@ export default function Register({ passwordRules }: Props) {
     return (
         <>
             <Head title="Register" />
+
+            <div className="grid gap-3">
+                <Button variant="outline" className="w-full" asChild>
+                    <Link href={googleRedirect()}>
+                        <GoogleIcon />
+                        Sign up with Google
+                    </Link>
+                </Button>
+
+                <div className="relative text-center text-sm">
+                    <span className="relative z-10 bg-background px-2 text-muted-foreground">
+                        Or create an account with email
+                    </span>
+                    <span className="absolute inset-x-0 top-1/2 border-t" />
+                </div>
+            </div>
+
             <Form
                 {...store.form()}
                 resetOnSuccess={['password', 'password_confirmation']}
@@ -116,5 +135,5 @@ export default function Register({ passwordRules }: Props) {
 
 Register.layout = {
     title: 'Create an account',
-    description: 'Enter your details below to create your account',
+    description: 'Use Google or enter your details below',
 };
