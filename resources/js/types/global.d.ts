@@ -1,4 +1,4 @@
-import type { Auth, NotificationSummary } from '@/types/auth';
+import type { Auth, NotificationSummary, SidebarContent } from '@/types/auth';
 
 declare module 'react' {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -13,6 +13,7 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             notifications: NotificationSummary;
+            sidebarContent: SidebarContent;
             sidebarOpen: boolean;
             [key: string]: unknown;
         };

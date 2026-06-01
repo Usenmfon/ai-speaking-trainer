@@ -15,85 +15,59 @@ import { create } from '@/actions/App/Http/Controllers/PracticeSessionController
 import { Button } from '@/components/ui/button';
 import { community, dashboard, progress } from '@/routes';
 
-const discussionThreads = [
-    {
-        title: 'How do you stop rushing during presentations?',
-        category: 'Delivery',
-        replies: 18,
-        latest: '12 min ago',
-    },
-    {
-        title: 'Share a one-minute intro and get structure feedback',
-        category: 'Practice exchange',
-        replies: 31,
-        latest: '46 min ago',
-    },
-    {
-        title: 'Best warm-up routines before a high-stakes call',
-        category: 'Preparation',
-        replies: 12,
-        latest: '2 hr ago',
-    },
-];
+type CommunityStat = {
+    label: string;
+    value: string;
+    helper: string;
+    icon: 'users' | 'flame' | 'message';
+};
 
-const practiceCircles = [
-    {
-        title: 'Interview readiness',
-        members: '214 members',
-        focus: 'Answer structure, confidence, and concise examples.',
-    },
-    {
-        title: 'Product storytelling',
-        members: '148 members',
-        focus: 'Clear launches, demos, and stakeholder updates.',
-    },
-    {
-        title: 'English fluency reps',
-        members: '326 members',
-        focus: 'Daily speaking prompts and supportive peer feedback.',
-    },
-];
+type DiscussionThread = {
+    title: string;
+    description: string;
+    replies: number;
+    latest: string;
+};
 
-const upcomingSessions = [
-    {
-        title: 'Live prompt sprint',
-        time: 'Today, 6:00 PM',
-        seats: '8 spots open',
-    },
-    {
-        title: 'Peer feedback room',
-        time: 'Tomorrow, 7:30 PM',
-        seats: '12 spots open',
-    },
-    {
-        title: 'Confidence clinic',
-        time: 'Friday, 5:00 PM',
-        seats: '5 spots open',
-    },
-];
+type PracticeCircle = {
+    title: string;
+    value: string;
+    description: string;
+};
 
-const communityStats = [
-    {
-        label: 'Active speakers',
-        value: '688',
-        helper: 'Members practicing this week',
-        icon: Users,
-    },
-    {
-        label: 'Practice streaks',
-        value: '142',
-        helper: 'Streaks kept alive today',
-        icon: Flame,
-    },
-    {
-        label: 'Feedback shared',
-        value: '1.9k',
-        helper: 'Peer comments this month',
-        icon: MessageCircle,
-    },
-];
+type UpcomingSession = {
+    title: string;
+    time: string;
+    seats: string;
+};
 
-export default function Community() {
+type CommunityChallenge = {
+    title: string;
+    description: string;
+    value: string;
+};
+
+type CommunityProps = {
+    discussionThreads: DiscussionThread[];
+    practiceCircles: PracticeCircle[];
+    upcomingSessions: UpcomingSession[];
+    communityStats: CommunityStat[];
+    challenge: CommunityChallenge | null;
+};
+
+const statIcons = {
+    users: Users,
+    flame: Flame,
+    message: MessageCircle,
+};
+
+export default function Community({
+    discussionThreads,
+    practiceCircles,
+    upcomingSessions,
+    communityStats,
+    challenge,
+}: CommunityProps) {
     return (
         <>
             <Head title="Community" />
@@ -130,29 +104,33 @@ export default function Community() {
                     </section>
 
                     <section className="grid min-w-0 gap-4 sm:grid-cols-3">
-                        {communityStats.map((stat) => (
-                            <div
-                                key={stat.label}
-                                className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm"
-                            >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="min-w-0">
-                                        <p className="text-sm text-muted-foreground">
-                                            {stat.label}
-                                        </p>
-                                        <p className="mt-3 text-2xl font-semibold tracking-normal break-words sm:text-3xl">
-                                            {stat.value}
-                                        </p>
+                        {communityStats.map((stat) => {
+                            const StatIcon = statIcons[stat.icon] ?? Users;
+
+                            return (
+                                <div
+                                    key={stat.label}
+                                    className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm"
+                                >
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="min-w-0">
+                                            <p className="text-sm text-muted-foreground">
+                                                {stat.label}
+                                            </p>
+                                            <p className="mt-3 text-2xl font-semibold tracking-normal break-words sm:text-3xl">
+                                                {stat.value}
+                                            </p>
+                                        </div>
+                                        <div className="shrink-0 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-cyan-700 dark:text-cyan-200">
+                                            <StatIcon className="size-5" />
+                                        </div>
                                     </div>
-                                    <div className="shrink-0 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-cyan-700 dark:text-cyan-200">
-                                        <stat.icon className="size-5" />
-                                    </div>
+                                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                                        {stat.helper}
+                                    </p>
                                 </div>
-                                <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                                    {stat.helper}
-                                </p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </section>
 
                     <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
@@ -184,7 +162,7 @@ export default function Community() {
                                         <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                                             <div className="min-w-0">
                                                 <span className="rounded-full border border-cyan-500/25 bg-cyan-500/10 px-2.5 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-200">
-                                                    {thread.category}
+                                                    {thread.description}
                                                 </span>
                                                 <p className="mt-3 font-medium break-words">
                                                     {thread.title}
@@ -246,10 +224,10 @@ export default function Community() {
                                             {circle.title}
                                         </p>
                                         <p className="mt-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
-                                            {circle.members}
+                                            {circle.value}
                                         </p>
                                         <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                                            {circle.focus}
+                                            {circle.description}
                                         </p>
                                     </div>
                                 ))}
@@ -260,20 +238,16 @@ export default function Community() {
                             <div className="flex items-center gap-3">
                                 <CheckCircle2 className="size-5 text-cyan-700 dark:text-cyan-200" />
                                 <h2 className="text-lg font-semibold">
-                                    Community challenge
+                                    {challenge?.title ?? 'Community challenge'}
                                 </h2>
                             </div>
                             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                                Complete three short recordings this week and
-                                share one takeaway with a practice circle.
+                                {challenge?.description}
                             </p>
                             <div className="mt-5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-4 text-sm text-emerald-800 dark:text-emerald-100">
                                 <div className="flex gap-3">
                                     <Trophy className="mt-0.5 size-4 shrink-0" />
-                                    <p>
-                                        Current challenge progress: 1 of 3
-                                        recordings completed.
-                                    </p>
+                                    <p>{challenge?.value}</p>
                                 </div>
                             </div>
                             <div className="mt-5 flex flex-col gap-3 sm:flex-row">

@@ -147,10 +147,13 @@ const adminNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-    const { auth } = usePage().props;
+    const { auth, sidebarContent } = usePage().props;
     const { currentUrl } = useCurrentUrl();
     const isAdminWorkspace =
         auth.user?.is_admin === true && currentUrl.startsWith('/admin');
+    const footerContent = isAdminWorkspace
+        ? sidebarContent.admin
+        : sidebarContent.user;
     const homeHref = isAdminWorkspace ? adminDashboard() : dashboard();
     const navItems = isAdminWorkspace
         ? adminNavItems
@@ -202,12 +205,14 @@ export function AppSidebar() {
                         ) : (
                             <Trophy className="size-4" />
                         )}
-                        {isAdminWorkspace ? 'Admin mode' : 'Fluency Pro'}
+                        {footerContent?.title ??
+                            (isAdminWorkspace ? 'Admin mode' : 'Fluency Pro')}
                     </div>
                     <p className="mt-2 text-xs leading-5 text-cyan-800/75 dark:text-cyan-100/75">
-                        {isAdminWorkspace
-                            ? 'Manage content, users, processing, and system controls.'
-                            : 'Two more sessions to unlock your next badge.'}
+                        {footerContent?.description ??
+                            (isAdminWorkspace
+                                ? 'Manage content, users, processing, and system controls.'
+                                : 'Two more sessions to unlock your next badge.')}
                     </p>
                 </div>
                 <NavUser />

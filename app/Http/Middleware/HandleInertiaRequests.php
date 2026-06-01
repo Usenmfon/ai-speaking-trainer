@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\ContentLibrary;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -59,6 +60,10 @@ class HandleInertiaRequests extends Middleware
                         'created_at' => $notification->created_at?->toISOString(),
                     ])
                     ->values() ?? [],
+            ],
+            'sidebarContent' => [
+                'user' => app(ContentLibrary::class)->item('sidebar', 'footer', 'user'),
+                'admin' => app(ContentLibrary::class)->item('sidebar', 'footer', 'admin'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

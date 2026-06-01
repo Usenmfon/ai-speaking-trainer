@@ -20,62 +20,52 @@ import { aiCoach, dashboard } from '@/routes';
 
 type CoachDrill = {
     title: string;
-    purpose: string;
-    prompt: string;
+    description: string;
+    value: string;
     duration: string;
 };
 
-const coachDrills: CoachDrill[] = [
-    {
-        title: 'Executive summary',
-        purpose: 'Structure',
-        prompt: 'Explain the main idea in three sentences: problem, decision, and expected result.',
-        duration: '4 min',
-    },
-    {
-        title: 'Calm objection response',
-        purpose: 'Confidence',
-        prompt: 'Respond to a skeptical stakeholder without rushing or over-explaining.',
-        duration: '5 min',
-    },
-    {
-        title: 'Cleaner opening',
-        purpose: 'Clarity',
-        prompt: 'Open a presentation with a concise hook, one useful context line, and the outcome.',
-        duration: '3 min',
-    },
-];
+type CoachingSignal = {
+    title: string;
+    value: string;
+    description: string;
+    icon: 'target' | 'timer' | 'message';
+};
 
-const coachingSignals = [
-    {
-        label: 'Primary focus',
-        value: 'Sharper openings',
-        helper: 'Start with the outcome before the context.',
-        icon: Target,
-    },
-    {
-        label: 'Delivery cue',
-        value: 'Pause after key claims',
-        helper: 'Give the listener a beat to process.',
-        icon: Timer,
-    },
-    {
-        label: 'Language habit',
-        value: 'Trim softeners',
-        helper: 'Replace maybe and kind of with direct phrasing.',
-        icon: MessageSquareText,
-    },
-];
+type SessionPlanItem = {
+    title: string;
+    description: string;
+};
 
-const sessionPlan = [
-    'Read the prompt once, then look away.',
-    'Record one clean take without restarting.',
-    'Review the first 20 seconds for clarity.',
-    'Repeat only the weakest section.',
-];
+type CoachNote = {
+    title: string;
+    description: string;
+    value: string;
+};
 
-export default function AiCoach() {
-    const [selectedDrill, setSelectedDrill] = useState(coachDrills[0]);
+type AiCoachProps = {
+    coachDrills: CoachDrill[];
+    coachingSignals: CoachingSignal[];
+    sessionPlan: SessionPlanItem[];
+    coachNote: CoachNote | null;
+};
+
+const signalIcons = {
+    target: Target,
+    timer: Timer,
+    message: MessageSquareText,
+};
+
+export default function AiCoach({
+    coachDrills,
+    coachingSignals,
+    sessionPlan,
+    coachNote,
+}: AiCoachProps) {
+    const [selectedDrill, setSelectedDrill] = useState<CoachDrill | null>(
+        coachDrills[0] ?? null,
+    );
+    const activeDrill = selectedDrill ?? coachDrills[0] ?? null;
 
     return (
         <>
@@ -130,7 +120,7 @@ export default function AiCoach() {
                             <div className="mt-5 flex flex-col gap-3">
                                 {coachDrills.map((drill) => {
                                     const selected =
-                                        selectedDrill.title === drill.title;
+                                        activeDrill?.title === drill.title;
 
                                     return (
                                         <button
@@ -149,7 +139,7 @@ export default function AiCoach() {
                                                         {drill.title}
                                                     </p>
                                                     <p className="mt-1 text-sm text-muted-foreground">
-                                                        {drill.purpose}
+                                                        {drill.description}
                                                     </p>
                                                 </div>
                                                 <span className="w-fit rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
@@ -170,12 +160,15 @@ export default function AiCoach() {
                                             Selected drill
                                         </p>
                                         <h2 className="mt-2 text-xl font-semibold break-words">
-                                            {selectedDrill.title}
+                                            {activeDrill?.title ??
+                                                'No drill selected'}
                                         </h2>
                                     </div>
-                                    <span className="w-fit rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-200">
-                                        {selectedDrill.duration}
-                                    </span>
+                                    {activeDrill && (
+                                        <span className="w-fit rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-200">
+                                            {activeDrill.duration}
+                                        </span>
+                                    )}
                                 </div>
 
                                 <div className="mt-5 rounded-2xl border border-border bg-background p-5">
@@ -183,7 +176,8 @@ export default function AiCoach() {
                                         Prompt
                                     </p>
                                     <p className="mt-3 text-lg leading-8 font-medium">
-                                        {selectedDrill.prompt}
+                                        {activeDrill?.value ??
+                                            'Add AI Coach drills in the content table to start practicing.'}
                                     </p>
                                 </div>
 
@@ -218,27 +212,33 @@ export default function AiCoach() {
                                 </div>
 
                                 <div className="mt-5 flex flex-col gap-3">
-                                    {coachingSignals.map((signal) => (
-                                        <div
-                                            key={signal.label}
-                                            className="rounded-xl border border-border bg-background p-4"
-                                        >
-                                            <div className="flex gap-3">
-                                                <signal.icon className="mt-0.5 size-5 shrink-0 text-cyan-700 dark:text-cyan-200" />
-                                                <div className="min-w-0">
-                                                    <p className="text-sm text-muted-foreground">
-                                                        {signal.label}
-                                                    </p>
-                                                    <p className="mt-1 font-semibold break-words">
-                                                        {signal.value}
-                                                    </p>
-                                                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                                                        {signal.helper}
-                                                    </p>
+                                    {coachingSignals.map((signal) => {
+                                        const SignalIcon =
+                                            signalIcons[signal.icon] ??
+                                            MessageSquareText;
+
+                                        return (
+                                            <div
+                                                key={signal.title}
+                                                className="rounded-xl border border-border bg-background p-4"
+                                            >
+                                                <div className="flex gap-3">
+                                                    <SignalIcon className="mt-0.5 size-5 shrink-0 text-cyan-700 dark:text-cyan-200" />
+                                                    <div className="min-w-0">
+                                                        <p className="text-sm text-muted-foreground">
+                                                            {signal.title}
+                                                        </p>
+                                                        <p className="mt-1 font-semibold break-words">
+                                                            {signal.value}
+                                                        </p>
+                                                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                                            {signal.description}
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             </div>
                         </section>
@@ -256,14 +256,14 @@ export default function AiCoach() {
                             <div className="mt-5 grid gap-3 sm:grid-cols-2">
                                 {sessionPlan.map((step, index) => (
                                     <div
-                                        key={step}
+                                        key={step.title}
                                         className="rounded-xl border border-border bg-background p-4"
                                     >
                                         <span className="text-sm font-semibold text-cyan-700 dark:text-cyan-200">
-                                            Step {index + 1}
+                                            {step.title || `Step ${index + 1}`}
                                         </span>
                                         <p className="mt-2 text-sm leading-6">
-                                            {step}
+                                            {step.description}
                                         </p>
                                     </div>
                                 ))}
@@ -274,23 +274,16 @@ export default function AiCoach() {
                             <div className="flex items-center gap-3">
                                 <Lightbulb className="size-5 text-cyan-700 dark:text-cyan-200" />
                                 <h2 className="text-lg font-semibold">
-                                    Coach note
+                                    {coachNote?.title ?? 'Coach note'}
                                 </h2>
                             </div>
                             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                                Keep this page open before each recording. Pick
-                                one drill, speak once without restarting, then
-                                create a full practice session when the cue
-                                feels natural.
+                                {coachNote?.description}
                             </p>
                             <div className="mt-5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-4 text-sm text-emerald-800 dark:text-emerald-100">
                                 <div className="flex gap-3">
                                     <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
-                                    <p>
-                                        Best next move: complete the selected
-                                        drill, then record one full take for AI
-                                        feedback.
-                                    </p>
+                                    <p>{coachNote?.value}</p>
                                 </div>
                             </div>
                         </div>

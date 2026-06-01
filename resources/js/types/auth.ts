@@ -178,6 +178,18 @@ export type NotificationSummary = {
     recent: AppNotification[];
 };
 
+export type SidebarContentItem = {
+    key: string | null;
+    title: string;
+    description: string | null;
+    value: string | null;
+};
+
+export type SidebarContent = {
+    user: SidebarContentItem | null;
+    admin: SidebarContentItem | null;
+};
+
 /* @chisel-passkeys */
 export type Passkey = {
     id: number;

@@ -1,12 +1,15 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AiCoachController;
+use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PracticeSessionController;
 use App\Http\Controllers\PracticeSessionRecordingController;
 use App\Http\Controllers\PracticeSessionRetryController;
 use App\Http\Controllers\Profile\UserProfileController;
+use App\Http\Controllers\ProgressController;
 use App\Http\Controllers\SpeakingFeedbackReportController;
 use App\Http\Middleware\EnsureUserProfileIsComplete;
 use Illuminate\Support\Facades\Route;
@@ -40,9 +43,9 @@ Route::middleware(['auth', 'verified', 'admin'])
 
 Route::middleware(['auth', 'verified', EnsureUserProfileIsComplete::class])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::inertia('ai-coach', 'ai-coach')->name('ai-coach');
-    Route::inertia('progress', 'progress')->name('progress');
-    Route::inertia('community', 'community')->name('community');
+    Route::get('ai-coach', AiCoachController::class)->name('ai-coach');
+    Route::get('progress', ProgressController::class)->name('progress');
+    Route::get('community', CommunityController::class)->name('community');
     Route::inertia('practice', 'practice')->name('practice');
     Route::resource('practice-sessions', PracticeSessionController::class)
         ->only(['index', 'create', 'store', 'show']);

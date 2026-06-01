@@ -17,44 +17,50 @@ import { index as reportsIndex } from '@/actions/App/Http/Controllers/SpeakingFe
 import { Button } from '@/components/ui/button';
 import { dashboard, progress } from '@/routes';
 
-const skillTrends = [
-    { label: 'Clarity', value: 82, change: '+12%' },
-    { label: 'Structure', value: 76, change: '+8%' },
-    { label: 'Confidence', value: 88, change: '+15%' },
-    { label: 'Pace', value: 71, change: '+5%' },
-];
+type ProgressStat = {
+    label: string;
+    value: string;
+    helper: string;
+    icon: 'flame' | 'calendar' | 'trophy' | 'target';
+};
 
-const milestones = [
-    {
-        title: 'First analyzed session',
-        description: 'Complete one recording and receive AI feedback.',
-        complete: true,
-    },
-    {
-        title: 'Three-session streak',
-        description: 'Practice three times in one week.',
-        complete: true,
-    },
-    {
-        title: 'Score above 85',
-        description: 'Reach an overall feedback score of 85 or higher.',
-        complete: true,
-    },
-    {
-        title: 'Ten-session habit',
-        description: 'Build consistency with ten completed practice sessions.',
-        complete: false,
-    },
-];
+type SkillTrend = {
+    label: string;
+    value: number;
+    change: string;
+};
 
-const weeklyPlan = [
-    'Record one concise opening.',
-    'Repeat your weakest transition.',
-    'Run a full timed practice.',
-    'Review the newest feedback report.',
-];
+type Milestone = {
+    title: string;
+    description: string;
+    complete: boolean;
+};
 
-export default function Progress() {
+type WeeklyPlanItem = {
+    title: string;
+    description: string;
+};
+
+type ProgressProps = {
+    stats: ProgressStat[];
+    skillTrends: SkillTrend[];
+    milestones: Milestone[];
+    weeklyPlan: WeeklyPlanItem[];
+};
+
+const statIcons = {
+    flame: Flame,
+    calendar: CalendarDays,
+    trophy: Trophy,
+    target: Target,
+};
+
+export default function Progress({
+    stats,
+    skillTrends,
+    milestones,
+    weeklyPlan,
+}: ProgressProps) {
     return (
         <>
             <Head title="Progress" />
@@ -90,54 +96,33 @@ export default function Progress() {
                     </section>
 
                     <section className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-                        {[
-                            {
-                                label: 'Practice streak',
-                                value: '3 days',
-                                helper: 'Keep momentum with one short drill today.',
-                                icon: Flame,
-                            },
-                            {
-                                label: 'Sessions completed',
-                                value: '8',
-                                helper: 'Two more sessions to unlock the next habit milestone.',
-                                icon: CalendarDays,
-                            },
-                            {
-                                label: 'Best score',
-                                value: '89',
-                                helper: 'Your strongest overall AI feedback score.',
-                                icon: Trophy,
-                            },
-                            {
-                                label: 'Focus area',
-                                value: 'Transitions',
-                                helper: 'Practice linking ideas with fewer filler words.',
-                                icon: Target,
-                            },
-                        ].map((stat) => (
-                            <div
-                                key={stat.label}
-                                className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm"
-                            >
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="min-w-0">
-                                        <p className="text-sm text-muted-foreground">
-                                            {stat.label}
-                                        </p>
-                                        <p className="mt-3 text-2xl font-semibold tracking-normal break-words sm:text-3xl">
-                                            {stat.value}
-                                        </p>
+                        {stats.map((stat) => {
+                            const StatIcon = statIcons[stat.icon] ?? Target;
+
+                            return (
+                                <div
+                                    key={stat.label}
+                                    className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm"
+                                >
+                                    <div className="flex items-start justify-between gap-4">
+                                        <div className="min-w-0">
+                                            <p className="text-sm text-muted-foreground">
+                                                {stat.label}
+                                            </p>
+                                            <p className="mt-3 text-2xl font-semibold tracking-normal break-words sm:text-3xl">
+                                                {stat.value}
+                                            </p>
+                                        </div>
+                                        <div className="shrink-0 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-cyan-700 dark:text-cyan-200">
+                                            <StatIcon className="size-5" />
+                                        </div>
                                     </div>
-                                    <div className="shrink-0 rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3 text-cyan-700 dark:text-cyan-200">
-                                        <stat.icon className="size-5" />
-                                    </div>
+                                    <p className="mt-4 text-sm leading-6 text-muted-foreground">
+                                        {stat.helper}
+                                    </p>
                                 </div>
-                                <p className="mt-4 text-sm leading-6 text-muted-foreground">
-                                    {stat.helper}
-                                </p>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </section>
 
                     <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
@@ -236,14 +221,14 @@ export default function Progress() {
                             <div className="mt-5 grid gap-3 sm:grid-cols-2">
                                 {weeklyPlan.map((item, index) => (
                                     <div
-                                        key={item}
+                                        key={item.title}
                                         className="rounded-xl border border-border bg-background p-4"
                                     >
                                         <span className="text-sm font-semibold text-cyan-700 dark:text-cyan-200">
-                                            Day {index + 1}
+                                            {item.title || `Day ${index + 1}`}
                                         </span>
                                         <p className="mt-2 text-sm leading-6">
-                                            {item}
+                                            {item.description}
                                         </p>
                                     </div>
                                 ))}
@@ -259,9 +244,9 @@ export default function Progress() {
                             </div>
                             <p className="mt-4 text-sm leading-7 text-muted-foreground">
                                 Your progress improves fastest when practice is
-                                specific. Record one session focused only on
-                                transitions, then compare the new report against
-                                your current clarity and structure scores.
+                                specific. Record one session focused on your
+                                lowest-scoring skill, then compare the new
+                                report against your current trend.
                             </p>
                             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                                 <Button asChild className="w-full sm:w-auto">
