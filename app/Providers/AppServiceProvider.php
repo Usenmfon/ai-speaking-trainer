@@ -15,7 +15,11 @@ use App\Services\AI\Feedback\GroqSpeakingFeedbackProvider;
 use App\Services\AI\Feedback\HttpSpeakingFeedbackProvider;
 use App\Services\AI\Feedback\LocalSpeakingFeedbackProvider;
 use App\Services\AI\Feedback\OpenAiSpeakingFeedbackProvider;
-use App\Services\AI\Transcription\PythonWorkerTranscriptionProvider;
+use App\Services\AI\Transcription\GeminiTranscriptionProvider;
+use App\Services\AI\Transcription\GrokTranscriptionProvider;
+use App\Services\AI\Transcription\GroqTranscriptionProvider;
+use App\Services\AI\Transcription\LocalTranscriptionProvider;
+use App\Services\AI\Transcription\OpenAiTranscriptionProvider;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -32,12 +36,14 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(TranscriptionProvider::class, function () {
-            $provider = config('ai.transcription.provider', 'python_worker');
+            $provider = config('ai.transcription.provider', 'openai');
 
             return match ($provider) {
-                // "openai" is accepted as an alias because the Python worker
-                // currently performs OpenAI audio transcription for the MVP.
-                'python_worker', 'openai' => app(PythonWorkerTranscriptionProvider::class),
+                'openai', 'python_worker' => app(OpenAiTranscriptionProvider::class),
+                'gemini' => app(GeminiTranscriptionProvider::class),
+                'grok' => app(GrokTranscriptionProvider::class),
+                'groq' => app(GroqTranscriptionProvider::class),
+                'local' => app(LocalTranscriptionProvider::class),
                 default => throw new InvalidArgumentException("Unsupported transcription provider [{$provider}]."),
             };
         });

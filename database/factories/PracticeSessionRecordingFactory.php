@@ -2,7 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\PracticeSession;
 use App\Models\PracticeSessionRecording;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -20,7 +19,7 @@ class PracticeSessionRecordingFactory extends Factory
     public function definition(): array
     {
         return [
-            'practice_session_id' => PracticeSession::factory(),
+            'practice_session_id' => PracticeSessionFactory::new(),
             'user_id' => User::factory(),
             'audio_path' => 'practice-session-recordings/'.fake()->uuid().'.webm',
             'original_filename' => 'practice-session.webm',

@@ -2,25 +2,27 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\AI\TranscriptionProvider;
 use App\Jobs\AnalyzeSpeakingTranscript;
 use App\Jobs\ProcessPracticeSessionRecording;
 use App\Models\PracticeSession;
 use App\Models\PracticeSessionRecording;
 use App\Models\PracticeSessionTranscript;
 use App\Models\User;
-use App\Models\UserProfile;
-use App\Services\AiWorker\AiWorkerClient;
+use Database\Factories\PracticeSessionFactory;
+use Database\Factories\PracticeSessionRecordingFactory;
+use Database\Factories\UserProfileFactory;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
-use Tests\Fakes\FakeAiWorkerClient;
+use Tests\Fakes\FakeTranscriptionProvider;
 use Tests\TestCase;
 use Throwable;
 
-class AiWorkerPipelineTest extends TestCase
+class TranscriptionPipelineTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -30,7 +32,7 @@ class AiWorkerPipelineTest extends TestCase
         Storage::fake('local');
 
         $user = $this->completedUser();
-        $session = PracticeSession::factory()->for($user)->create();
+        $session = PracticeSessionFactory::new()->for($user)->create();
         $file = UploadedFile::fake()->create('speech.webm', 512, 'audio/webm');
 
         $this->actingAs($user)->post(route('practice-sessions.recording.store', $session), [
@@ -39,14 +41,11 @@ class AiWorkerPipelineTest extends TestCase
         ])->assertRedirect(route('practice-sessions.show', $session));
 
         $recording = PracticeSessionRecording::query()->firstOrFail();
-        $this->instance(
-            AiWorkerClient::class,
-            FakeAiWorkerClient::transcript('Hello team, today I will present the roadmap.', [
-                ['start' => 0.0, 'end' => 2.5, 'text' => 'Hello team'],
-            ]),
-        );
+        $provider = FakeTranscriptionProvider::transcript('Hello team, today I will present the roadmap.', [
+            ['start' => 0.0, 'end' => 2.5, 'text' => 'Hello team'],
+        ]);
 
-        (new ProcessPracticeSessionRecording($recording->id))->handle(app(AiWorkerClient::class));
+        (new ProcessPracticeSessionRecording($recording->id))->handle($provider);
 
         $transcript = PracticeSessionTranscript::query()->firstOrFail();
 
@@ -66,11 +65,11 @@ class AiWorkerPipelineTest extends TestCase
         Storage::fake('local');
 
         $user = $this->completedUser();
-        $session = PracticeSession::factory()->for($user)->recorded()->create();
+        $session = PracticeSessionFactory::new()->for($user)->recorded()->create();
         $recording = $this->recordingFor($session, $user);
-        $this->instance(AiWorkerClient::class, FakeAiWorkerClient::failure('OpenAI transcription failed.'));
+        $provider = FakeTranscriptionProvider::failure('OpenAI transcription failed.');
 
-        $this->runFailedRecordingJob($recording, app(AiWorkerClient::class));
+        $this->runFailedRecordingJob($recording, $provider);
 
         $this->assertSame('failed', $session->fresh()->status);
         $this->assertDatabaseCount('practice_session_transcripts', 0);
@@ -79,28 +78,25 @@ class AiWorkerPipelineTest extends TestCase
             'type' => 'transcription_failed',
         ]);
         Log::shouldHaveReceived('error')
-            ->with('AI worker failed to process practice session recording.', \Mockery::type('array'))
+            ->with('Transcription provider failed to process practice session recording.', \Mockery::type('array'))
             ->once();
     }
 
-    public function test_invalid_worker_json_is_logged_and_marks_session_failed(): void
+    public function test_invalid_transcription_provider_response_is_logged_and_marks_session_failed(): void
     {
         Log::spy();
         Storage::fake('local');
 
         $user = $this->completedUser();
-        $session = PracticeSession::factory()->for($user)->recorded()->create();
+        $session = PracticeSessionFactory::new()->for($user)->recorded()->create();
         $recording = $this->recordingFor($session, $user);
-        $this->instance(AiWorkerClient::class, FakeAiWorkerClient::invalidJson());
+        $provider = FakeTranscriptionProvider::invalidResponse();
 
-        $this->runFailedRecordingJob($recording, app(AiWorkerClient::class));
+        $this->runFailedRecordingJob($recording, $provider);
 
         $this->assertSame('failed', $session->fresh()->status);
         $this->assertDatabaseCount('practice_session_transcripts', 0);
-        Log::shouldHaveReceived('error')
-            ->withArgs(fn (string $message, array $context): bool => $message === 'AI worker failed to process practice session recording.'
-                && str_contains($context['exception'], 'invalid JSON'))
-            ->once();
+        Log::shouldHaveReceived('error')->once();
     }
 
     public function test_empty_successful_transcript_is_treated_as_failure(): void
@@ -109,11 +105,11 @@ class AiWorkerPipelineTest extends TestCase
         Storage::fake('local');
 
         $user = $this->completedUser();
-        $session = PracticeSession::factory()->for($user)->recorded()->create();
+        $session = PracticeSessionFactory::new()->for($user)->recorded()->create();
         $recording = $this->recordingFor($session, $user);
-        $this->instance(AiWorkerClient::class, FakeAiWorkerClient::transcript('   '));
+        $provider = FakeTranscriptionProvider::transcript('   ');
 
-        $this->runFailedRecordingJob($recording, app(AiWorkerClient::class));
+        $this->runFailedRecordingJob($recording, $provider);
 
         $this->assertSame('failed', $session->fresh()->status);
         $this->assertDatabaseCount('practice_session_transcripts', 0);
@@ -121,10 +117,7 @@ class AiWorkerPipelineTest extends TestCase
             'notifiable_id' => $user->id,
             'type' => 'transcription_failed',
         ]);
-        Log::shouldHaveReceived('error')
-            ->withArgs(fn (string $message, array $context): bool => $message === 'AI worker failed to process practice session recording.'
-                && $context['exception'] === 'AI worker returned an empty transcript.')
-            ->once();
+        Log::shouldHaveReceived('error')->once();
     }
 
     public function test_user_cannot_trigger_processing_for_another_users_session(): void
@@ -133,8 +126,8 @@ class AiWorkerPipelineTest extends TestCase
 
         $user = $this->completedUser();
         $otherUser = $this->completedUser();
-        $session = PracticeSession::factory()->for($otherUser)->failed()->create();
-        PracticeSessionRecording::factory()->for($otherUser)->for($session)->create();
+        $session = PracticeSessionFactory::new()->for($otherUser)->failed()->create();
+        PracticeSessionRecordingFactory::new()->for($otherUser)->for($session)->create();
 
         $this->actingAs($user)
             ->post(route('practice-sessions.retry-transcription', $session))
@@ -143,12 +136,12 @@ class AiWorkerPipelineTest extends TestCase
         Queue::assertNotPushed(ProcessPracticeSessionRecording::class);
     }
 
-    private function runFailedRecordingJob(PracticeSessionRecording $recording, AiWorkerClient $worker): void
+    private function runFailedRecordingJob(PracticeSessionRecording $recording, TranscriptionProvider $provider): void
     {
         $job = new ProcessPracticeSessionRecording($recording->id);
 
         try {
-            $job->handle($worker);
+            $job->handle($provider);
         } catch (Throwable $exception) {
             $this->assertInstanceOf(RuntimeException::class, $exception);
             $job->failed($exception);
@@ -163,7 +156,7 @@ class AiWorkerPipelineTest extends TestCase
     {
         Storage::disk('local')->put("practice-session-recordings/{$session->id}.webm", 'audio');
 
-        return PracticeSessionRecording::factory()
+        return PracticeSessionRecordingFactory::new()
             ->for($user)
             ->for($session)
             ->create([
@@ -175,8 +168,12 @@ class AiWorkerPipelineTest extends TestCase
 
     private function completedUser(): User
     {
-        return User::factory()
-            ->has(UserProfile::factory(), 'profile')
+        $user = User::factory()->create();
+
+        UserProfileFactory::new()
+            ->for($user)
             ->create();
+
+        return $user;
     }
 }

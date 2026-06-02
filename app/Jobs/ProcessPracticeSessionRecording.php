@@ -73,7 +73,7 @@ class ProcessPracticeSessionRecording implements ShouldQueue
         $transcriptText = (string) ($transcription['transcript'] ?? $transcription['text'] ?? '');
 
         if (trim($transcriptText) === '') {
-            throw new RuntimeException('AI worker returned an empty transcript.');
+            throw new RuntimeException('Transcription provider returned an empty transcript.');
         }
 
         /** @var PracticeSessionTranscript $transcript */
@@ -116,17 +116,17 @@ class ProcessPracticeSessionRecording implements ShouldQueue
             $recording->user?->notify(new TranscriptionFailed($recording->practiceSession));
         }
 
-        Log::error('AI worker failed to process practice session recording.', [
+        Log::error('Transcription provider failed to process practice session recording.', [
             'recording_id' => $this->recordingId,
             'exception' => $exception->getMessage(),
         ]);
     }
 
     /**
-     * Resolve a local file path for the Python worker.
+     * Resolve a local file path for the transcription provider.
      *
      * R2/S3 recordings stay private. When the configured recording disk is
-     * remote, this copies the object into a local temporary worker input file.
+     * remote, this copies the object into a local temporary transcription file.
      *
      * @return array{path: string, temporary_path: string|null}
      */
@@ -148,7 +148,7 @@ class ProcessPracticeSessionRecording implements ShouldQueue
             throw new RuntimeException('Unable to read the private recording for transcription.');
         }
 
-        $directory = storage_path('app/private/ai-worker-inputs');
+        $directory = storage_path('app/private/transcription-inputs');
         File::ensureDirectoryExists($directory);
 
         $extension = pathinfo($recording->original_filename ?: $recording->audio_path, PATHINFO_EXTENSION) ?: 'audio';

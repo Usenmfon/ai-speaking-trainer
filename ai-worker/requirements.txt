@@ -1,3 +1,0 @@
-# Keep Python dependencies isolated in ai-worker/.venv.
-openai>=1.101.0,<2
-pytest>=8.0.0,<9

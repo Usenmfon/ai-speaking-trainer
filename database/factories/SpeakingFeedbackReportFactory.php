@@ -2,8 +2,6 @@
 
 namespace Database\Factories;
 
-use App\Models\PracticeSession;
-use App\Models\PracticeSessionTranscript;
 use App\Models\SpeakingFeedbackReport;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,9 +19,9 @@ class SpeakingFeedbackReportFactory extends Factory
     public function definition(): array
     {
         return [
-            'practice_session_id' => PracticeSession::factory(),
+            'practice_session_id' => PracticeSessionFactory::new(),
             'user_id' => User::factory(),
-            'transcript_id' => PracticeSessionTranscript::factory(),
+            'transcript_id' => PracticeSessionTranscriptFactory::new(),
             'overall_score' => 78,
             'clarity_score' => 80,
             'structure_score' => 74,
