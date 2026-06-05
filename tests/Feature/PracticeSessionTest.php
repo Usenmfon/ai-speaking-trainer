@@ -21,6 +21,13 @@ class PracticeSessionTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        config(['practice.recordings.disk' => 'local']);
+    }
+
     public function test_practice_session_routes_require_authentication(): void
     {
         $this->get(route('practice-sessions.index'))->assertRedirect(route('login'));

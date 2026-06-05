@@ -12,7 +12,7 @@ class PracticeSessionObserver
     /**
      * @var array<string, array<string, mixed>>
      */
-    private array $recordingCleanup = [];
+    private static array $recordingCleanup = [];
 
     /**
      * Capture the recording path before database cascades remove related rows.
@@ -27,7 +27,7 @@ class PracticeSessionObserver
             return;
         }
 
-        $this->recordingCleanup[$practiceSession->getKey()] = [
+        self::$recordingCleanup[$practiceSession->getKey()] = [
             'path' => $recording->audio_path,
             'disk' => config('practice.recordings.disk', 'local'),
             'context' => [
@@ -44,8 +44,8 @@ class PracticeSessionObserver
      */
     public function deleted(PracticeSession $practiceSession): void
     {
-        $cleanup = $this->recordingCleanup[$practiceSession->getKey()] ?? null;
-        unset($this->recordingCleanup[$practiceSession->getKey()]);
+        $cleanup = self::$recordingCleanup[$practiceSession->getKey()] ?? null;
+        unset(self::$recordingCleanup[$practiceSession->getKey()]);
 
         if ($cleanup === null) {
             return;

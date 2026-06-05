@@ -34,7 +34,10 @@ class DashboardTest extends TestCase
 
     public function test_admins_are_redirected_from_user_dashboard_to_admin_dashboard(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = User::factory()
+            ->admin()
+            ->has(UserProfile::factory(), 'profile')
+            ->create();
 
         $response = $this->actingAs($admin)->get(route('dashboard'));
 

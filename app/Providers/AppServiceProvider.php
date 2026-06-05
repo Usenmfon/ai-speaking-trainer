@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
         });
 
         $this->app->bind(SpeakingFeedbackProvider::class, function () {
-            $provider = config('speaking_feedback.provider', 'local');
+            $provider = config('speaking_feedback.provider', 'openai');
 
             return match ($provider) {
                 'local' => app(LocalSpeakingFeedbackProvider::class),

@@ -38,6 +38,6 @@ return [
     ],
 
     'feedback' => [
-        'provider' => env('AI_FEEDBACK_PROVIDER', env('SPEAKING_FEEDBACK_PROVIDER', 'local')),
+        'provider' => env('AI_FEEDBACK_PROVIDER', env('SPEAKING_FEEDBACK_PROVIDER', 'openai')),
     ],
 ];

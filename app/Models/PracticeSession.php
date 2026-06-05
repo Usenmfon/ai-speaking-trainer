@@ -6,6 +6,7 @@ use Database\Factories\PracticeSessionFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\UseFactory;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -24,7 +25,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class PracticeSession extends Model
 {
-    use HasUuids;
+    /** @use HasFactory<PracticeSessionFactory> */
+    use HasFactory, HasUuids;
 
     public const SessionTypes = [
         'presentation',

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Auth;
 
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\RateLimiter;
 use Laravel\Fortify\Features;
@@ -21,7 +22,9 @@ class AuthenticationTest extends TestCase
 
     public function test_users_can_authenticate_using_the_login_screen()
     {
-        $user = User::factory()->create();
+        $user = User::factory()
+            ->has(UserProfile::factory(), 'profile')
+            ->create();
 
         $response = $this->post(route('login.store'), [
             'email' => $user->email,
@@ -34,7 +37,10 @@ class AuthenticationTest extends TestCase
 
     public function test_admins_are_redirected_to_admin_dashboard_after_login(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = User::factory()
+            ->admin()
+            ->has(UserProfile::factory(), 'profile')
+            ->create();
 
         $response = $this->post(route('login.store'), [
             'email' => $admin->email,
@@ -47,7 +53,10 @@ class AuthenticationTest extends TestCase
 
     public function test_authenticated_admins_are_redirected_away_from_login_to_admin_dashboard(): void
     {
-        $admin = User::factory()->admin()->create();
+        $admin = User::factory()
+            ->admin()
+            ->has(UserProfile::factory(), 'profile')
+            ->create();
 
         $response = $this->actingAs($admin)->get(route('login'));
 
