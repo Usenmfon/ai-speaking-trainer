@@ -15,13 +15,17 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('practice_session_id')->unique()->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->index()->constrained()->cascadeOnDelete();
-            $table->foreignUuid('practice_session_recording_id')->nullable()->constrained()->nullOnDelete();
+            $table->foreignUuid('practice_session_recording_id')->nullable();
             $table->longText('text');
             $table->json('segments')->nullable();
             $table->string('provider')->nullable();
             $table->timestamp('completed_at');
 
             $table->index(['user_id', 'completed_at']);
+            $table->foreign('practice_session_recording_id', 'pst_recording_id_foreign')
+                ->references('id')
+                ->on('practice_session_recordings')
+                ->nullOnDelete();
         });
     }
 
