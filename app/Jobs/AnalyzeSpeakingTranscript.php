@@ -4,6 +4,8 @@ namespace App\Jobs;
 
 use App\Models\PracticeSessionTranscript;
 use App\Models\SpeakingFeedbackReport;
+use App\Models\User;
+use App\Notifications\AdminCriticalUpdate;
 use App\Notifications\FeedbackAnalysisCompleted;
 use App\Notifications\FeedbackAnalysisFailed;
 use App\Services\AI\SpeakingFeedbackService;
@@ -108,11 +110,30 @@ class AnalyzeSpeakingTranscript implements ShouldQueue
 
         if ($transcript?->feedbackReport !== null) {
             $transcript->user?->notify(new FeedbackAnalysisFailed($transcript->feedbackReport));
+            $this->notifyAdmins(new AdminCriticalUpdate(
+                title: 'Feedback analysis failed',
+                message: "AI feedback analysis failed for {$transcript->user?->name}.",
+                url: route('admin.sessions.index'),
+                metadata: [
+                    'practice_session_id' => $transcript->practice_session_id,
+                    'transcript_id' => $transcript->id,
+                    'report_id' => $transcript->feedbackReport->id,
+                    'user_id' => $transcript->user_id,
+                    'exception' => $exception->getMessage(),
+                ],
+            ));
         }
 
         Log::error('Speaking feedback analysis failed.', [
             'transcript_id' => $this->transcriptId,
             'exception' => $exception->getMessage(),
         ]);
+    }
+
+    private function notifyAdmins(AdminCriticalUpdate $notification): void
+    {
+        User::role('admin')->each(
+            fn (User $admin): mixed => $admin->notify($notification),
+        );
     }
 }

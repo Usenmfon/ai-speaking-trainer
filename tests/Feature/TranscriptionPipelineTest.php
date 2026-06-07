@@ -65,6 +65,7 @@ class TranscriptionPipelineTest extends TestCase
         Storage::fake('local');
 
         $user = $this->completedUser();
+        $admin = User::factory()->admin()->create();
         $session = PracticeSessionFactory::new()->for($user)->recorded()->create();
         $recording = $this->recordingFor($session, $user);
         $provider = FakeTranscriptionProvider::failure('OpenAI transcription failed.');
@@ -76,6 +77,10 @@ class TranscriptionPipelineTest extends TestCase
         $this->assertDatabaseHas('notifications', [
             'notifiable_id' => $user->id,
             'type' => 'transcription_failed',
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $admin->id,
+            'type' => 'admin_critical_update',
         ]);
         Log::shouldHaveReceived('error')
             ->with('Transcription provider failed to process practice session recording.', \Mockery::type('array'))

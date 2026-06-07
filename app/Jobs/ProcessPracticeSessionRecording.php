@@ -5,6 +5,8 @@ namespace App\Jobs;
 use App\Contracts\AI\TranscriptionProvider;
 use App\Models\PracticeSessionRecording;
 use App\Models\PracticeSessionTranscript;
+use App\Models\User;
+use App\Notifications\AdminCriticalUpdate;
 use App\Notifications\TranscriptionCompleted;
 use App\Notifications\TranscriptionFailed;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -114,12 +116,30 @@ class ProcessPracticeSessionRecording implements ShouldQueue
 
         if ($recording?->practiceSession !== null) {
             $recording->user?->notify(new TranscriptionFailed($recording->practiceSession));
+            $this->notifyAdmins(new AdminCriticalUpdate(
+                title: 'Transcription pipeline failed',
+                message: "Recording transcription failed for {$recording->user?->name}.",
+                url: route('admin.sessions.index'),
+                metadata: [
+                    'practice_session_id' => $recording->practice_session_id,
+                    'recording_id' => $recording->id,
+                    'user_id' => $recording->user_id,
+                    'exception' => $exception->getMessage(),
+                ],
+            ));
         }
 
         Log::error('Transcription provider failed to process practice session recording.', [
             'recording_id' => $this->recordingId,
             'exception' => $exception->getMessage(),
         ]);
+    }
+
+    private function notifyAdmins(AdminCriticalUpdate $notification): void
+    {
+        User::role('admin')->each(
+            fn (User $admin): mixed => $admin->notify($notification),
+        );
     }
 
     /**

@@ -31,6 +31,31 @@ function formatNotificationTime(value: string | null): string {
     return new Date(value).toLocaleDateString();
 }
 
+function showNotificationToast(notification: BroadcastNotification): void {
+    const action = notification.url
+        ? {
+              label: notification.severity === 'critical' ? 'Review' : 'View',
+              onClick: () => router.visit(notification.url as string),
+          }
+        : undefined;
+
+    if (notification.severity === 'critical') {
+        toast.error(notification.title, {
+            description: notification.message,
+            action,
+        });
+
+        return;
+    }
+
+    if (notification.severity === 'success') {
+        toast.success(notification.title, {
+            description: notification.message,
+            action,
+        });
+    }
+}
+
 export function NotificationsDropdown() {
     const { auth, notifications } = usePage().props;
     const [broadcastNotifications, setBroadcastNotifications] = useState<
@@ -83,11 +108,7 @@ export function NotificationsDropdown() {
                 ].slice(0, 8),
             );
 
-            if (notification.severity === 'critical') {
-                toast.error(notification.title, {
-                    description: notification.message,
-                });
-            }
+            showNotificationToast(notification);
         },
     );
 

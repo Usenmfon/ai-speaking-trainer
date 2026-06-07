@@ -7,6 +7,7 @@ use App\Models\PracticeSessionTranscript;
 use App\Models\SpeakingFeedbackReport;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Notifications\AdminCriticalUpdate;
 use App\Notifications\FeedbackAnalysisCompleted;
 use App\Notifications\FeedbackAnalysisFailed;
 use App\Notifications\TranscriptionCompleted;
@@ -77,6 +78,12 @@ class UserNotificationTest extends TestCase
             ->create();
 
         $notifications = [
+            new AdminCriticalUpdate(
+                title: 'Transcription pipeline failed',
+                message: 'Recording transcription failed for Test User.',
+                url: route('admin.sessions.index'),
+                metadata: ['practice_session_id' => $session->id],
+            ),
             new TranscriptionCompleted($transcript),
             new TranscriptionFailed($session),
             new FeedbackAnalysisCompleted($report),

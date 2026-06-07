@@ -12,6 +12,7 @@ use App\Services\AI\SpeakingFeedbackService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Inertia\Testing\AssertableInertia;
+use RuntimeException;
 use Tests\TestCase;
 
 class SpeakingFeedbackReportTest extends TestCase
@@ -325,6 +326,39 @@ class SpeakingFeedbackReportTest extends TestCase
             && $request->url() === 'https://api.groq.com/openai/v1/chat/completions'
             && $request['model'] === 'llama-3.3-70b-versatile'
             && $request['response_format']['type'] === 'json_object');
+    }
+
+    public function test_failed_feedback_analysis_notifies_user_and_admins(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()
+            ->for($user)
+            ->recorded()
+            ->create();
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session)
+            ->create();
+
+        SpeakingFeedbackReport::factory()
+            ->for($user)
+            ->for($session, 'practiceSession')
+            ->for($transcript, 'transcript')
+            ->create([
+                'status' => 'processing',
+            ]);
+
+        (new AnalyzeSpeakingTranscript($transcript->id))->failed(new RuntimeException('Provider unavailable.'));
+
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $user->id,
+            'type' => 'feedback_analysis_failed',
+        ]);
+        $this->assertDatabaseHas('notifications', [
+            'notifiable_id' => $admin->id,
+            'type' => 'admin_critical_update',
+        ]);
     }
 
     private function completedUser(): User
