@@ -1,4 +1,4 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import GoogleIcon from '@/components/google-icon';
 import InputError from '@/components/input-error';
 import PasswordInput from '@/components/password-input';
@@ -22,10 +22,10 @@ export default function Register({ passwordRules }: Props) {
 
             <div className="grid gap-3">
                 <Button variant="outline" className="w-full" asChild>
-                    <Link href={googleRedirect()}>
+                    <a href={googleRedirect().url}>
                         <GoogleIcon />
                         Sign up with Google
-                    </Link>
+                    </a>
                 </Button>
 
                 <div className="relative text-center text-sm">

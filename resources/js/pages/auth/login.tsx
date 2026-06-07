@@ -1,4 +1,4 @@
-import { Form, Head, Link } from '@inertiajs/react';
+import { Form, Head } from '@inertiajs/react';
 import GoogleIcon from '@/components/google-icon';
 import InputError from '@/components/input-error';
 import PasskeyVerify from '@/components/passkey-verify';
@@ -28,10 +28,10 @@ export default function Login({ status, canResetPassword }: Props) {
 
             <div className="grid gap-3">
                 <Button variant="outline" className="w-full" asChild>
-                    <Link href={googleRedirect()}>
+                    <a href={googleRedirect().url}>
                         <GoogleIcon />
                         Continue with Google
-                    </Link>
+                    </a>
                 </Button>
 
                 <div className="relative my-3 text-center text-xs uppercase">
