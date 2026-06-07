@@ -1,6 +1,8 @@
 import { Link, router, usePage } from '@inertiajs/react';
+import { useEchoNotification } from '@laravel/echo-react';
 import { Bell, Check, Inbox, LoaderCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
 
 import {
     read,
@@ -15,7 +17,11 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import type { AppNotification } from '@/types';
+import type { AppNotification, NotificationSummary } from '@/types';
+
+type BroadcastNotification = AppNotification & {
+    severity?: 'critical' | 'success';
+};
 
 function formatNotificationTime(value: string | null): string {
     if (!value) {
@@ -26,9 +32,64 @@ function formatNotificationTime(value: string | null): string {
 }
 
 export function NotificationsDropdown() {
-    const { notifications } = usePage().props;
+    const { auth, notifications } = usePage().props;
+    const [broadcastNotifications, setBroadcastNotifications] = useState<
+        AppNotification[]
+    >([]);
     const [readingId, setReadingId] = useState<string | null>(null);
     const [markingAll, setMarkingAll] = useState(false);
+
+    const liveNotifications = useMemo<NotificationSummary>(() => {
+        const broadcastOnlyNotifications = broadcastNotifications.filter(
+            (notification) =>
+                !notifications.recent.some(
+                    (recentNotification) =>
+                        recentNotification.id === notification.id,
+                ),
+        );
+
+        return {
+            unreadCount:
+                notifications.unreadCount +
+                broadcastOnlyNotifications.filter(
+                    (notification) => !notification.read_at,
+                ).length,
+            recent: [
+                ...broadcastOnlyNotifications,
+                ...notifications.recent,
+            ].slice(0, 8),
+        };
+    }, [broadcastNotifications, notifications]);
+
+    useEchoNotification<BroadcastNotification>(
+        `App.Models.User.${auth.user.id}`,
+        (notification) => {
+            setBroadcastNotifications((current) =>
+                [
+                    {
+                        id: notification.id,
+                        type: notification.type,
+                        title: notification.title,
+                        message: notification.message,
+                        url: notification.url,
+                        read_at: notification.read_at,
+                        created_at: notification.created_at,
+                        severity: notification.severity,
+                    },
+                    ...current.filter(
+                        (recentNotification) =>
+                            recentNotification.id !== notification.id,
+                    ),
+                ].slice(0, 8),
+            );
+
+            if (notification.severity === 'critical') {
+                toast.error(notification.title, {
+                    description: notification.message,
+                });
+            }
+        },
+    );
 
     function markAsRead(notification: AppNotification): void {
         if (readingId || markingAll) {
@@ -77,11 +138,11 @@ export function NotificationsDropdown() {
                     aria-label="Notifications"
                 >
                     <Bell className="size-5" />
-                    {notifications.unreadCount > 0 && (
+                    {liveNotifications.unreadCount > 0 && (
                         <span className="absolute -top-0.5 -right-0.5 flex min-w-5 items-center justify-center rounded-full bg-cyan-500 px-1.5 text-[11px] font-semibold text-white">
-                            {notifications.unreadCount > 9
+                            {liveNotifications.unreadCount > 9
                                 ? '9+'
-                                : notifications.unreadCount}
+                                : liveNotifications.unreadCount}
                         </span>
                     )}
                 </Button>
@@ -92,7 +153,7 @@ export function NotificationsDropdown() {
                     <DropdownMenuLabel className="p-0">
                         Notifications
                     </DropdownMenuLabel>
-                    {notifications.unreadCount > 0 && (
+                    {liveNotifications.unreadCount > 0 && (
                         <button
                             type="button"
                             onClick={markAllAsRead}
@@ -105,7 +166,7 @@ export function NotificationsDropdown() {
                 </div>
                 <DropdownMenuSeparator className="m-0" />
 
-                {notifications.recent.length === 0 ? (
+                {liveNotifications.recent.length === 0 ? (
                     <div className="px-4 py-8 text-center">
                         <Inbox className="mx-auto size-8 text-muted-foreground" />
                         <p className="mt-3 text-sm font-medium">
@@ -117,7 +178,7 @@ export function NotificationsDropdown() {
                     </div>
                 ) : (
                     <div className="max-h-96 overflow-y-auto py-1">
-                        {notifications.recent.map((notification) => {
+                        {liveNotifications.recent.map((notification) => {
                             const content = (
                                 <div className="min-w-0 flex-1">
                                     <div className="flex items-center gap-2">
@@ -126,7 +187,10 @@ export function NotificationsDropdown() {
                                                 'size-2 rounded-full',
                                                 notification.read_at
                                                     ? 'bg-muted'
-                                                    : 'bg-cyan-500',
+                                                    : notification.severity ===
+                                                        'critical'
+                                                      ? 'bg-destructive'
+                                                      : 'bg-cyan-500',
                                             )}
                                         />
                                         <p className="truncate text-sm font-medium">

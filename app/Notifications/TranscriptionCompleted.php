@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\PracticeSessionTranscript;
+use Illuminate\Notifications\Messages\BroadcastMessage;
 use Illuminate\Notifications\Notification;
 
 class TranscriptionCompleted extends Notification
@@ -19,7 +20,7 @@ class TranscriptionCompleted extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['database', 'broadcast'];
     }
 
     /**
@@ -38,9 +39,30 @@ class TranscriptionCompleted extends Notification
     }
 
     /**
+     * Get the broadcast representation of the notification.
+     */
+    public function toBroadcast(object $notifiable): BroadcastMessage
+    {
+        return new BroadcastMessage([
+            ...$this->toDatabase($notifiable),
+            'read_at' => null,
+            'created_at' => now()->toISOString(),
+            'severity' => 'success',
+        ]);
+    }
+
+    /**
      * Get the notification's database type.
      */
     public function databaseType(object $notifiable): string
+    {
+        return 'transcription_completed';
+    }
+
+    /**
+     * Get the notification's broadcast type.
+     */
+    public function broadcastType(): string
     {
         return 'transcription_completed';
     }

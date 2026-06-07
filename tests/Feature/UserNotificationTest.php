@@ -12,6 +12,9 @@ use App\Notifications\FeedbackAnalysisFailed;
 use App\Notifications\TranscriptionCompleted;
 use App\Notifications\TranscriptionFailed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Config;
 use Tests\TestCase;
 
 class UserNotificationTest extends TestCase
@@ -55,6 +58,65 @@ class UserNotificationTest extends TestCase
 
         $this->assertSame('Feedback ready', $notification->data['title']);
         $this->assertSame(route('feedback-reports.show', $report), $notification->data['url']);
+    }
+
+    public function test_processing_notifications_are_broadcast_with_dropdown_payloads(): void
+    {
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->create();
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session, 'practiceSession')
+            ->create([
+                'practice_session_recording_id' => null,
+            ]);
+        $report = SpeakingFeedbackReport::factory()
+            ->for($user)
+            ->for($session, 'practiceSession')
+            ->for($transcript, 'transcript')
+            ->create();
+
+        $notifications = [
+            new TranscriptionCompleted($transcript),
+            new TranscriptionFailed($session),
+            new FeedbackAnalysisCompleted($report),
+            new FeedbackAnalysisFailed($report),
+        ];
+
+        foreach ($notifications as $notification) {
+            $this->assertContains('database', $notification->via($user));
+            $this->assertContains('broadcast', $notification->via($user));
+            $this->assertBroadcastPayloadMatchesDatabasePayload($notification, $user);
+        }
+    }
+
+    public function test_user_notification_broadcast_channel_is_private_to_the_user(): void
+    {
+        Config::set('broadcasting.default', 'pusher');
+        Config::set('broadcasting.connections.pusher.key', 'test-key');
+        Config::set('broadcasting.connections.pusher.secret', 'test-secret');
+        Config::set('broadcasting.connections.pusher.app_id', 'test-app');
+        Broadcast::purge('pusher');
+        Broadcast::connection('pusher')->channel('App.Models.User.{id}', function (User $user, int $id): bool {
+            return $user->id === $id;
+        });
+
+        $user = $this->completedUser();
+        $otherUser = $this->completedUser();
+
+        $this->actingAs($user)
+            ->post('/broadcasting/auth', [
+                'socket_id' => '1234.5678',
+                'channel_name' => "private-App.Models.User.{$user->id}",
+            ])
+            ->assertOk();
+
+        $this->actingAs($user)
+            ->post('/broadcasting/auth', [
+                'socket_id' => '1234.5678',
+                'channel_name' => "private-App.Models.User.{$otherUser->id}",
+            ])
+            ->assertForbidden();
     }
 
     public function test_user_can_mark_their_notification_as_read(): void
@@ -107,5 +169,19 @@ class UserNotificationTest extends TestCase
         return User::factory()
             ->has(UserProfile::factory(), 'profile')
             ->create();
+    }
+
+    private function assertBroadcastPayloadMatchesDatabasePayload(Notification $notification, User $user): void
+    {
+        $databasePayload = $notification->toDatabase($user);
+        $broadcastPayload = $notification->toBroadcast($user)->data;
+
+        foreach (['title', 'message', 'url'] as $key) {
+            $this->assertSame($databasePayload[$key], $broadcastPayload[$key]);
+        }
+
+        $this->assertArrayHasKey('read_at', $broadcastPayload);
+        $this->assertArrayHasKey('created_at', $broadcastPayload);
+        $this->assertContains($broadcastPayload['severity'], ['critical', 'success']);
     }
 }
