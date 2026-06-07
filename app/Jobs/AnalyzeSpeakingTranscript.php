@@ -132,8 +132,12 @@ class AnalyzeSpeakingTranscript implements ShouldQueue
 
     private function notifyAdmins(AdminCriticalUpdate $notification): void
     {
-        User::role('admin')->each(
-            fn (User $admin): mixed => $admin->notify($notification),
-        );
+        User::query()
+            ->whereHas('roles', fn ($query) => $query
+                ->where('name', 'admin')
+                ->where('guard_name', 'web'))
+            ->each(
+                fn (User $admin): mixed => $admin->notify($notification),
+            );
     }
 }
