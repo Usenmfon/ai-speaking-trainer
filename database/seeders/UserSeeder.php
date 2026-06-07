@@ -14,12 +14,6 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        $admin = $this->createUser(
-            name: 'Admin User',
-            email: 'admin@example.com',
-        );
-        $admin->assignRole(Role::findOrCreate('admin', 'web'));
-
         $demo = $this->createUser(
             name: 'Test User',
             email: 'test@example.com',
@@ -46,8 +40,8 @@ class UserSeeder extends Seeder
             ['user_id' => $user->id],
             [
                 'full_name' => $name,
-                'speaking_level' => $email === 'admin@example.com' ? 'advanced' : 'intermediate',
-                'main_goal' => $email === 'admin@example.com' ? 'presentations' : 'public_speaking',
+                'speaking_level' => 'intermediate',
+                'main_goal' => 'public_speaking',
                 'preferred_language' => 'English',
                 'bio' => 'Seeded account for testing the AI Speaking Coach MVP.',
                 'onboarding_completed' => true,
