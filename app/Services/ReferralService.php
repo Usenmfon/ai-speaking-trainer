@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Referral;
 use App\Models\User;
+use App\Notifications\PracticeSessionsAwarded;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class ReferralService
@@ -53,14 +55,28 @@ class ReferralService
             return;
         }
 
-        Referral::query()->firstOrCreate(
-            ['referred_user_id' => $referredUser->id],
-            [
-                'referrer_id' => $referrer->id,
-                'referral_code' => $referrer->referral_code,
-                'status' => 'registered',
-                'registered_at' => now(),
-            ],
-        );
+        DB::transaction(function () use ($referrer, $referredUser): void {
+            $referral = Referral::query()->firstOrCreate(
+                ['referred_user_id' => $referredUser->id],
+                [
+                    'referrer_id' => $referrer->id,
+                    'referral_code' => $referrer->referral_code,
+                    'status' => 'registered',
+                    'registered_at' => now(),
+                ],
+            );
+
+            if (! $referral->wasRecentlyCreated) {
+                return;
+            }
+
+            $referrer->increment('practice_sessions_remaining', User::ReferralRewardPracticeSessions);
+            $referrer->refresh();
+
+            $referrer->notify(new PracticeSessionsAwarded(
+                User::ReferralRewardPracticeSessions,
+                $referrer->practice_sessions_remaining,
+            ));
+        });
     }
 }

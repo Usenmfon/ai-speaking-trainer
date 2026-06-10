@@ -10,6 +10,7 @@ use App\Models\UserProfile;
 use App\Notifications\AdminCriticalUpdate;
 use App\Notifications\FeedbackAnalysisCompleted;
 use App\Notifications\FeedbackAnalysisFailed;
+use App\Notifications\PracticeSessionsAwarded;
 use App\Notifications\TranscriptionCompleted;
 use App\Notifications\TranscriptionFailed;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -88,6 +89,7 @@ class UserNotificationTest extends TestCase
             new TranscriptionFailed($session),
             new FeedbackAnalysisCompleted($report),
             new FeedbackAnalysisFailed($report),
+            new PracticeSessionsAwarded(2, 7),
         ];
 
         foreach ($notifications as $notification) {

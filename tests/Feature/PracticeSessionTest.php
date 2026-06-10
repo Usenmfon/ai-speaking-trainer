@@ -157,6 +157,7 @@ class PracticeSessionTest extends TestCase
                 ->has('sessionTypes')
                 ->has('durations')
                 ->has('topicSuggestions')
+                ->where('practiceSessionsRemaining', 5)
             );
     }
 
@@ -178,6 +179,7 @@ class PracticeSessionTest extends TestCase
 
         $this->assertSame($user->id, $session->user_id);
         $this->assertSame('draft', $session->status);
+        $this->assertSame(4, $user->fresh()->practice_sessions_remaining);
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
             $session->id,
@@ -191,6 +193,26 @@ class PracticeSessionTest extends TestCase
             'objective' => 'Sound clear, confident, and concise.',
             'status' => 'draft',
         ]);
+    }
+
+    public function test_user_cannot_create_practice_session_without_remaining_free_sessions(): void
+    {
+        $user = $this->completedUser();
+        $user->forceFill([
+            'practice_sessions_remaining' => 0,
+        ])->save();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.store'), [
+            'title' => 'Product demo practice',
+            'topic' => 'Launch narrative for the AI coach',
+            'session_type' => 'presentation',
+            'target_duration_seconds' => 300,
+            'objective' => 'Sound clear, confident, and concise.',
+        ]);
+
+        $response->assertSessionHasErrors('practice_sessions_remaining');
+        $this->assertDatabaseCount('practice_sessions', 0);
+        $this->assertSame(0, $user->fresh()->practice_sessions_remaining);
     }
 
     public function test_practice_session_creation_validates_fields(): void

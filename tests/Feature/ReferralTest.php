@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Referral;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Notifications\PracticeSessionsAwarded;
 use App\Notifications\QueuedVerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
@@ -22,6 +23,13 @@ class ReferralTest extends TestCase
 
         $this->assertNotNull($user->referral_code);
         $this->assertSame(8, strlen($user->referral_code));
+    }
+
+    public function test_users_receive_five_free_practice_sessions_when_created(): void
+    {
+        $user = User::factory()->create();
+
+        $this->assertSame(5, $user->practice_sessions_remaining);
     }
 
     public function test_referral_code_is_captured_from_query_string(): void
@@ -53,6 +61,12 @@ class ReferralTest extends TestCase
             User::query()->where('email', 'plain@example.com')->firstOrFail(),
             QueuedVerifyEmail::class,
         );
+        Notification::assertSentTo(
+            User::query()->where('email', 'plain@example.com')->firstOrFail(),
+            fn (PracticeSessionsAwarded $notification): bool => $notification->sessionsAwarded === 5
+                && $notification->sessionsRemaining === 5
+                && $notification->reason === 'welcome',
+        );
     }
 
     public function test_registration_with_a_valid_referral_records_the_signup(): void
@@ -78,8 +92,21 @@ class ReferralTest extends TestCase
             'referral_code' => $referrer->referral_code,
             'status' => 'registered',
         ]);
+        $this->assertSame(7, $referrer->fresh()->practice_sessions_remaining);
         $this->assertFalse(session()->has('referral_code'));
         Notification::assertSentTo($referredUser, QueuedVerifyEmail::class);
+        Notification::assertSentTo(
+            $referredUser,
+            fn (PracticeSessionsAwarded $notification): bool => $notification->sessionsAwarded === 5
+                && $notification->sessionsRemaining === 5
+                && $notification->reason === 'welcome',
+        );
+        Notification::assertSentTo(
+            $referrer,
+            fn (PracticeSessionsAwarded $notification): bool => $notification->sessionsAwarded === 2
+                && $notification->sessionsRemaining === 7
+                && $notification->reason === 'referral',
+        );
     }
 
     public function test_registration_with_an_invalid_referral_code_still_registers(): void
@@ -104,6 +131,8 @@ class ReferralTest extends TestCase
 
     public function test_google_signup_records_a_valid_referral(): void
     {
+        Notification::fake();
+
         $referrer = User::factory()->create();
 
         Socialite::fake('google', (new SocialiteUser)->map([
@@ -125,6 +154,19 @@ class ReferralTest extends TestCase
             'referral_code' => $referrer->referral_code,
             'status' => 'registered',
         ]);
+        $this->assertSame(7, $referrer->fresh()->practice_sessions_remaining);
+        Notification::assertSentTo(
+            $referredUser,
+            fn (PracticeSessionsAwarded $notification): bool => $notification->sessionsAwarded === 5
+                && $notification->sessionsRemaining === 5
+                && $notification->reason === 'welcome',
+        );
+        Notification::assertSentTo(
+            $referrer,
+            fn (PracticeSessionsAwarded $notification): bool => $notification->sessionsAwarded === 2
+                && $notification->sessionsRemaining === 7
+                && $notification->reason === 'referral',
+        );
     }
 
     public function test_dashboard_includes_referral_link_and_registered_count(): void

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Notifications\PracticeSessionsAwarded;
 use App\Services\ReferralService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -58,6 +59,12 @@ class GoogleAuthController extends Controller
         $user = $this->findOrCreateUser($googleUser, $email, $googleId);
 
         if ($user->wasRecentlyCreated) {
+            $user->notify(new PracticeSessionsAwarded(
+                User::InitialFreePracticeSessions,
+                $user->practice_sessions_remaining,
+                'welcome',
+            ));
+
             $this->referrals->recordSignup(
                 $user,
                 $request->session()->pull('referral_code'),

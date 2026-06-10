@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Lightbulb, Mic2 } from 'lucide-react';
+import { ArrowLeft, Gift, Lightbulb, Mic2 } from 'lucide-react';
 import type { FormEvent } from 'react';
 import {
     create,
@@ -22,6 +22,7 @@ type CreateProps = {
     sessionTypes: PracticeSessionType[];
     topicSuggestions: string[];
     durations: DurationOption[];
+    practiceSessionsRemaining: number;
 };
 
 type PracticeSessionForm = {
@@ -30,6 +31,7 @@ type PracticeSessionForm = {
     session_type: PracticeSessionType | '';
     target_duration_seconds: number;
     objective: string;
+    practice_sessions_remaining?: string;
 };
 
 function formatOption(value: string): string {
@@ -43,6 +45,7 @@ export default function Create({
     sessionTypes,
     topicSuggestions,
     durations,
+    practiceSessionsRemaining,
 }: CreateProps) {
     const form = useForm<PracticeSessionForm>({
         title: '',
@@ -88,6 +91,14 @@ export default function Create({
                                 saved as a draft until recording and analysis
                                 are added.
                             </p>
+                            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
+                                <Gift className="size-4" />
+                                {practiceSessionsRemaining}{' '}
+                                {practiceSessionsRemaining === 1
+                                    ? 'free session'
+                                    : 'free sessions'}{' '}
+                                remaining
+                            </div>
 
                             <div className="mt-8 grid gap-5">
                                 <div className="grid gap-2">
@@ -143,7 +154,7 @@ export default function Create({
                                                         .value as PracticeSessionType,
                                                 )
                                             }
-                                            className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                             aria-invalid={Boolean(
                                                 form.errors.session_type,
                                             )}
@@ -175,7 +186,7 @@ export default function Create({
                                                     Number(event.target.value),
                                                 )
                                             }
-                                            className="border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
+                                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                             aria-invalid={Boolean(
                                                 form.errors
                                                     .target_duration_seconds,
@@ -213,7 +224,7 @@ export default function Create({
                                         rows={5}
                                         maxLength={2000}
                                         placeholder="What should the AI coach pay attention to?"
-                                        className="border-input bg-background ring-offset-background focus-visible:ring-ring min-h-28 w-full rounded-md border px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-offset-2"
+                                        className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                         aria-invalid={Boolean(
                                             form.errors.objective,
                                         )}
@@ -232,7 +243,10 @@ export default function Create({
                             <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
                                 <Button
                                     type="submit"
-                                    disabled={form.processing}
+                                    disabled={
+                                        form.processing ||
+                                        practiceSessionsRemaining < 1
+                                    }
                                     className="min-w-40"
                                 >
                                     {form.processing
@@ -243,6 +257,12 @@ export default function Create({
                                     <Link href={index()}>Cancel</Link>
                                 </Button>
                             </div>
+                            <InputError
+                                message={
+                                    form.errors.practice_sessions_remaining
+                                }
+                                className="mt-3"
+                            />
                         </form>
 
                         <aside className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">

@@ -19,12 +19,25 @@ use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'email_verified_at', 'password', 'google_id', 'google_avatar', 'referral_code'])]
+#[Fillable(['name', 'email', 'email_verified_at', 'password', 'google_id', 'google_avatar', 'referral_code', 'practice_sessions_remaining'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    public const InitialFreePracticeSessions = 5;
+
+    public const ReferralRewardPracticeSessions = 2;
+
+    /**
+     * The model's default values for attributes.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'practice_sessions_remaining' => self::InitialFreePracticeSessions,
+    ];
 
     /**
      * The accessors to append to the model's array form.
@@ -145,6 +158,7 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     {
         return [
             'email_verified_at' => 'datetime',
+            'practice_sessions_remaining' => 'integer',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
         ];

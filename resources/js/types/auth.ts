@@ -155,6 +155,7 @@ export type User = {
     name: string;
     email: string;
     referral_code?: string | null;
+    practice_sessions_remaining: number;
     is_admin: boolean;
     avatar?: string;
     profile?: UserProfile | null;
