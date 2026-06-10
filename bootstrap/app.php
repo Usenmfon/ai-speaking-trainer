@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\CheckAiWorkerCommand;
+use App\Http\Middleware\CaptureReferralCode;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->web(append: [
+            CaptureReferralCode::class,
             HandleAppearance::class,
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,

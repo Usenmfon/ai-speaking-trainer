@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Services\ReferralService;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -17,7 +18,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['name', 'email', 'email_verified_at', 'password', 'google_id', 'google_avatar'])]
+#[Fillable(['name', 'email', 'email_verified_at', 'password', 'google_id', 'google_avatar', 'referral_code'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable implements PasskeyUser
 {
@@ -38,6 +39,7 @@ class User extends Authenticatable implements PasskeyUser
     {
         static::creating(function (User $user): void {
             $user->public_id ??= (string) Str::uuid7();
+            $user->referral_code ??= app(ReferralService::class)->generateCode();
         });
     }
 
@@ -89,6 +91,24 @@ class User extends Authenticatable implements PasskeyUser
     public function speakingFeedbackReports(): HasMany
     {
         return $this->hasMany(SpeakingFeedbackReport::class);
+    }
+
+    /**
+     * Get referrals shared by the user.
+     *
+     * @return HasMany<Referral, $this>
+     */
+    public function referralsMade(): HasMany
+    {
+        return $this->hasMany(Referral::class, 'referrer_id');
+    }
+
+    /**
+     * Get the referral that brought the user into the app.
+     */
+    public function referralReceived(): HasOne
+    {
+        return $this->hasOne(Referral::class, 'referred_user_id');
     }
 
     /**

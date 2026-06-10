@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Role;
 use App\Models\User;
+use App\Services\ReferralService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,6 +17,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse
 
 class GoogleAuthController extends Controller
 {
+    public function __construct(private readonly ReferralService $referrals) {}
+
     /**
      * Redirect the user to Google for authentication.
      */
@@ -53,6 +56,13 @@ class GoogleAuthController extends Controller
         }
 
         $user = $this->findOrCreateUser($googleUser, $email, $googleId);
+
+        if ($user->wasRecentlyCreated) {
+            $this->referrals->recordSignup(
+                $user,
+                $request->session()->pull('referral_code'),
+            );
+        }
 
         Auth::login($user);
         $request->session()->regenerate();

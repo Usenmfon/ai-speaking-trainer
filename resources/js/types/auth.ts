@@ -129,6 +129,11 @@ export type DashboardAnalytics = {
     mostCommonWeakness: string | null;
     recentSessions: PracticeSession[];
     recentReports: SpeakingFeedbackReport[];
+    referrals: {
+        code: string;
+        link: string;
+        registeredCount: number;
+    };
 };
 
 export type UserProfile = {
@@ -149,6 +154,7 @@ export type User = {
     public_id: string;
     name: string;
     email: string;
+    referral_code?: string | null;
     is_admin: boolean;
     avatar?: string;
     profile?: UserProfile | null;

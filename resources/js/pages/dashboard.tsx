@@ -4,11 +4,14 @@ import {
     BarChart3,
     CalendarDays,
     CheckCircle2,
+    Copy,
     FileText,
     Mic2,
     Sparkles,
     Trophy,
+    UserPlus,
 } from 'lucide-react';
+import { useState } from 'react';
 
 import { create } from '@/actions/App/Http/Controllers/PracticeSessionController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
@@ -31,6 +34,16 @@ function formatScore(value: number | null): string {
 export default function Dashboard({ analytics }: DashboardProps) {
     const { auth } = usePage().props;
     const hasActivity = analytics.stats.totalPracticeSessions > 0;
+    const [hasCopiedReferralLink, setHasCopiedReferralLink] = useState(false);
+
+    function copyReferralLink(): void {
+        void navigator.clipboard
+            .writeText(analytics.referrals.link)
+            .then(() => {
+                setHasCopiedReferralLink(true);
+                window.setTimeout(() => setHasCopiedReferralLink(false), 2000);
+            });
+    }
 
     return (
         <>
@@ -57,7 +70,11 @@ export default function Dashboard({ analytics }: DashboardProps) {
                                     </p>
                                 </div>
 
-                                <Button asChild size="lg" className="w-full sm:w-auto">
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    className="w-full sm:w-auto"
+                                >
                                     <Link href={create()}>
                                         <Mic2 className="size-4" />
                                         Start New Practice
@@ -121,9 +138,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                             latestSessionTitle={
                                 analytics.latestSession?.title ?? null
                             }
-                            mostCommonWeakness={
-                                analytics.mostCommonWeakness
-                            }
+                            mostCommonWeakness={analytics.mostCommonWeakness}
                         />
 
                         <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -137,7 +152,11 @@ export default function Dashboard({ analytics }: DashboardProps) {
                                         activity at a glance.
                                     </p>
                                 </div>
-                                <Button asChild variant="outline" className="w-full sm:w-auto">
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="w-full sm:w-auto"
+                                >
                                     <Link href={reportsIndex()}>
                                         <Award className="size-4" />
                                         View reports
@@ -174,6 +193,55 @@ export default function Dashboard({ analytics }: DashboardProps) {
                                 </div>
                             </div>
                         </section>
+                    </section>
+
+                    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
+                            <div className="min-w-0">
+                                <p className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
+                                    <UserPlus className="size-4 shrink-0" />
+                                    Invite friends
+                                </p>
+                                <h2 className="mt-3 text-lg font-semibold">
+                                    Share SpeakAI Coach
+                                </h2>
+                                <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
+                                    Send your link to people who want clearer
+                                    interviews, presentations, or everyday
+                                    speaking practice.
+                                </p>
+                            </div>
+
+                            <div className="rounded-2xl border border-border bg-background p-4 text-center lg:min-w-40">
+                                <p className="text-2xl font-semibold">
+                                    {analytics.referrals.registeredCount}
+                                </p>
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    joined from your link
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                            <div className="min-w-0 flex-1 rounded-xl border border-border bg-background px-4 py-3 font-mono text-sm text-muted-foreground">
+                                <span className="block truncate">
+                                    {analytics.referrals.link}
+                                </span>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                className="w-full sm:w-auto"
+                                onClick={copyReferralLink}
+                            >
+                                {hasCopiedReferralLink ? (
+                                    <CheckCircle2 className="size-4" />
+                                ) : (
+                                    <Copy className="size-4" />
+                                )}
+                                {hasCopiedReferralLink ? 'Copied' : 'Copy link'}
+                            </Button>
+                        </div>
                     </section>
 
                     <section className="grid min-w-0 gap-5 xl:grid-cols-2">

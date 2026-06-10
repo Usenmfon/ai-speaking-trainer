@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\PracticeSession;
 use App\Models\PracticeSessionRecording;
 use App\Models\PracticeSessionTranscript;
+use App\Models\Referral;
 use App\Models\SpeakingFeedbackReport;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -34,6 +35,15 @@ class AdminPanelTest extends TestCase
                 ->get(route($route))
                 ->assertForbidden();
         }
+    }
+
+    public function test_non_admin_user_cannot_access_admin_referrals(): void
+    {
+        $user = User::factory()->create();
+
+        $this->actingAs($user)
+            ->get(route('admin.referrals.index'))
+            ->assertForbidden();
     }
 
     public function test_admin_can_view_dashboard_metrics(): void
@@ -130,6 +140,41 @@ class AdminPanelTest extends TestCase
                 ->where('sessions.data.0.title', 'Board update rehearsal')
                 ->where('sessions.data.0.status', 'failed')
                 ->where('sessions.data.0.feedback_report.status', 'failed')
+            );
+    }
+
+    public function test_admin_can_view_referrals_index(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $referrer = User::factory()->create([
+            'name' => 'Maya Referrer',
+            'email' => 'maya@example.com',
+        ]);
+        $referredUser = User::factory()->create([
+            'name' => 'Avery Referred',
+            'email' => 'avery@example.com',
+        ]);
+
+        Referral::factory()
+            ->for($referrer, 'referrer')
+            ->for($referredUser, 'referredUser')
+            ->create([
+                'referral_code' => $referrer->referral_code,
+                'registered_at' => now(),
+            ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.referrals.index'));
+
+        $response
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('Admin/Referrals/Index')
+                ->has('referrals.data', 1)
+                ->where('referrals.data.0.referrer.name', 'Maya Referrer')
+                ->where('referrals.data.0.referrer.email', 'maya@example.com')
+                ->where('referrals.data.0.referred_user.name', 'Avery Referred')
+                ->where('referrals.data.0.referred_user.email', 'avery@example.com')
+                ->where('referrals.data.0.referral_code', $referrer->referral_code)
             );
     }
 

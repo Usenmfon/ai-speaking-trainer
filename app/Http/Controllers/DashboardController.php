@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
+use App\Services\ReferralService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -12,6 +13,8 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
+    public function __construct(private readonly ReferralService $referrals) {}
+
     /**
      * Display the authenticated user's analytics dashboard.
      */
@@ -22,6 +25,8 @@ class DashboardController extends Controller
         if ($user->isAdmin()) {
             return to_route('admin.dashboard');
         }
+
+        $referralCode = $this->referrals->ensureCode($user);
 
         $sessionQuery = PracticeSession::query()
             ->whereBelongsTo($user);
@@ -87,6 +92,13 @@ class DashboardController extends Controller
                 'mostCommonWeakness' => $this->mostCommonValue($weaknesses),
                 'recentSessions' => $recentSessions,
                 'recentReports' => $recentReports,
+                'referrals' => [
+                    'code' => $referralCode,
+                    'link' => route('register', ['ref' => $referralCode]),
+                    'registeredCount' => $user->referralsMade()
+                        ->where('status', 'registered')
+                        ->count(),
+                ],
             ],
         ]);
     }

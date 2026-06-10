@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminReferralController;
 use App\Http\Controllers\AiCoachController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\DashboardController;
@@ -50,6 +51,7 @@ Route::middleware(['auth', 'verified', 'admin'])
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('users', [AdminDashboardController::class, 'users'])->name('users.index');
+        Route::get('referrals', [AdminReferralController::class, 'index'])->name('referrals.index');
         Route::get('sessions', [AdminDashboardController::class, 'sessions'])->name('sessions.index');
         Route::get('content', [AdminDashboardController::class, 'content'])->name('content.index');
         Route::get('processing', [AdminDashboardController::class, 'processing'])->name('processing.index');

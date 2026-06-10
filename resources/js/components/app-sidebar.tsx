@@ -8,6 +8,7 @@ import {
     ChartNoAxesCombined,
     FileCog,
     FileText,
+    Gift,
     LayoutDashboard,
     MessageSquareText,
     Mic2,
@@ -26,6 +27,7 @@ import {
     settings as adminSettings,
     users as adminUsers,
 } from '@/actions/App/Http/Controllers/AdminDashboardController';
+import { index as adminReferrals } from '@/actions/App/Http/Controllers/AdminReferralController';
 import {
     create as createPracticeSession,
     index as practiceSessionsIndex,
@@ -107,6 +109,12 @@ const adminNavItems: NavItem[] = [
         href: adminUsers(),
         activeHref: '/admin/users',
         icon: Users,
+    },
+    {
+        title: 'Referrals',
+        href: adminReferrals(),
+        activeHref: '/admin/referrals',
+        icon: Gift,
     },
     {
         title: 'Sessions',
