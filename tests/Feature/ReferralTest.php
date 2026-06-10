@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Models\Referral;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Notifications\QueuedVerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Notification;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\User as SocialiteUser;
 use Tests\TestCase;
@@ -32,6 +34,8 @@ class ReferralTest extends TestCase
 
     public function test_normal_registration_still_works_without_a_referral(): void
     {
+        Notification::fake();
+
         $response = $this->post(route('register.store'), [
             'name' => 'Plain Signup',
             'email' => 'plain@example.com',
@@ -45,10 +49,16 @@ class ReferralTest extends TestCase
             'email' => 'plain@example.com',
         ]);
         $this->assertDatabaseCount('referrals', 0);
+        Notification::assertSentTo(
+            User::query()->where('email', 'plain@example.com')->firstOrFail(),
+            QueuedVerifyEmail::class,
+        );
     }
 
     public function test_registration_with_a_valid_referral_records_the_signup(): void
     {
+        Notification::fake();
+
         $referrer = User::factory()->create();
 
         $this->withSession(['referral_code' => $referrer->referral_code])
@@ -69,10 +79,13 @@ class ReferralTest extends TestCase
             'status' => 'registered',
         ]);
         $this->assertFalse(session()->has('referral_code'));
+        Notification::assertSentTo($referredUser, QueuedVerifyEmail::class);
     }
 
     public function test_registration_with_an_invalid_referral_code_still_registers(): void
     {
+        Notification::fake();
+
         $this->withSession(['referral_code' => 'UNKNOWN1'])
             ->post(route('register.store'), [
                 'name' => 'Invalid Code',
