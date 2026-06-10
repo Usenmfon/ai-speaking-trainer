@@ -6,6 +6,7 @@ use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
 use App\Models\User;
 use App\Support\ContentLibrary;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -92,6 +93,20 @@ class AdminDashboardController extends Controller
                 ->paginate(15)
                 ->withQueryString(),
         ]);
+    }
+
+    /**
+     * Delete a non-admin user account.
+     */
+    public function destroy(User $user): RedirectResponse
+    {
+        if ($user->isAdmin()) {
+            return back()->with('error', 'Admin users cannot be deleted.');
+        }
+
+        $user->delete();
+
+        return back()->with('success', 'User deleted.');
     }
 
     /**

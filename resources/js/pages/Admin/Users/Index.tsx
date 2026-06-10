@@ -1,11 +1,28 @@
-import { Head, Link } from '@inertiajs/react';
-import { ArrowLeft, CheckCircle2, CircleDashed, ShieldCheck, Users } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import {
+    ArrowLeft,
+    CheckCircle2,
+    CircleDashed,
+    ShieldCheck,
+    Trash2,
+    Users,
+} from 'lucide-react';
+import { useState } from 'react';
 
 import {
+    destroy as destroyAdminUser,
     index as adminDashboard,
     users as adminUsers,
 } from '@/actions/App/Http/Controllers/AdminDashboardController';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogTitle,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import type { Paginated, User, UserProfile } from '@/types';
 
@@ -20,7 +37,10 @@ type UsersIndexProps = {
 
 function Pagination({ links }: { links: Paginated<AdminUser>['links'] }) {
     return (
-        <nav className="mt-6 flex flex-wrap justify-center gap-2" aria-label="Users pagination">
+        <nav
+            className="mt-6 flex flex-wrap justify-center gap-2"
+            aria-label="Users pagination"
+        >
             {links.map((link) => (
                 <Link
                     key={`${link.label}-${link.url}`}
@@ -44,6 +64,23 @@ function Pagination({ links }: { links: Paginated<AdminUser>['links'] }) {
 }
 
 export default function Index({ users }: UsersIndexProps) {
+    const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    function deleteUser() {
+        if (!userToDelete) {
+            return;
+        }
+
+        setIsDeleting(true);
+
+        router.delete(destroyAdminUser.url(userToDelete.id), {
+            preserveScroll: true,
+            onSuccess: () => setUserToDelete(null),
+            onFinish: () => setIsDeleting(false),
+        });
+    }
+
     return (
         <>
             <Head title="Admin users" />
@@ -77,21 +114,37 @@ export default function Index({ users }: UsersIndexProps) {
 
                     <section className="mt-8 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
                         <div className="overflow-x-auto">
-                            <table className="w-full min-w-4xl text-left text-sm">
+                            <table className="w-full min-w-5xl text-left text-sm">
                                 <thead className="bg-muted/50 text-xs text-muted-foreground">
                                     <tr>
-                                        <th className="px-5 py-3 font-medium">Name</th>
-                                        <th className="px-5 py-3 font-medium">Email</th>
-                                        <th className="px-5 py-3 font-medium">Profile</th>
-                                        <th className="px-5 py-3 font-medium">Sessions</th>
-                                        <th className="px-5 py-3 font-medium">Joined</th>
-                                        <th className="px-5 py-3 font-medium">Role</th>
+                                        <th className="px-5 py-3 font-medium">
+                                            Name
+                                        </th>
+                                        <th className="px-5 py-3 font-medium">
+                                            Email
+                                        </th>
+                                        <th className="px-5 py-3 font-medium">
+                                            Profile
+                                        </th>
+                                        <th className="px-5 py-3 font-medium">
+                                            Sessions
+                                        </th>
+                                        <th className="px-5 py-3 font-medium">
+                                            Joined
+                                        </th>
+                                        <th className="px-5 py-3 font-medium">
+                                            Role
+                                        </th>
+                                        <th className="px-5 py-3 text-right font-medium">
+                                            Actions
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {users.data.map((user) => {
                                         const completed =
-                                            user.profile?.onboarding_completed === true;
+                                            user.profile
+                                                ?.onboarding_completed === true;
 
                                         return (
                                             <tr
@@ -118,11 +171,15 @@ export default function Index({ users }: UsersIndexProps) {
                                                         ) : (
                                                             <CircleDashed className="size-3" />
                                                         )}
-                                                        {completed ? 'Complete' : 'Incomplete'}
+                                                        {completed
+                                                            ? 'Complete'
+                                                            : 'Incomplete'}
                                                     </span>
                                                 </td>
                                                 <td className="px-5 py-4">
-                                                    {user.practice_sessions_count}
+                                                    {
+                                                        user.practice_sessions_count
+                                                    }
                                                 </td>
                                                 <td className="px-5 py-4 text-muted-foreground">
                                                     {new Date(
@@ -141,6 +198,31 @@ export default function Index({ users }: UsersIndexProps) {
                                                         </span>
                                                     )}
                                                 </td>
+                                                <td className="px-5 py-4">
+                                                    <div className="flex justify-end">
+                                                        {user.is_admin ? (
+                                                            <span className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-semibold text-muted-foreground">
+                                                                <ShieldCheck className="size-3" />
+                                                                Protected
+                                                            </span>
+                                                        ) : (
+                                                            <Button
+                                                                type="button"
+                                                                variant="destructive"
+                                                                size="sm"
+                                                                className="cursor-pointer"
+                                                                onClick={() =>
+                                                                    setUserToDelete(
+                                                                        user,
+                                                                    )
+                                                                }
+                                                            >
+                                                                <Trash2 className="size-4" />
+                                                                Delete
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                </td>
                                             </tr>
                                         );
                                     })}
@@ -152,6 +234,50 @@ export default function Index({ users }: UsersIndexProps) {
                     {users.last_page > 1 && <Pagination links={users.links} />}
                 </div>
             </div>
+
+            <Dialog
+                open={userToDelete !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setUserToDelete(null);
+                    }
+                }}
+            >
+                <DialogContent>
+                    <DialogTitle>Delete user account?</DialogTitle>
+                    <DialogDescription>
+                        This will permanently delete{' '}
+                        <span className="font-medium text-foreground">
+                            {userToDelete?.name}
+                        </span>
+                        {userToDelete?.email ? ` (${userToDelete.email})` : ''},
+                        including their related practice data. This action
+                        cannot be undone.
+                    </DialogDescription>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                className="cursor-pointer"
+                                disabled={isDeleting}
+                            >
+                                Cancel
+                            </Button>
+                        </DialogClose>
+                        <Button
+                            type="button"
+                            variant="destructive"
+                            className="cursor-pointer"
+                            disabled={isDeleting}
+                            onClick={deleteUser}
+                        >
+                            <Trash2 className="size-4" />
+                            Delete user
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

@@ -51,6 +51,7 @@ Route::middleware(['auth', 'verified', 'admin'])
     ->group(function () {
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('users', [AdminDashboardController::class, 'users'])->name('users.index');
+        Route::delete('users/{user}', [AdminDashboardController::class, 'destroy'])->name('users.destroy');
         Route::get('referrals', [AdminReferralController::class, 'index'])->name('referrals.index');
         Route::get('sessions', [AdminDashboardController::class, 'sessions'])->name('sessions.index');
         Route::get('content', [AdminDashboardController::class, 'content'])->name('content.index');

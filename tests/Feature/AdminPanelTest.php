@@ -46,6 +46,20 @@ class AdminPanelTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_non_admin_user_cannot_delete_users(): void
+    {
+        $user = User::factory()->create();
+        $targetUser = User::factory()->create();
+
+        $this->actingAs($user)
+            ->delete(route('admin.users.destroy', $targetUser))
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('users', [
+            'id' => $targetUser->id,
+        ]);
+    }
+
     public function test_admin_can_view_dashboard_metrics(): void
     {
         $admin = User::factory()->admin()->create();
@@ -113,6 +127,36 @@ class AdminPanelTest extends TestCase
                 ->where('users.data.0.profile.onboarding_completed', false)
                 ->where('users.data.0.practice_sessions_count', 2)
             );
+    }
+
+    public function test_admin_can_delete_non_admin_user(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create();
+
+        $this->actingAs($admin)
+            ->delete(route('admin.users.destroy', $user))
+            ->assertRedirect()
+            ->assertSessionHas('success', 'User deleted.');
+
+        $this->assertDatabaseMissing('users', [
+            'id' => $user->id,
+        ]);
+    }
+
+    public function test_admin_cannot_delete_admin_user(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $targetAdmin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->delete(route('admin.users.destroy', $targetAdmin))
+            ->assertRedirect()
+            ->assertSessionHas('error', 'Admin users cannot be deleted.');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $targetAdmin->id,
+        ]);
     }
 
     public function test_admin_can_view_sessions_index(): void
