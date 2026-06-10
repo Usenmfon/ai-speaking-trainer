@@ -110,6 +110,7 @@ class AdminPanelTest extends TestCase
         $user = User::factory()->create([
             'name' => 'Jordan Speaker',
             'email' => 'jordan@example.com',
+            'practice_sessions_remaining' => 9,
             'created_at' => now(),
         ]);
         UserProfile::factory()->for($user)->incomplete()->create();
@@ -126,6 +127,7 @@ class AdminPanelTest extends TestCase
                 ->where('users.data.0.email', 'jordan@example.com')
                 ->where('users.data.0.profile.onboarding_completed', false)
                 ->where('users.data.0.practice_sessions_count', 2)
+                ->where('users.data.0.practice_sessions_remaining', 9)
             );
     }
 

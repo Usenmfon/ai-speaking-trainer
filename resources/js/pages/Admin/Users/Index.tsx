@@ -130,6 +130,9 @@ export default function Index({ users }: UsersIndexProps) {
                                             Sessions
                                         </th>
                                         <th className="px-5 py-3 font-medium">
+                                            Remaining
+                                        </th>
+                                        <th className="px-5 py-3 font-medium">
                                             Joined
                                         </th>
                                         <th className="px-5 py-3 font-medium">
@@ -180,6 +183,13 @@ export default function Index({ users }: UsersIndexProps) {
                                                     {
                                                         user.practice_sessions_count
                                                     }
+                                                </td>
+                                                <td className="px-5 py-4">
+                                                    <span className="inline-flex min-w-10 justify-center rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-700 dark:text-cyan-200">
+                                                        {
+                                                            user.practice_sessions_remaining
+                                                        }
+                                                    </span>
                                                 </td>
                                                 <td className="px-5 py-4 text-muted-foreground">
                                                     {new Date(
