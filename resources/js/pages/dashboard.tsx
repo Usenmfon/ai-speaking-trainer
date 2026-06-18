@@ -15,6 +15,7 @@ import { useState } from 'react';
 
 import { create } from '@/actions/App/Http/Controllers/PracticeSessionController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { ImprovementInsightCard } from '@/components/dashboard/improvement-insight-card';
 import { RecentReportList } from '@/components/dashboard/recent-report-list';
 import { RecentSessionList } from '@/components/dashboard/recent-session-list';
@@ -54,20 +55,23 @@ export default function Dashboard({ analytics }: DashboardProps) {
                     <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
                         <div className="bg-linear-to-br from-cyan-500/10 via-violet-500/10 to-background p-5 sm:p-8">
                             <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
-                                <div className="min-w-0">
-                                    <p className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
-                                        <Sparkles className="size-4 shrink-0" />
-                                        AI coach dashboard
-                                    </p>
-                                    <h1 className="mt-3 text-2xl font-semibold tracking-normal break-words sm:text-4xl">
-                                        Welcome back,{' '}
-                                        {auth.user?.name ?? 'speaker'}
-                                    </h1>
-                                    <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
-                                        Track practice volume, score trends, and
-                                        the coaching theme that deserves your
-                                        next focused rep.
-                                    </p>
+                                <div className="flex min-w-0 gap-4">
+                                    <AppLogoIcon className="mt-1 hidden size-14 rounded-2xl sm:flex" />
+                                    <div className="min-w-0">
+                                        <p className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
+                                            <Sparkles className="size-4 shrink-0" />
+                                            AI coach dashboard
+                                        </p>
+                                        <h1 className="mt-3 text-2xl font-semibold tracking-normal break-words sm:text-4xl">
+                                            Welcome back,{' '}
+                                            {auth.user?.name ?? 'speaker'}
+                                        </h1>
+                                        <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
+                                            Track practice volume, score trends,
+                                            and the coaching theme that deserves
+                                            your next focused rep.
+                                        </p>
+                                    </div>
                                 </div>
 
                                 <Button
@@ -86,7 +90,10 @@ export default function Dashboard({ analytics }: DashboardProps) {
 
                     {!hasActivity && (
                         <section className="rounded-2xl border border-dashed border-border bg-card p-5 text-center shadow-sm sm:p-8">
-                            <FileText className="mx-auto size-10 text-cyan-700 dark:text-cyan-200" />
+                            <div className="mx-auto flex items-center justify-center gap-3">
+                                <AppLogoIcon className="size-12 rounded-2xl" />
+                                <FileText className="size-8 text-cyan-700 dark:text-cyan-200" />
+                            </div>
                             <h2 className="mt-4 text-xl font-semibold">
                                 Your analytics will appear here
                             </h2>

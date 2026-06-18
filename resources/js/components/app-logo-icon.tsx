@@ -1,7 +1,8 @@
-import { Mic2 } from 'lucide-react';
 import type { HTMLAttributes } from 'react';
 
 import { cn } from '@/lib/utils';
+
+const logoSrc = '/android-chrome-192x192.png';
 
 export default function AppLogoIcon({
     className,
@@ -10,12 +11,17 @@ export default function AppLogoIcon({
     return (
         <div
             className={cn(
-                'flex aspect-square items-center justify-center rounded-2xl bg-linear-to-br from-cyan-300 to-violet-500 text-slate-950 shadow-[0_0_24px_rgba(34,211,238,0.28)]',
+                'flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-slate-950 shadow-[0_0_24px_rgba(34,211,238,0.22)] ring-1 ring-white/10 dark:bg-black',
                 className,
             )}
             {...props}
         >
-            <Mic2 className="size-3/5" />
+            <img
+                src={logoSrc}
+                alt=""
+                aria-hidden="true"
+                className="size-full object-contain"
+            />
         </div>
     );
 }

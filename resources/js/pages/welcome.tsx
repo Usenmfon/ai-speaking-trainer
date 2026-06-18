@@ -3,7 +3,6 @@ import {
     AudioLines,
     CheckCircle2,
     ChevronRight,
-    Mic2,
     Monitor,
     Moon,
     Sun,
@@ -11,6 +10,7 @@ import {
 import { GlassCard } from '@/components/ai/glass-card';
 import { GradientButton } from '@/components/ai/gradient-button';
 import { WaveformMock } from '@/components/ai/waveform-mock';
+import AppLogoIcon from '@/components/app-logo-icon';
 import { useAppearance } from '@/hooks/use-appearance';
 import { dashboard, login, register } from '@/routes';
 
@@ -54,9 +54,7 @@ export default function Welcome() {
             <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-[#070914] dark:text-white">
                 <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
                     <Link href="/" className="flex min-w-0 items-center gap-3">
-                        <span className="flex size-10 items-center justify-center rounded-xl bg-slate-950 text-white dark:bg-white dark:text-slate-950">
-                            <Mic2 className="size-5" />
-                        </span>
+                        <AppLogoIcon className="size-10 rounded-xl" />
                         <span className="truncate text-sm font-semibold">
                             SpeakAI Coach
                         </span>
@@ -156,13 +154,16 @@ export default function Welcome() {
                     <GlassCard className="p-4 sm:p-5" glow>
                         <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-950/70">
                             <div className="mb-5 flex items-start justify-between gap-4">
-                                <div>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400">
-                                        Practice session
-                                    </p>
-                                    <h2 className="mt-1 text-xl font-semibold">
-                                        Interview answer
-                                    </h2>
+                                <div className="flex min-w-0 items-start gap-3">
+                                    <AppLogoIcon className="size-11 rounded-xl" />
+                                    <div className="min-w-0">
+                                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                                            Practice session
+                                        </p>
+                                        <h2 className="mt-1 truncate text-xl font-semibold">
+                                            Interview answer
+                                        </h2>
+                                    </div>
                                 </div>
                                 <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-700 dark:bg-emerald-300/10 dark:text-emerald-200">
                                     Ready
