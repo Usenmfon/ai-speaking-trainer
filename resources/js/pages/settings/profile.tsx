@@ -53,7 +53,7 @@ function NativeSelect({
             name={name}
             defaultValue={defaultValue}
             className={cn(
-                'border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                 !defaultValue && 'text-muted-foreground',
             )}
         >
@@ -118,7 +118,9 @@ export default function Profile({
                                     </div>
 
                                     <div className="grid gap-2">
-                                        <Label htmlFor="email">Email address</Label>
+                                        <Label htmlFor="email">
+                                            Email address
+                                        </Label>
                                         <Input
                                             id="email"
                                             type="email"
@@ -147,7 +149,10 @@ export default function Profile({
                                                 Choose your current level
                                             </option>
                                             {speakingLevels.map((level) => (
-                                                <option key={level} value={level}>
+                                                <option
+                                                    key={level}
+                                                    value={level}
+                                                >
                                                     {formatOption(level)}
                                                 </option>
                                             ))}
@@ -164,7 +169,9 @@ export default function Profile({
                                         <NativeSelect
                                             id="main_goal"
                                             name="main_goal"
-                                            defaultValue={profile?.main_goal ?? ''}
+                                            defaultValue={
+                                                profile?.main_goal ?? ''
+                                            }
                                         >
                                             <option value="">
                                                 Pick your primary focus
@@ -175,7 +182,9 @@ export default function Profile({
                                                 </option>
                                             ))}
                                         </NativeSelect>
-                                        <InputError message={errors.main_goal} />
+                                        <InputError
+                                            message={errors.main_goal}
+                                        />
                                     </div>
 
                                     <div className="grid gap-2 md:col-span-2">
@@ -224,7 +233,9 @@ export default function Profile({
 
                                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                                     <Button disabled={processing}>
-                                        {processing ? 'Saving...' : 'Save settings'}
+                                        {processing
+                                            ? 'Saving...'
+                                            : 'Save settings'}
                                     </Button>
                                     {recentlySuccessful && (
                                         <p className="text-sm text-emerald-700 dark:text-emerald-300">
@@ -368,7 +379,11 @@ export default function Profile({
 Profile.layout = {
     breadcrumbs: [
         {
-            title: 'Account settings',
+            title: 'Settings',
+            href: edit(),
+        },
+        {
+            title: 'Profile',
             href: edit(),
         },
     ],

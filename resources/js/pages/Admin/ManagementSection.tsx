@@ -1,7 +1,15 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, setLayoutProps } from '@inertiajs/react';
 import { ArrowLeft, CircleDashed, ShieldCheck } from 'lucide-react';
 
-import { index as adminDashboard } from '@/actions/App/Http/Controllers/AdminDashboardController';
+import {
+    auditLogs,
+    content,
+    index as adminDashboard,
+    notifications,
+    processing,
+    settings,
+} from '@/actions/App/Http/Controllers/AdminDashboardController';
+import type { BreadcrumbItem } from '@/types';
 
 type ManagementItem = {
     title: string;
@@ -18,9 +26,22 @@ type ManagementSectionProps = {
     };
 };
 
-export default function ManagementSection({
-    section,
-}: ManagementSectionProps) {
+export default function ManagementSection({ section }: ManagementSectionProps) {
+    const sectionHref = managementSectionHref(section.title);
+
+    setLayoutProps({
+        breadcrumbs: [
+            {
+                title: 'Admin',
+                href: adminDashboard(),
+            },
+            {
+                title: section.title,
+                href: sectionHref,
+            },
+        ],
+    });
+
     return (
         <>
             <Head title={`Admin ${section.title}`} />
@@ -79,6 +100,18 @@ export default function ManagementSection({
             </div>
         </>
     );
+}
+
+function managementSectionHref(title: string): BreadcrumbItem['href'] {
+    const hrefByTitle: Record<string, BreadcrumbItem['href']> = {
+        Content: content(),
+        Processing: processing(),
+        Notifications: notifications(),
+        'System settings': settings(),
+        'Audit logs': auditLogs(),
+    };
+
+    return hrefByTitle[title] ?? adminDashboard();
 }
 
 ManagementSection.layout = {
