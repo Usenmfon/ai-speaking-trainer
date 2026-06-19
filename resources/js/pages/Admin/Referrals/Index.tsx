@@ -98,8 +98,8 @@ export default function Index({ referrals }: ReferralsIndexProps) {
                                 Referrals
                             </h1>
                             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-                                Review who shared SpeakAI Coach and which users
-                                joined from referral links.
+                                Review who shared TWAC and which users joined
+                                from referral links.
                             </p>
                         </div>
                         <Button asChild>

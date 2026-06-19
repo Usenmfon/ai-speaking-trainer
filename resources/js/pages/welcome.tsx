@@ -115,7 +115,7 @@ export default function Welcome() {
                     <Link href="/" className="flex min-w-0 items-center gap-3">
                         <AppLogoIcon className="size-10 rounded-xl" />
                         <span className="truncate text-sm font-semibold">
-                            SpeakAI Coach
+                            TWAC
                         </span>
                     </Link>
 
@@ -147,9 +147,12 @@ export default function Welcome() {
                                 </Link>
                                 <GradientButton
                                     href={register()}
-                                    className="px-4 sm:px-5"
+                                    className="px-3 py-2 text-xs whitespace-nowrap sm:px-5 sm:py-3 sm:text-sm"
                                 >
-                                    Start practicing
+                                    <span className="sm:hidden">Start</span>
+                                    <span className="hidden sm:inline">
+                                        Start practicing
+                                    </span>
                                 </GradientButton>
                             </>
                         )}
@@ -169,8 +172,8 @@ export default function Welcome() {
 
                         <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg dark:text-slate-300">
                             Record a speech, interview answer, or presentation
-                            draft. SpeakAI Coach listens, then shows the few
-                            improvements that matter most.
+                            draft. TWAC listens, then shows the few improvements
+                            that matter most.
                         </p>
 
                         <div className="mt-8 flex flex-col gap-3 sm:flex-row">

@@ -355,7 +355,7 @@ export default function Dashboard({ analytics }: DashboardProps) {
                                     Invite friends
                                 </p>
                                 <h2 className="mt-3 text-lg font-semibold">
-                                    Share SpeakAI Coach
+                                    Share TWAC
                                 </h2>
                                 <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                                     Send your link to people who want clearer

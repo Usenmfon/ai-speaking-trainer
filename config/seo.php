@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'site_name' => env('SEO_SITE_NAME', 'SpeakAI Coach'),
+    'site_name' => env('SEO_SITE_NAME', 'TWAC'),
     'title' => env('SEO_TITLE', 'AI Speaking Coach for Presentations, Interviews, and Public Speaking'),
     'description' => env('SEO_DESCRIPTION', 'Practice speeches, presentations, interviews, and conversations with AI feedback on clarity, confidence, pronunciation, pacing, and filler words.'),
     'keywords' => [
