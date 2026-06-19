@@ -1,18 +1,21 @@
 import { Head, Link } from '@inertiajs/react';
 import {
     ArrowRight,
+    AudioLines,
     BrainCircuit,
     CalendarCheck2,
     CheckCircle2,
     Lightbulb,
     MessageSquareText,
     Mic2,
+    Play,
     Sparkles,
+    Square,
     Target,
     Timer,
     WandSparkles,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import { create } from '@/actions/App/Http/Controllers/PracticeSessionController';
 import { Button } from '@/components/ui/button';
@@ -149,6 +152,81 @@ export default function AiCoach({
         availableDrills[0] ?? null,
     );
     const activeDrill = selectedDrill ?? availableDrills[0] ?? null;
+    const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+    const [audioError, setAudioError] = useState<string | null>(null);
+    const performanceHacks = [
+        availableSignals[0]?.value
+            ? `Lead with ${availableSignals[0].value.toLowerCase()} before you try to improve everything else.`
+            : 'Pick one speaking behavior to improve before you record.',
+        'Use a one-beat pause after important words so your delivery sounds deliberate.',
+        activeDrill?.title
+            ? `Run the ${activeDrill.title.toLowerCase()} drill once before recording a full take.`
+            : 'Warm up with one short drill before recording a full take.',
+    ];
+    const signalSummary = availableSignals
+        .map(
+            (signal) =>
+                `${signal.title}: ${signal.value}. ${signal.description}`,
+        )
+        .join(' ');
+    const audioBriefing = [
+        'Here is your AI coach briefing.',
+        activeCoachNote.title,
+        activeCoachNote.description,
+        activeCoachNote.value,
+        activeDrill
+            ? `Your selected drill is ${activeDrill.title}. ${activeDrill.value}`
+            : null,
+        'Your coaching cues are:',
+        signalSummary,
+        'Performance hacks:',
+        ...performanceHacks,
+    ]
+        .filter(Boolean)
+        .join(' ');
+
+    useEffect(() => {
+        return () => {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+            }
+        };
+    }, []);
+
+    function playAudioBriefing(): void {
+        if (!('speechSynthesis' in window)) {
+            setAudioError(
+                'Voice playback is not supported in this browser. You can still read the coach briefing below.',
+            );
+
+            return;
+        }
+
+        window.speechSynthesis.cancel();
+
+        const utterance = new SpeechSynthesisUtterance(audioBriefing);
+        utterance.rate = 0.95;
+        utterance.pitch = 1;
+        utterance.onend = () => setIsAudioPlaying(false);
+        utterance.onerror = () => {
+            setIsAudioPlaying(false);
+            setAudioError(
+                'Voice playback stopped unexpectedly. Try again or read the coach briefing below.',
+            );
+        };
+
+        setAudioError(null);
+        setIsAudioPlaying(true);
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function stopAudioBriefing(): void {
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.cancel();
+        }
+
+        setIsAudioPlaying(false);
+    }
 
     return (
         <>
@@ -217,6 +295,110 @@ export default function AiCoach({
                             </div>
                         </section>
                     )}
+
+                    <section className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                        <div className="grid gap-0 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+                            <div className="relative overflow-hidden bg-linear-to-br from-cyan-500/10 via-violet-500/10 to-background p-5 sm:p-6">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(34,211,238,0.20),transparent_28%),radial-gradient(circle_at_78%_18%,rgba(139,92,246,0.18),transparent_24%)]" />
+                                <div className="relative">
+                                    <p className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
+                                        <AudioLines className="size-4" />
+                                        Voice feedback
+                                    </p>
+                                    <h2 className="mt-3 text-xl font-semibold tracking-normal">
+                                        Listen to your coach briefing
+                                    </h2>
+                                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                        Hear your improvement focus, the active
+                                        drill, and quick performance hacks
+                                        before you record.
+                                    </p>
+
+                                    <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                                        <Button
+                                            type="button"
+                                            className="w-full sm:w-auto"
+                                            onClick={playAudioBriefing}
+                                            disabled={isAudioPlaying}
+                                        >
+                                            <Play className="size-4" />
+                                            {isAudioPlaying
+                                                ? 'Playing briefing'
+                                                : 'Play briefing'}
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="w-full bg-background sm:w-auto"
+                                            onClick={stopAudioBriefing}
+                                            disabled={!isAudioPlaying}
+                                        >
+                                            <Square className="size-4" />
+                                            Stop
+                                        </Button>
+                                    </div>
+
+                                    {audioError && (
+                                        <p className="mt-3 text-sm leading-6 text-amber-700 dark:text-amber-200">
+                                            {audioError}
+                                        </p>
+                                    )}
+
+                                    <div className="mt-5 flex h-16 items-end gap-1 overflow-hidden rounded-xl border border-border bg-background/70 px-3 py-3">
+                                        {Array.from({ length: 32 }).map(
+                                            (_, index) => (
+                                                <span
+                                                    key={index}
+                                                    className={`w-1 rounded-full bg-cyan-500/70 dark:bg-cyan-200/80 ${
+                                                        isAudioPlaying
+                                                            ? 'waveform-bar'
+                                                            : ''
+                                                    }`}
+                                                    style={{
+                                                        height: `${12 + ((index * 17) % 44)}px`,
+                                                        animationDelay: `${(index % 10) * 75}ms`,
+                                                    }}
+                                                />
+                                            ),
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-5 sm:p-6">
+                                <div className="flex items-center gap-3">
+                                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-emerald-700 dark:text-emerald-200">
+                                        <CheckCircle2 className="size-5" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-lg font-semibold">
+                                            Performance hacks
+                                        </h2>
+                                        <p className="text-sm text-muted-foreground">
+                                            Fast cues to apply in your next
+                                            take.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-5 grid gap-3">
+                                    {performanceHacks.map((hack, index) => (
+                                        <div
+                                            key={hack}
+                                            className="rounded-xl border border-border bg-background p-4"
+                                        >
+                                            <span className="text-xs font-semibold text-cyan-700 dark:text-cyan-200">
+                                                Hack {index + 1}
+                                            </span>
+                                            <p className="mt-2 text-sm leading-6">
+                                                {hack}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
                     <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
                         <aside className="rounded-2xl border border-border bg-card p-5 shadow-sm">
