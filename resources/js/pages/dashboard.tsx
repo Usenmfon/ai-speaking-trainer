@@ -241,14 +241,18 @@ export default function Dashboard({ analytics }: DashboardProps) {
                     </section>
 
                     <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)]">
-                        <ImprovementInsightCard
-                            latestSessionTitle={
-                                analytics.latestSession?.title ?? null
-                            }
-                            mostCommonWeakness={analytics.mostCommonWeakness}
-                        />
+                        <div className="order-2 xl:order-1">
+                            <ImprovementInsightCard
+                                latestSessionTitle={
+                                    analytics.latestSession?.title ?? null
+                                }
+                                mostCommonWeakness={
+                                    analytics.mostCommonWeakness
+                                }
+                            />
+                        </div>
 
-                        <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                        <section className="order-1 min-w-0 rounded-2xl border border-border bg-card p-5 shadow-sm xl:order-2">
                             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                                 <div>
                                     <h2 className="text-lg font-semibold">
@@ -336,7 +340,14 @@ export default function Dashboard({ analytics }: DashboardProps) {
                         </section>
                     </section>
 
-                    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+                    <section className="grid min-w-0 gap-5 xl:grid-cols-2">
+                        <RecentSessionList
+                            sessions={analytics.recentSessions}
+                        />
+                        <RecentReportList reports={analytics.recentReports} />
+                    </section>
+
+                    <section className="order-last rounded-2xl border border-border bg-card p-5 shadow-sm">
                         <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
                             <div className="min-w-0">
                                 <p className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
@@ -383,13 +394,6 @@ export default function Dashboard({ analytics }: DashboardProps) {
                                 {hasCopiedReferralLink ? 'Copied' : 'Copy link'}
                             </Button>
                         </div>
-                    </section>
-
-                    <section className="grid min-w-0 gap-5 xl:grid-cols-2">
-                        <RecentSessionList
-                            sessions={analytics.recentSessions}
-                        />
-                        <RecentReportList reports={analytics.recentReports} />
                     </section>
                 </div>
             </div>

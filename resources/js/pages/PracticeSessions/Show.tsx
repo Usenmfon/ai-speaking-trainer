@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router, usePoll } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowRight,
@@ -7,8 +7,10 @@ import {
     Clock3,
     FilePlus2,
     Mic2,
+    RefreshCw,
     Target,
 } from 'lucide-react';
+import { useState } from 'react';
 import {
     create,
     index,
@@ -72,11 +74,11 @@ function processingMessage(status: PracticeSession['status']): string | null {
     }
 
     if (status === 'transcribed') {
-        return 'Your transcript is ready and queued for AI feedback analysis.';
+        return 'Your transcript is ready and queued for AI feedback analysis. This page will keep checking for updates.';
     }
 
     if (status === 'analyzing') {
-        return 'Your AI coach is analyzing clarity, pace, confidence, structure, and filler words.';
+        return 'Your AI coach is analyzing clarity, pace, confidence, structure, and filler words. This page will keep checking for updates.';
     }
 
     return null;
@@ -136,7 +138,7 @@ function nextAction(session: PracticeSession): {
     return {
         title: 'Processing in progress',
         description:
-            'You can leave this page and come back when transcription or analysis finishes.',
+            'This page checks for updates while transcription or analysis is running.',
         label: 'Check status',
         href: '#processing-status',
         variant: 'outline',
@@ -144,8 +146,12 @@ function nextAction(session: PracticeSession): {
 }
 
 export default function Show({ session }: ShowProps) {
+    const [isRefreshingStatus, setIsRefreshingStatus] = useState(false);
     const message = processingMessage(session.status);
     const action = nextAction(session);
+    const isProcessing = ['transcribing', 'transcribed', 'analyzing'].includes(
+        session.status,
+    );
     const recordingLocked = [
         'transcribing',
         'transcribed',
@@ -161,6 +167,27 @@ export default function Show({ session }: ShowProps) {
         Boolean(session.recording) &&
         !session.transcript &&
         !session.feedback_report;
+
+    usePoll(
+        10000,
+        {
+            preserveScroll: true,
+            preserveState: true,
+        },
+        {
+            autoStart: isProcessing,
+        },
+    );
+
+    function refreshStatus(): void {
+        setIsRefreshingStatus(true);
+
+        router.reload({
+            preserveScroll: true,
+            preserveState: true,
+            onFinish: () => setIsRefreshingStatus(false),
+        });
+    }
 
     return (
         <>
@@ -296,13 +323,35 @@ export default function Show({ session }: ShowProps) {
 
                         {message && (
                             <div className="mt-6 rounded-2xl border border-violet-500/25 bg-violet-500/10 p-5 text-violet-900 dark:text-violet-100">
-                                <div className="flex items-center gap-2 font-semibold">
-                                    <Clock3 className="size-5 animate-pulse" />
-                                    Processing update
+                                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                    <div className="min-w-0">
+                                        <div className="flex items-center gap-2 font-semibold">
+                                            <Clock3 className="size-5 animate-pulse" />
+                                            Processing update
+                                        </div>
+                                        <p className="mt-2 text-sm leading-6">
+                                            {message}
+                                        </p>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full bg-background sm:w-auto"
+                                        onClick={refreshStatus}
+                                        disabled={isRefreshingStatus}
+                                    >
+                                        <RefreshCw
+                                            className={cn(
+                                                'size-4',
+                                                isRefreshingStatus &&
+                                                    'animate-spin',
+                                            )}
+                                        />
+                                        {isRefreshingStatus
+                                            ? 'Checking...'
+                                            : 'Refresh status'}
+                                    </Button>
                                 </div>
-                                <p className="mt-2 text-sm leading-6">
-                                    {message}
-                                </p>
                             </div>
                         )}
 
