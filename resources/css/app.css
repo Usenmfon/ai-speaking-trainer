@@ -198,3 +198,24 @@
     animation: waveform-pulse 1.4s ease-in-out infinite;
     transform-origin: center;
 }
+
+@keyframes recording-sweep {
+    0% {
+        transform: translateX(-120%);
+    }
+
+    100% {
+        transform: translateX(320%);
+    }
+}
+
+.recording-sweep {
+    animation: recording-sweep 4.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .recording-sweep,
+    .waveform-bar {
+        animation: none;
+    }
+}

@@ -98,6 +98,16 @@ export function AudioRecorder({
     const isPaused = status === 'paused';
     const isUploading = uploadStatus === 'uploading';
     const hasRecording = recordedBlob !== null && audioUrl !== null;
+    const monitorStatus =
+        status === 'requesting'
+            ? 'Calibrating input'
+            : isRecording
+              ? 'Live capture'
+              : isPaused
+                ? 'Capture paused'
+                : hasRecording
+                  ? 'Take ready'
+                  : 'Input standby';
     const recorderUnavailable =
         typeof window === 'undefined' ||
         !navigator.mediaDevices?.getUserMedia ||
@@ -345,9 +355,10 @@ export function AudioRecorder({
     }
 
     return (
-        <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+        <section className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-linear-to-b from-cyan-500/10 to-transparent" />
             <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-start">
-                <div>
+                <div className="relative">
                     <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-200">
                         Audio recorder
                     </p>
@@ -366,7 +377,7 @@ export function AudioRecorder({
 
                 <div
                     className={cn(
-                        'inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium',
+                        'relative inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 text-sm font-medium shadow-sm transition duration-300 motion-reduce:transition-none',
                         isRecording
                             ? 'border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-200'
                             : 'border-border bg-background text-muted-foreground',
@@ -374,12 +385,16 @@ export function AudioRecorder({
                 >
                     <span
                         className={cn(
-                            'size-2 rounded-full',
+                            'relative size-2 rounded-full',
                             isRecording
                                 ? 'animate-pulse bg-rose-500'
                                 : 'bg-muted-foreground/50',
                         )}
-                    />
+                    >
+                        {isRecording && (
+                            <span className="absolute inset-0 rounded-full bg-rose-500 motion-safe:animate-ping" />
+                        )}
+                    </span>
                     {status === 'requesting'
                         ? 'Requesting microphone'
                         : status === 'paused'
@@ -397,7 +412,7 @@ export function AudioRecorder({
                     <div
                         key={step.title}
                         className={cn(
-                            'rounded-xl border p-3',
+                            'rounded-xl border p-3 transition duration-300 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-sm motion-reduce:transition-none',
                             step.active || step.complete
                                 ? 'border-cyan-500/30 bg-cyan-500/10'
                                 : 'border-border bg-background/70',
@@ -430,33 +445,106 @@ export function AudioRecorder({
             </div>
 
             <div className="mt-6 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-                <div className="rounded-2xl border border-border bg-background/80 p-5">
+                <div className="rounded-2xl border border-border bg-background/80 p-4 sm:p-5">
                     <div
                         className={cn(
-                            'flex min-h-48 items-center justify-center gap-1 overflow-hidden rounded-2xl border border-border bg-linear-to-br from-background via-cyan-500/10 to-violet-500/10 px-4',
+                            'relative min-h-72 overflow-hidden rounded-2xl border border-border bg-linear-to-br from-background via-cyan-500/10 to-violet-500/10 p-4',
                             disabled && 'opacity-70',
                         )}
-                        aria-hidden="true"
                     >
-                        {Array.from({ length: 38 }).map((_, index) => (
-                            <span
-                                key={index}
-                                className={cn(
-                                    'w-1 rounded-full bg-cyan-500/70 dark:bg-cyan-200/80',
-                                    isRecording && 'animate-pulse',
-                                )}
-                                style={{
-                                    height: `${18 + ((index * 17) % 84)}px`,
-                                    animationDelay: `${(index % 8) * 90}ms`,
-                                }}
-                            />
-                        ))}
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.20),transparent_34%),linear-gradient(rgba(148,163,184,0.12)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.12)_1px,transparent_1px)] bg-[size:100%_100%,28px_28px,28px_28px]" />
+                        <div className="recording-sweep pointer-events-none absolute inset-y-0 w-1/3 bg-linear-to-r from-transparent via-cyan-300/20 to-transparent opacity-0 motion-safe:opacity-100" />
+
+                        <div className="relative z-10 flex min-h-64 flex-col justify-between gap-5">
+                            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                                <div className="flex flex-wrap gap-2">
+                                    {['Noise suppression', 'Echo control'].map(
+                                        (label) => (
+                                            <span
+                                                key={label}
+                                                className="rounded-full border border-border bg-background/80 px-2.5 py-1 text-xs font-medium text-muted-foreground shadow-sm"
+                                            >
+                                                {label}
+                                            </span>
+                                        ),
+                                    )}
+                                </div>
+                                <div className="inline-flex w-fit items-center gap-2 rounded-full border border-cyan-500/25 bg-background/80 px-3 py-1 text-xs font-semibold text-cyan-700 shadow-sm dark:text-cyan-200">
+                                    <span
+                                        className={cn(
+                                            'size-1.5 rounded-full',
+                                            isRecording
+                                                ? 'bg-emerald-500 motion-safe:animate-pulse'
+                                                : 'bg-muted-foreground/50',
+                                        )}
+                                    />
+                                    {monitorStatus}
+                                </div>
+                            </div>
+
+                            <div className="flex flex-1 items-center justify-center">
+                                <div className="relative flex size-40 items-center justify-center sm:size-48">
+                                    {isRecording && (
+                                        <>
+                                            <span className="absolute inset-0 rounded-full border border-cyan-400/25 motion-safe:animate-ping" />
+                                            <span className="absolute inset-6 rounded-full border border-violet-400/25 motion-safe:animate-pulse" />
+                                        </>
+                                    )}
+                                    <div
+                                        className={cn(
+                                            'absolute inset-3 rounded-full bg-linear-to-br from-cyan-500/20 via-violet-500/20 to-fuchsia-500/20 blur-xl transition duration-500 motion-reduce:transition-none',
+                                            isRecording
+                                                ? 'scale-110 opacity-100'
+                                                : 'scale-90 opacity-45',
+                                        )}
+                                    />
+                                    <div
+                                        className={cn(
+                                            'relative flex size-24 items-center justify-center rounded-full border border-cyan-500/30 bg-background/90 shadow-lg shadow-cyan-500/10 transition duration-500 motion-reduce:transition-none sm:size-28',
+                                            isRecording &&
+                                                'scale-105 border-rose-500/30 shadow-rose-500/15',
+                                        )}
+                                    >
+                                        <Mic
+                                            className={cn(
+                                                'size-10 transition duration-500 motion-reduce:transition-none',
+                                                isRecording
+                                                    ? 'text-rose-600 dark:text-rose-200'
+                                                    : 'text-cyan-700 dark:text-cyan-200',
+                                            )}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div
+                                className="flex h-24 items-end justify-center gap-1 overflow-hidden rounded-xl border border-border bg-background/65 px-3 py-3"
+                                aria-hidden="true"
+                            >
+                                {Array.from({ length: 46 }).map((_, index) => (
+                                    <span
+                                        key={index}
+                                        className={cn(
+                                            'w-1 rounded-full bg-cyan-500/70 transition-all duration-500 dark:bg-cyan-200/80',
+                                            isRecording && 'waveform-bar',
+                                            isPaused && 'opacity-45',
+                                        )}
+                                        style={{
+                                            height: `${18 + ((index * 19) % 70)}px`,
+                                            animationDelay: `${(index % 12) * 70}ms`,
+                                            animationDuration: `${900 + (index % 5) * 130}ms`,
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     <div className="mt-4 flex flex-wrap gap-3">
                         <Button
                             type="button"
                             onClick={startRecording}
+                            className="transition duration-300 motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md motion-reduce:transition-none"
                             disabled={
                                 disabled ||
                                 recorderUnavailable ||
@@ -473,6 +561,7 @@ export function AudioRecorder({
                         <Button
                             type="button"
                             variant="outline"
+                            className="transition duration-300 motion-safe:hover:-translate-y-0.5 motion-reduce:transition-none"
                             onClick={pauseRecording}
                             disabled={!isRecording || isUploading}
                         >
@@ -483,6 +572,7 @@ export function AudioRecorder({
                         <Button
                             type="button"
                             variant="outline"
+                            className="transition duration-300 motion-safe:hover:-translate-y-0.5 motion-reduce:transition-none"
                             onClick={resumeRecording}
                             disabled={!isPaused || isUploading}
                         >
@@ -493,6 +583,7 @@ export function AudioRecorder({
                         <Button
                             type="button"
                             variant="outline"
+                            className="transition duration-300 motion-safe:hover:-translate-y-0.5 motion-reduce:transition-none"
                             onClick={stopRecording}
                             disabled={
                                 (!isRecording && !isPaused) || isUploading
@@ -506,6 +597,7 @@ export function AudioRecorder({
                             <Button
                                 type="button"
                                 variant="ghost"
+                                className="transition duration-300 motion-safe:hover:-translate-y-0.5 motion-reduce:transition-none"
                                 onClick={deleteRecording}
                                 disabled={disabled || isUploading}
                             >
