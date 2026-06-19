@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\PracticeSession;
+use App\Models\PracticeSessionCredit;
 use App\Models\PracticeSessionRecording;
 use App\Models\PracticeSessionTranscript;
 use App\Models\Referral;
@@ -57,6 +58,24 @@ class AdminPanelTest extends TestCase
 
         $this->assertDatabaseHas('users', [
             'id' => $targetUser->id,
+        ]);
+    }
+
+    public function test_non_admin_user_cannot_grant_practice_session_credits(): void
+    {
+        $user = User::factory()->create();
+        $targetUser = User::factory()->create();
+
+        $this->actingAs($user)
+            ->post(route('admin.users.practice-session-credits.store', $targetUser), [
+                'amount' => 3,
+                'note' => 'Support adjustment.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('practice_session_credits', [
+            'user_id' => $targetUser->id,
+            'type' => PracticeSessionCredit::TypeAdminGrant,
         ]);
     }
 
@@ -129,6 +148,32 @@ class AdminPanelTest extends TestCase
                 ->where('users.data.0.practice_sessions_count', 2)
                 ->where('users.data.0.practice_sessions_remaining', 9)
             );
+    }
+
+    public function test_admin_can_grant_practice_session_credits_to_user(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create([
+            'practice_sessions_remaining' => 2,
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.users.practice-session-credits.store', $user), [
+                'amount' => 4,
+                'note' => 'Support adjustment.',
+            ])
+            ->assertRedirect()
+            ->assertSessionHas('success', '4 practice session credits added. New balance: 6.');
+
+        $this->assertSame(6, $user->fresh()->practice_sessions_remaining);
+        $this->assertDatabaseHas('practice_session_credits', [
+            'user_id' => $user->id,
+            'actor_id' => $admin->id,
+            'type' => PracticeSessionCredit::TypeAdminGrant,
+            'amount' => 4,
+            'balance_after' => 6,
+            'note' => 'Support adjustment.',
+        ]);
     }
 
     public function test_admin_can_delete_non_admin_user(): void

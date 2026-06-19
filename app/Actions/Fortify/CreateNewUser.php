@@ -6,6 +6,7 @@ use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
 use App\Notifications\PracticeSessionsAwarded;
+use App\Services\PracticeSessionCreditService;
 use App\Services\ReferralService;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
@@ -14,7 +15,10 @@ class CreateNewUser implements CreatesNewUsers
 {
     use PasswordValidationRules, ProfileValidationRules;
 
-    public function __construct(private readonly ReferralService $referrals) {}
+    public function __construct(
+        private readonly ReferralService $referrals,
+        private readonly PracticeSessionCreditService $credits,
+    ) {}
 
     /**
      * Validate and create a newly registered user.
@@ -33,6 +37,8 @@ class CreateNewUser implements CreatesNewUsers
             'email' => $input['email'],
             'password' => $input['password'],
         ]);
+
+        $this->credits->recordInitialGrant($user);
 
         $user->notify(new PracticeSessionsAwarded(
             User::InitialFreePracticeSessions,

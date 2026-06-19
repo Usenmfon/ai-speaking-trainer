@@ -1,8 +1,10 @@
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
     ArrowLeft,
     CheckCircle2,
     CircleDashed,
+    Gift,
+    Plus,
     ShieldCheck,
     Trash2,
     Users,
@@ -14,6 +16,8 @@ import {
     index as adminDashboard,
     users as adminUsers,
 } from '@/actions/App/Http/Controllers/AdminDashboardController';
+import { store as storePracticeSessionCredit } from '@/actions/App/Http/Controllers/AdminPracticeSessionCreditController';
+import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -23,6 +27,8 @@ import {
     DialogFooter,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import type { Paginated, User, UserProfile } from '@/types';
 
@@ -65,7 +71,13 @@ function Pagination({ links }: { links: Paginated<AdminUser>['links'] }) {
 
 export default function Index({ users }: UsersIndexProps) {
     const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
+    const [userToGrantCredits, setUserToGrantCredits] =
+        useState<AdminUser | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const creditForm = useForm({
+        amount: 1,
+        note: '',
+    });
 
     function deleteUser() {
         if (!userToDelete) {
@@ -78,6 +90,26 @@ export default function Index({ users }: UsersIndexProps) {
             preserveScroll: true,
             onSuccess: () => setUserToDelete(null),
             onFinish: () => setIsDeleting(false),
+        });
+    }
+
+    function openCreditDialog(user: AdminUser): void {
+        creditForm.clearErrors();
+        creditForm.setData({
+            amount: 1,
+            note: '',
+        });
+        setUserToGrantCredits(user);
+    }
+
+    function grantCredits(): void {
+        if (!userToGrantCredits) {
+            return;
+        }
+
+        creditForm.post(storePracticeSessionCredit.url(userToGrantCredits.id), {
+            preserveScroll: true,
+            onSuccess: () => setUserToGrantCredits(null),
         });
     }
 
@@ -209,7 +241,21 @@ export default function Index({ users }: UsersIndexProps) {
                                                     )}
                                                 </td>
                                                 <td className="px-5 py-4">
-                                                    <div className="flex justify-end">
+                                                    <div className="flex justify-end gap-2">
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            size="sm"
+                                                            className="cursor-pointer"
+                                                            onClick={() =>
+                                                                openCreditDialog(
+                                                                    user,
+                                                                )
+                                                            }
+                                                        >
+                                                            <Plus className="size-4" />
+                                                            Add sessions
+                                                        </Button>
                                                         {user.is_admin ? (
                                                             <span className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-semibold text-muted-foreground">
                                                                 <ShieldCheck className="size-3" />
@@ -284,6 +330,104 @@ export default function Index({ users }: UsersIndexProps) {
                         >
                             <Trash2 className="size-4" />
                             Delete user
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog
+                open={userToGrantCredits !== null}
+                onOpenChange={(open) => {
+                    if (!open) {
+                        setUserToGrantCredits(null);
+                    }
+                }}
+            >
+                <DialogContent>
+                    <DialogTitle>Add practice sessions</DialogTitle>
+                    <DialogDescription>
+                        Grant extra practice session credits to{' '}
+                        <span className="font-medium text-foreground">
+                            {userToGrantCredits?.name}
+                        </span>
+                        . This creates an audit entry in their credit ledger.
+                    </DialogDescription>
+
+                    <div className="grid gap-4">
+                        <div className="rounded-xl border border-cyan-500/25 bg-cyan-500/10 p-4 text-sm text-cyan-900 dark:text-cyan-100">
+                            <div className="flex gap-3">
+                                <Gift className="mt-0.5 size-4 shrink-0" />
+                                <p>
+                                    Current balance:{' '}
+                                    <span className="font-semibold">
+                                        {
+                                            userToGrantCredits?.practice_sessions_remaining
+                                        }
+                                    </span>
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="credit-amount">
+                                Sessions to add
+                            </Label>
+                            <Input
+                                id="credit-amount"
+                                type="number"
+                                min={1}
+                                max={500}
+                                value={creditForm.data.amount}
+                                onChange={(event) =>
+                                    creditForm.setData(
+                                        'amount',
+                                        Number(event.target.value),
+                                    )
+                                }
+                                aria-invalid={Boolean(creditForm.errors.amount)}
+                            />
+                            <InputError message={creditForm.errors.amount} />
+                        </div>
+
+                        <div className="grid gap-2">
+                            <Label htmlFor="credit-note">Note</Label>
+                            <Input
+                                id="credit-note"
+                                value={creditForm.data.note}
+                                onChange={(event) =>
+                                    creditForm.setData(
+                                        'note',
+                                        event.target.value,
+                                    )
+                                }
+                                placeholder="Support adjustment, campaign bonus..."
+                                aria-invalid={Boolean(creditForm.errors.note)}
+                            />
+                            <InputError message={creditForm.errors.note} />
+                        </div>
+                    </div>
+
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                className="cursor-pointer"
+                                disabled={creditForm.processing}
+                            >
+                                Cancel
+                            </Button>
+                        </DialogClose>
+                        <Button
+                            type="button"
+                            className="cursor-pointer"
+                            disabled={creditForm.processing}
+                            onClick={grantCredits}
+                        >
+                            <Plus className="size-4" />
+                            {creditForm.processing
+                                ? 'Adding...'
+                                : 'Add sessions'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

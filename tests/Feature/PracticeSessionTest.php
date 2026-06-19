@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Jobs\AnalyzeSpeakingTranscript;
 use App\Jobs\ProcessPracticeSessionRecording;
 use App\Models\PracticeSession;
+use App\Models\PracticeSessionCredit;
 use App\Models\PracticeSessionRecording;
 use App\Models\PracticeSessionTranscript;
 use App\Models\SpeakingFeedbackReport;
@@ -180,6 +181,13 @@ class PracticeSessionTest extends TestCase
         $this->assertSame($user->id, $session->user_id);
         $this->assertSame('draft', $session->status);
         $this->assertSame(4, $user->fresh()->practice_sessions_remaining);
+        $this->assertDatabaseHas('practice_session_credits', [
+            'user_id' => $user->id,
+            'practice_session_id' => $session->id,
+            'type' => PracticeSessionCredit::TypeSessionCreated,
+            'amount' => -1,
+            'balance_after' => 4,
+        ]);
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
             $session->id,

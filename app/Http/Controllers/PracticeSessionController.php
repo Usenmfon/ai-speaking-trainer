@@ -6,12 +6,11 @@ use App\Http\Requests\PracticeSession\IndexPracticeSessionRequest;
 use App\Http\Requests\PracticeSession\StorePracticeSessionRequest;
 use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
-use App\Models\User;
+use App\Services\PracticeSessionCreditService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -87,26 +86,15 @@ class PracticeSessionController extends Controller
     /**
      * Store a newly created practice session as a draft.
      */
-    public function store(StorePracticeSessionRequest $request): RedirectResponse
+    public function store(StorePracticeSessionRequest $request, PracticeSessionCreditService $credits): RedirectResponse
     {
-        $session = DB::transaction(function () use ($request): PracticeSession {
-            $user = User::query()
-                ->whereKey($request->user()->getKey())
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            if ($user->practice_sessions_remaining < 1) {
-                throw ValidationException::withMessages([
-                    'practice_sessions_remaining' => __('You have no free practice sessions remaining. Invite someone to earn more.'),
-                ]);
-            }
-
-            $session = $user->practiceSessions()->create([
+        $session = DB::transaction(function () use ($request, $credits): PracticeSession {
+            $session = $request->user()->practiceSessions()->create([
                 ...$request->validated(),
                 'status' => 'draft',
             ]);
 
-            $user->decrement('practice_sessions_remaining');
+            $credits->spendForSession($request->user(), $session);
 
             return $session;
         });

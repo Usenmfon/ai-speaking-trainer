@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\AdminPracticeSessionCreditController;
 use App\Http\Controllers\AdminReferralController;
 use App\Http\Controllers\AiCoachController;
 use App\Http\Controllers\CommunityController;
@@ -52,6 +53,8 @@ Route::middleware(['auth', 'verified', 'admin'])
         Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
         Route::get('users', [AdminDashboardController::class, 'users'])->name('users.index');
         Route::delete('users/{user}', [AdminDashboardController::class, 'destroy'])->name('users.destroy');
+        Route::post('users/{user}/practice-session-credits', [AdminPracticeSessionCreditController::class, 'store'])
+            ->name('users.practice-session-credits.store');
         Route::get('referrals', [AdminReferralController::class, 'index'])->name('referrals.index');
         Route::get('sessions', [AdminDashboardController::class, 'sessions'])->name('sessions.index');
         Route::get('content', [AdminDashboardController::class, 'content'])->name('content.index');

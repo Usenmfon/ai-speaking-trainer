@@ -78,6 +78,26 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
     }
 
     /**
+     * Get the user's practice session credit ledger entries.
+     *
+     * @return HasMany<PracticeSessionCredit, $this>
+     */
+    public function practiceSessionCredits(): HasMany
+    {
+        return $this->hasMany(PracticeSessionCredit::class);
+    }
+
+    /**
+     * Get credit ledger entries created by this user as an actor.
+     *
+     * @return HasMany<PracticeSessionCredit, $this>
+     */
+    public function issuedPracticeSessionCredits(): HasMany
+    {
+        return $this->hasMany(PracticeSessionCredit::class, 'actor_id');
+    }
+
+    /**
      * Get the user's uploaded practice session recordings.
      *
      * @return HasMany<PracticeSessionRecording, $this>

@@ -87,6 +87,16 @@ class PracticeSession extends Model
     }
 
     /**
+     * Get the credit ledger entry consumed by this practice session.
+     *
+     * @return HasOne<PracticeSessionCredit, $this>
+     */
+    public function creditEntry(): HasOne
+    {
+        return $this->hasOne(PracticeSessionCredit::class);
+    }
+
+    /**
      * Get the attributes that should be cast.
      *
      * @return array<string, string>

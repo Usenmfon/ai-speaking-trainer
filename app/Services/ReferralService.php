@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\PracticeSessionCredit;
 use App\Models\Referral;
 use App\Models\User;
 use App\Notifications\PracticeSessionsAwarded;
@@ -10,6 +11,8 @@ use Illuminate\Support\Str;
 
 class ReferralService
 {
+    public function __construct(private readonly PracticeSessionCreditService $credits) {}
+
     /**
      * Generate a unique referral code for a user.
      */
@@ -70,12 +73,17 @@ class ReferralService
                 return;
             }
 
-            $referrer->increment('practice_sessions_remaining', User::ReferralRewardPracticeSessions);
-            $referrer->refresh();
+            $credit = $this->credits->grant(
+                user: $referrer,
+                amount: User::ReferralRewardPracticeSessions,
+                type: PracticeSessionCredit::TypeReferralReward,
+                note: 'Referral signup reward.',
+                referral: $referral,
+            );
 
             $referrer->notify(new PracticeSessionsAwarded(
                 User::ReferralRewardPracticeSessions,
-                $referrer->practice_sessions_remaining,
+                $credit->balance_after,
             ));
         });
     }

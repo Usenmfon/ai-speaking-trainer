@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Role;
 use App\Models\User;
 use App\Notifications\PracticeSessionsAwarded;
+use App\Services\PracticeSessionCreditService;
 use App\Services\ReferralService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirectResponse
 
 class GoogleAuthController extends Controller
 {
-    public function __construct(private readonly ReferralService $referrals) {}
+    public function __construct(
+        private readonly ReferralService $referrals,
+        private readonly PracticeSessionCreditService $credits,
+    ) {}
 
     /**
      * Redirect the user to Google for authentication.
@@ -59,6 +63,8 @@ class GoogleAuthController extends Controller
         $user = $this->findOrCreateUser($googleUser, $email, $googleId);
 
         if ($user->wasRecentlyCreated) {
+            $this->credits->recordInitialGrant($user);
+
             $user->notify(new PracticeSessionsAwarded(
                 User::InitialFreePracticeSessions,
                 $user->practice_sessions_remaining,

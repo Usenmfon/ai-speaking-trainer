@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\PracticeSessionCredit;
 use App\Models\Referral;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -67,6 +68,12 @@ class ReferralTest extends TestCase
                 && $notification->sessionsRemaining === 5
                 && $notification->reason === 'welcome',
         );
+        $this->assertDatabaseHas('practice_session_credits', [
+            'user_id' => User::query()->where('email', 'plain@example.com')->firstOrFail()->id,
+            'type' => PracticeSessionCredit::TypeInitialGrant,
+            'amount' => 5,
+            'balance_after' => 5,
+        ]);
     }
 
     public function test_registration_with_a_valid_referral_records_the_signup(): void
@@ -93,6 +100,18 @@ class ReferralTest extends TestCase
             'status' => 'registered',
         ]);
         $this->assertSame(7, $referrer->fresh()->practice_sessions_remaining);
+        $this->assertDatabaseHas('practice_session_credits', [
+            'user_id' => $referredUser->id,
+            'type' => PracticeSessionCredit::TypeInitialGrant,
+            'amount' => 5,
+            'balance_after' => 5,
+        ]);
+        $this->assertDatabaseHas('practice_session_credits', [
+            'user_id' => $referrer->id,
+            'type' => PracticeSessionCredit::TypeReferralReward,
+            'amount' => 2,
+            'balance_after' => 7,
+        ]);
         $this->assertFalse(session()->has('referral_code'));
         Notification::assertSentTo($referredUser, QueuedVerifyEmail::class);
         Notification::assertSentTo(
@@ -155,6 +174,18 @@ class ReferralTest extends TestCase
             'status' => 'registered',
         ]);
         $this->assertSame(7, $referrer->fresh()->practice_sessions_remaining);
+        $this->assertDatabaseHas('practice_session_credits', [
+            'user_id' => $referredUser->id,
+            'type' => PracticeSessionCredit::TypeInitialGrant,
+            'amount' => 5,
+            'balance_after' => 5,
+        ]);
+        $this->assertDatabaseHas('practice_session_credits', [
+            'user_id' => $referrer->id,
+            'type' => PracticeSessionCredit::TypeReferralReward,
+            'amount' => 2,
+            'balance_after' => 7,
+        ]);
         Notification::assertSentTo(
             $referredUser,
             fn (PracticeSessionsAwarded $notification): bool => $notification->sessionsAwarded === 5
