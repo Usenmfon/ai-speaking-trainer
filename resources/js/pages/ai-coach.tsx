@@ -60,6 +60,60 @@ const signalIcons = {
     message: MessageSquareText,
 };
 
+function selectSmoothVoice(
+    voices: SpeechSynthesisVoice[],
+): SpeechSynthesisVoice | null {
+    if (voices.length === 0) {
+        return null;
+    }
+
+    return [...voices].sort((first, second) => {
+        const scoreVoice = (voice: SpeechSynthesisVoice): number => {
+            const searchableName = `${voice.name} ${voice.voiceURI} ${voice.lang}`;
+            const lowerName = searchableName.toLowerCase();
+            let score = voice.lang.toLowerCase().startsWith('en') ? 20 : 0;
+
+            if (lowerName.includes('natural')) {
+                score += 80;
+            }
+
+            if (lowerName.includes('neural')) {
+                score += 80;
+            }
+
+            if (lowerName.includes('premium')) {
+                score += 60;
+            }
+
+            if (lowerName.includes('online')) {
+                score += 40;
+            }
+
+            if (
+                lowerName.includes('aria') ||
+                lowerName.includes('jenny') ||
+                lowerName.includes('guy') ||
+                lowerName.includes('samantha') ||
+                lowerName.includes('zira')
+            ) {
+                score += 35;
+            }
+
+            if (lowerName.includes('google us english')) {
+                score += 30;
+            }
+
+            if (voice.default) {
+                score += 10;
+            }
+
+            return score;
+        };
+
+        return scoreVoice(second) - scoreVoice(first);
+    })[0];
+}
+
 const starterCoachDrills: CoachDrill[] = [
     {
         title: 'Clarity warm-up',
@@ -156,6 +210,9 @@ export default function AiCoach({
     const [isAudioPlaying, setIsAudioPlaying] = useState(false);
     const [isAudioPaused, setIsAudioPaused] = useState(false);
     const [audioError, setAudioError] = useState<string | null>(null);
+    const [preferredVoiceName, setPreferredVoiceName] = useState<string | null>(
+        null,
+    );
     const performanceHacks = [
         availableSignals[0]?.value
             ? `Lead with ${availableSignals[0].value.toLowerCase()} before you try to improve everything else.`
@@ -171,21 +228,41 @@ export default function AiCoach({
                 `${signal.title}: ${signal.value}. ${signal.description}`,
         )
         .join(' ');
-    const audioBriefing = [
+    const briefingSections = [
         'Here is your AI coach briefing.',
-        activeCoachNote.title,
-        activeCoachNote.description,
+        `${activeCoachNote.title}. ${activeCoachNote.description}`,
         activeCoachNote.value,
         activeDrill
             ? `Your selected drill is ${activeDrill.title}. ${activeDrill.value}`
             : null,
-        'Your coaching cues are:',
-        signalSummary,
-        'Performance hacks:',
-        ...performanceHacks,
+        `Your coaching cues are: ${signalSummary}`,
+        `Performance hacks: ${performanceHacks.join(' ')}`,
     ]
         .filter(Boolean)
-        .join(' ');
+        .map((section) => String(section));
+    useEffect(() => {
+        if (!('speechSynthesis' in window)) {
+            return;
+        }
+
+        const updatePreferredVoice = (): void => {
+            const voice = selectSmoothVoice(window.speechSynthesis.getVoices());
+            setPreferredVoiceName(voice?.name ?? null);
+        };
+
+        updatePreferredVoice();
+        window.speechSynthesis.addEventListener(
+            'voiceschanged',
+            updatePreferredVoice,
+        );
+
+        return () => {
+            window.speechSynthesis.removeEventListener(
+                'voiceschanged',
+                updatePreferredVoice,
+            );
+        };
+    }, []);
 
     useEffect(() => {
         return () => {
@@ -206,33 +283,53 @@ export default function AiCoach({
 
         window.speechSynthesis.cancel();
 
-        const utterance = new SpeechSynthesisUtterance(audioBriefing);
-        utterance.rate = 0.95;
-        utterance.pitch = 1;
-        utterance.onend = () => {
-            setIsAudioPlaying(false);
-            setIsAudioPaused(false);
-        };
-        utterance.onerror = () => {
-            setIsAudioPlaying(false);
-            setIsAudioPaused(false);
-            setAudioError(
-                'Voice playback stopped unexpectedly. Try again or read the coach briefing below.',
-            );
-        };
-        utterance.onpause = () => {
-            setIsAudioPlaying(false);
-            setIsAudioPaused(true);
-        };
-        utterance.onresume = () => {
-            setIsAudioPlaying(true);
-            setIsAudioPaused(false);
-        };
+        const selectedVoice = selectSmoothVoice(
+            window.speechSynthesis.getVoices(),
+        );
+        const utterances = briefingSections.map((section, index) => {
+            const utterance = new SpeechSynthesisUtterance(section);
+            utterance.rate = 0.88;
+            utterance.pitch = 0.96;
+            utterance.volume = 1;
+
+            if (selectedVoice) {
+                utterance.voice = selectedVoice;
+                utterance.lang = selectedVoice.lang;
+            }
+
+            if (index === briefingSections.length - 1) {
+                utterance.onend = () => {
+                    setIsAudioPlaying(false);
+                    setIsAudioPaused(false);
+                };
+            }
+
+            utterance.onerror = () => {
+                setIsAudioPlaying(false);
+                setIsAudioPaused(false);
+                setAudioError(
+                    'Voice playback stopped unexpectedly. Try again or read the coach briefing below.',
+                );
+            };
+            utterance.onpause = () => {
+                setIsAudioPlaying(false);
+                setIsAudioPaused(true);
+            };
+            utterance.onresume = () => {
+                setIsAudioPlaying(true);
+                setIsAudioPaused(false);
+            };
+
+            return utterance;
+        });
 
         setAudioError(null);
+        setPreferredVoiceName(selectedVoice?.name ?? null);
         setIsAudioPlaying(true);
         setIsAudioPaused(false);
-        window.speechSynthesis.speak(utterance);
+        utterances.forEach((utterance) => {
+            window.speechSynthesis.speak(utterance);
+        });
     }
 
     function pauseOrResumeAudioBriefing(): void {
@@ -350,6 +447,11 @@ export default function AiCoach({
                                         Hear your improvement focus, the active
                                         drill, and quick performance hacks
                                         before you record.
+                                    </p>
+                                    <p className="mt-3 text-xs font-medium text-cyan-700 dark:text-cyan-200">
+                                        {preferredVoiceName
+                                            ? `Smooth voice: ${preferredVoiceName}`
+                                            : 'Smooth voice uses the best natural voice available in this browser.'}
                                     </p>
 
                                     <div className="mt-5 flex flex-col gap-3 sm:flex-row">
