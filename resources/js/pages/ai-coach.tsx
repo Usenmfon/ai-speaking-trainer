@@ -56,16 +56,99 @@ const signalIcons = {
     message: MessageSquareText,
 };
 
+const starterCoachDrills: CoachDrill[] = [
+    {
+        title: 'Clarity warm-up',
+        description: 'Slow down and make each sentence easier to follow.',
+        value: 'Explain your last project in 60 seconds. Pause briefly after each main point before continuing.',
+        duration: '5 min',
+    },
+    {
+        title: 'Filler reset',
+        description: 'Replace filler words with short, controlled pauses.',
+        value: 'Answer a common interview question and take one silent breath whenever you feel a filler word coming.',
+        duration: '4 min',
+    },
+    {
+        title: 'Stronger closing',
+        description: 'End your answer with a confident summary sentence.',
+        value: 'Describe a challenge you solved, then finish with one sentence that states the result and impact.',
+        duration: '6 min',
+    },
+];
+
+const starterCoachingSignals: CoachingSignal[] = [
+    {
+        title: 'Primary focus',
+        value: 'Speak in shorter thought groups',
+        description:
+            'Aim for one clear idea per sentence so the recording is easier to score and improve.',
+        icon: 'target',
+    },
+    {
+        title: 'Pace target',
+        value: 'Steady, not rushed',
+        description:
+            'Use a brief pause after important words instead of speeding through the answer.',
+        icon: 'timer',
+    },
+    {
+        title: 'Delivery cue',
+        value: 'Finish with intent',
+        description:
+            'Let your final sentence sound complete, even if the answer is short.',
+        icon: 'message',
+    },
+];
+
+const starterSessionPlan: SessionPlanItem[] = [
+    {
+        title: 'Step 1',
+        description: 'Pick one drill and read the prompt once.',
+    },
+    {
+        title: 'Step 2',
+        description: 'Record one focused take without stopping early.',
+    },
+    {
+        title: 'Step 3',
+        description: 'Listen back and note one thing to improve.',
+    },
+    {
+        title: 'Step 4',
+        description: 'Upload the best take for feedback.',
+    },
+];
+
+const starterCoachNote: CoachNote = {
+    title: 'Starter coach note',
+    description:
+        'Coach recommendations become more personal after your first analyzed recording.',
+    value: 'For now, focus on clear pacing and a complete final sentence.',
+};
+
 export default function AiCoach({
     coachDrills,
     coachingSignals,
     sessionPlan,
     coachNote,
 }: AiCoachProps) {
+    const hasPersonalizedCoachContent =
+        coachDrills.length > 0 ||
+        coachingSignals.length > 0 ||
+        sessionPlan.length > 0 ||
+        coachNote !== null;
+    const availableDrills =
+        coachDrills.length > 0 ? coachDrills : starterCoachDrills;
+    const availableSignals =
+        coachingSignals.length > 0 ? coachingSignals : starterCoachingSignals;
+    const availableSessionPlan =
+        sessionPlan.length > 0 ? sessionPlan : starterSessionPlan;
+    const activeCoachNote = coachNote ?? starterCoachNote;
     const [selectedDrill, setSelectedDrill] = useState<CoachDrill | null>(
-        coachDrills[0] ?? null,
+        availableDrills[0] ?? null,
     );
-    const activeDrill = selectedDrill ?? coachDrills[0] ?? null;
+    const activeDrill = selectedDrill ?? availableDrills[0] ?? null;
 
     return (
         <>
@@ -91,7 +174,11 @@ export default function AiCoach({
                                     </p>
                                 </div>
 
-                                <Button asChild size="lg" className="w-full sm:w-auto">
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    className="w-full sm:w-auto"
+                                >
                                     <Link href={create()}>
                                         <Mic2 className="size-4" />
                                         Start practice
@@ -100,6 +187,36 @@ export default function AiCoach({
                             </div>
                         </div>
                     </section>
+
+                    {!hasPersonalizedCoachContent && (
+                        <section className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-950 shadow-sm dark:text-amber-100">
+                            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                <div className="flex gap-3">
+                                    <Lightbulb className="mt-0.5 size-5 shrink-0" />
+                                    <div className="min-w-0">
+                                        <p className="font-semibold">
+                                            Coach content is warming up
+                                        </p>
+                                        <p className="mt-1 text-sm leading-6">
+                                            These starter drills are ready now.
+                                            Personalized coaching appears after
+                                            your analyzed sessions.
+                                        </p>
+                                    </div>
+                                </div>
+                                <Button
+                                    asChild
+                                    variant="outline"
+                                    className="w-full bg-background sm:w-auto"
+                                >
+                                    <Link href={create()}>
+                                        <Mic2 className="size-4" />
+                                        Start practice
+                                    </Link>
+                                </Button>
+                            </div>
+                        </section>
+                    )}
 
                     <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
                         <aside className="rounded-2xl border border-border bg-card p-5 shadow-sm">
@@ -118,7 +235,7 @@ export default function AiCoach({
                             </div>
 
                             <div className="mt-5 flex flex-col gap-3">
-                                {coachDrills.map((drill) => {
+                                {availableDrills.map((drill) => {
                                     const selected =
                                         activeDrill?.title === drill.title;
 
@@ -126,7 +243,9 @@ export default function AiCoach({
                                         <button
                                             key={drill.title}
                                             type="button"
-                                            onClick={() => setSelectedDrill(drill)}
+                                            onClick={() =>
+                                                setSelectedDrill(drill)
+                                            }
                                             className={`rounded-xl border p-4 text-left transition ${
                                                 selected
                                                     ? 'border-cyan-500/40 bg-cyan-500/10'
@@ -177,7 +296,7 @@ export default function AiCoach({
                                     </p>
                                     <p className="mt-3 text-lg leading-8 font-medium">
                                         {activeDrill?.value ??
-                                            'Add AI Coach drills in the content table to start practicing.'}
+                                            starterCoachDrills[0].value}
                                     </p>
                                 </div>
 
@@ -212,7 +331,7 @@ export default function AiCoach({
                                 </div>
 
                                 <div className="mt-5 flex flex-col gap-3">
-                                    {coachingSignals.map((signal) => {
+                                    {availableSignals.map((signal) => {
                                         const SignalIcon =
                                             signalIcons[signal.icon] ??
                                             MessageSquareText;
@@ -254,7 +373,7 @@ export default function AiCoach({
                             </div>
 
                             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                                {sessionPlan.map((step, index) => (
+                                {availableSessionPlan.map((step, index) => (
                                     <div
                                         key={step.title}
                                         className="rounded-xl border border-border bg-background p-4"
@@ -274,16 +393,16 @@ export default function AiCoach({
                             <div className="flex items-center gap-3">
                                 <Lightbulb className="size-5 text-cyan-700 dark:text-cyan-200" />
                                 <h2 className="text-lg font-semibold">
-                                    {coachNote?.title ?? 'Coach note'}
+                                    {activeCoachNote.title}
                                 </h2>
                             </div>
                             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                                {coachNote?.description}
+                                {activeCoachNote.description}
                             </p>
                             <div className="mt-5 rounded-xl border border-emerald-500/25 bg-emerald-500/10 p-4 text-sm text-emerald-800 dark:text-emerald-100">
                                 <div className="flex gap-3">
                                     <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
-                                    <p>{coachNote?.value}</p>
+                                    <p>{activeCoachNote.value}</p>
                                 </div>
                             </div>
                         </div>

@@ -102,6 +102,30 @@ export function AudioRecorder({
         typeof window === 'undefined' ||
         !navigator.mediaDevices?.getUserMedia ||
         typeof MediaRecorder === 'undefined';
+    const recordingSteps = [
+        {
+            title: 'Record',
+            description: 'Capture a complete take.',
+            complete: hasRecording || uploadStatus === 'success',
+            active:
+                status === 'idle' ||
+                status === 'requesting' ||
+                status === 'recording' ||
+                status === 'paused',
+        },
+        {
+            title: 'Preview',
+            description: 'Listen before saving.',
+            complete: hasRecording || uploadStatus === 'success',
+            active: hasRecording && uploadStatus !== 'success',
+        },
+        {
+            title: 'Upload',
+            description: 'Confirm the take.',
+            complete: uploadStatus === 'success',
+            active: hasRecording && uploadStatus !== 'success',
+        },
+    ];
 
     useEffect(() => {
         if (!isRecording) {
@@ -176,7 +200,9 @@ export function AudioRecorder({
             const mimeType = getSupportedMimeType();
 
             if (!mimeType) {
-                setError('Your browser cannot record in a supported audio format for upload.');
+                setError(
+                    'Your browser cannot record in a supported audio format for upload.',
+                );
                 setStatus('idle');
 
                 return;
@@ -200,7 +226,9 @@ export function AudioRecorder({
             };
 
             mediaRecorder.onerror = () => {
-                setError('Recording stopped because the browser reported an audio capture error.');
+                setError(
+                    'Recording stopped because the browser reported an audio capture error.',
+                );
                 stopTracks();
                 setStatus('idle');
             };
@@ -291,33 +319,29 @@ export function AudioRecorder({
         setUploadProgress(0);
         setUploadStatus('uploading');
 
-        router.post(
-            uploadUrl,
-            formData,
-            {
-                forceFormData: true,
-                preserveScroll: true,
-                onProgress: (progress) => {
-                    setUploadProgress(progress?.percentage ?? 0);
-                },
-                onError: (errors) => {
-                    setUploadStatus('error');
-                    setUploadError(
-                        errors.audio ??
-                            errors.duration_seconds ??
-                            'The recording could not be uploaded. Please try again.',
-                    );
-                },
-                onCancel: () => {
-                    setUploadStatus('idle');
-                    setUploadProgress(null);
-                },
-                onSuccess: () => {
-                    setUploadProgress(100);
-                    setUploadStatus('success');
-                },
+        router.post(uploadUrl, formData, {
+            forceFormData: true,
+            preserveScroll: true,
+            onProgress: (progress) => {
+                setUploadProgress(progress?.percentage ?? 0);
             },
-        );
+            onError: (errors) => {
+                setUploadStatus('error');
+                setUploadError(
+                    errors.audio ??
+                        errors.duration_seconds ??
+                        'The recording could not be uploaded. Please try again.',
+                );
+            },
+            onCancel: () => {
+                setUploadStatus('idle');
+                setUploadProgress(null);
+            },
+            onSuccess: () => {
+                setUploadProgress(100);
+                setUploadStatus('success');
+            },
+        });
     }
 
     return (
@@ -335,7 +359,8 @@ export function AudioRecorder({
                         audio, then re-record until it feels ready.
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                        Nothing leaves your browser until you confirm the upload.
+                        Nothing leaves your browser until you confirm the
+                        upload.
                     </p>
                 </div>
 
@@ -365,6 +390,43 @@ export function AudioRecorder({
                               ? 'Preview ready'
                               : 'Ready'}
                 </div>
+            </div>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+                {recordingSteps.map((step, index) => (
+                    <div
+                        key={step.title}
+                        className={cn(
+                            'rounded-xl border p-3',
+                            step.active || step.complete
+                                ? 'border-cyan-500/30 bg-cyan-500/10'
+                                : 'border-border bg-background/70',
+                        )}
+                    >
+                        <div className="flex items-center gap-2">
+                            <span
+                                className={cn(
+                                    'flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold',
+                                    step.complete
+                                        ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200'
+                                        : step.active
+                                          ? 'border-cyan-500/30 bg-cyan-500/10 text-cyan-700 dark:text-cyan-200'
+                                          : 'border-border text-muted-foreground',
+                                )}
+                            >
+                                {step.complete ? (
+                                    <CheckCircle2 className="size-4" />
+                                ) : (
+                                    index + 1
+                                )}
+                            </span>
+                            <p className="font-medium">{step.title}</p>
+                        </div>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                            {step.description}
+                        </p>
+                    </div>
+                ))}
             </div>
 
             <div className="mt-6 grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
@@ -432,7 +494,9 @@ export function AudioRecorder({
                             type="button"
                             variant="outline"
                             onClick={stopRecording}
-                            disabled={(!isRecording && !isPaused) || isUploading}
+                            disabled={
+                                (!isRecording && !isPaused) || isUploading
+                            }
                         >
                             <Square className="size-4" />
                             Stop
@@ -485,7 +549,7 @@ export function AudioRecorder({
                                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
                                     <div>
                                         <p className="text-sm font-semibold text-foreground">
-                                            Upload recording
+                                            Step 3: Upload recording
                                         </p>
                                         <p className="mt-1 text-sm text-muted-foreground">
                                             Confirm this take to save it with

@@ -55,12 +55,24 @@ const statIcons = {
     target: Target,
 };
 
+const firstReportSteps = [
+    'Create a practice session with one focused prompt.',
+    'Record and upload a clean take from the session page.',
+    'Open the feedback report to unlock trend scores.',
+];
+
 export default function Progress({
     stats,
     skillTrends,
     milestones,
     weeklyPlan,
 }: ProgressProps) {
+    const hasAnalyzedSession = milestones.some(
+        (milestone) =>
+            milestone.title === 'First analyzed session' && milestone.complete,
+    );
+    const hasSkillScores = skillTrends.some((skill) => skill.value > 0);
+
     return (
         <>
             <Head title="Progress" />
@@ -85,7 +97,11 @@ export default function Progress({
                                     </p>
                                 </div>
 
-                                <Button asChild size="lg" className="w-full sm:w-auto">
+                                <Button
+                                    asChild
+                                    size="lg"
+                                    className="w-full sm:w-auto"
+                                >
                                     <Link href={create()}>
                                         <Mic2 className="size-4" />
                                         Practice today
@@ -130,45 +146,110 @@ export default function Progress({
                             <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                                 <div>
                                     <h2 className="text-lg font-semibold">
-                                        Skill trend
+                                        {hasAnalyzedSession
+                                            ? 'Skill trend'
+                                            : 'Unlock your first trend'}
                                     </h2>
                                     <p className="mt-1 text-sm text-muted-foreground">
-                                        Current coaching signals by category.
+                                        {hasAnalyzedSession
+                                            ? 'Current coaching signals by category.'
+                                            : 'Complete one analyzed recording to turn this page into a real progress tracker.'}
                                     </p>
                                 </div>
-                                <Button asChild variant="outline" className="w-full sm:w-auto">
-                                    <Link href={reportsIndex()}>
-                                        <BarChart3 className="size-4" />
-                                        View reports
-                                    </Link>
-                                </Button>
+                                {hasAnalyzedSession ? (
+                                    <Button
+                                        asChild
+                                        variant="outline"
+                                        className="w-full sm:w-auto"
+                                    >
+                                        <Link href={reportsIndex()}>
+                                            <BarChart3 className="size-4" />
+                                            View reports
+                                        </Link>
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        asChild
+                                        className="w-full sm:w-auto"
+                                    >
+                                        <Link href={create()}>
+                                            <Mic2 className="size-4" />
+                                            Start first session
+                                        </Link>
+                                    </Button>
+                                )}
                             </div>
 
-                            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-                                {skillTrends.map((skill) => (
-                                    <div
-                                        key={skill.label}
-                                        className="rounded-xl border border-border bg-background p-4"
-                                    >
-                                        <div className="flex items-center justify-between gap-3">
-                                            <p className="font-medium">
-                                                {skill.label}
+                            {!hasAnalyzedSession && (
+                                <div className="mt-6 rounded-2xl border border-cyan-500/25 bg-cyan-500/10 p-4">
+                                    <div className="flex gap-3">
+                                        <Sparkles className="mt-0.5 size-5 shrink-0 text-cyan-700 dark:text-cyan-200" />
+                                        <div className="min-w-0">
+                                            <p className="font-semibold">
+                                                Your first report sets the
+                                                baseline
                                             </p>
-                                            <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-200">
-                                                {skill.change}
-                                            </span>
+                                            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                                                After analysis, the score cards
+                                                below will show what improved
+                                                and what to practice next.
+                                            </p>
                                         </div>
-                                        <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
-                                            <div
-                                                className="h-full rounded-full bg-linear-to-r from-cyan-400 to-violet-500"
-                                                style={{ width: `${skill.value}%` }}
-                                            />
-                                        </div>
-                                        <p className="mt-2 text-sm text-muted-foreground">
-                                            {skill.value}% current score
-                                        </p>
                                     </div>
-                                ))}
+
+                                    <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                                        {firstReportSteps.map((step, index) => (
+                                            <div
+                                                key={step}
+                                                className="rounded-xl border border-border bg-background/80 p-3"
+                                            >
+                                                <span className="text-xs font-semibold text-cyan-700 dark:text-cyan-200">
+                                                    Step {index + 1}
+                                                </span>
+                                                <p className="mt-2 text-sm leading-6">
+                                                    {step}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                                {skillTrends.map((skill) => {
+                                    const scoreLabel = hasSkillScores
+                                        ? `${skill.value}% current score`
+                                        : 'Waiting for first report';
+
+                                    return (
+                                        <div
+                                            key={skill.label}
+                                            className="rounded-xl border border-border bg-background p-4"
+                                        >
+                                            <div className="flex items-center justify-between gap-3">
+                                                <p className="font-medium">
+                                                    {skill.label}
+                                                </p>
+                                                <span className="rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-200">
+                                                    {hasSkillScores
+                                                        ? skill.change
+                                                        : 'New'}
+                                                </span>
+                                            </div>
+                                            <div className="mt-4 h-2 overflow-hidden rounded-full bg-muted">
+                                                <div
+                                                    className="h-full rounded-full bg-linear-to-r from-cyan-400 to-violet-500"
+                                                    style={{
+                                                        width: `${skill.value}%`,
+                                                    }}
+                                                />
+                                            </div>
+                                            <p className="mt-2 text-sm text-muted-foreground">
+                                                {scoreLabel}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
 
@@ -243,10 +324,9 @@ export default function Progress({
                                 </h2>
                             </div>
                             <p className="mt-4 text-sm leading-7 text-muted-foreground">
-                                Your progress improves fastest when practice is
-                                specific. Record one session focused on your
-                                lowest-scoring skill, then compare the new
-                                report against your current trend.
+                                {hasAnalyzedSession
+                                    ? 'Your progress improves fastest when practice is specific. Record one session focused on your lowest-scoring skill, then compare the new report against your current trend.'
+                                    : 'Record one complete practice session first. Once the first report is analyzed, this page will show score movement, milestones, and the next skill to prioritize.'}
                             </p>
                             <div className="mt-5 flex flex-col gap-3 sm:flex-row">
                                 <Button asChild className="w-full sm:w-auto">
@@ -260,7 +340,9 @@ export default function Progress({
                                     variant="outline"
                                     className="w-full sm:w-auto"
                                 >
-                                    <Link href={dashboard()}>Back to dashboard</Link>
+                                    <Link href={dashboard()}>
+                                        Back to dashboard
+                                    </Link>
                                 </Button>
                             </div>
                         </div>
