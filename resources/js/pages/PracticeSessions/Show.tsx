@@ -1,6 +1,7 @@
 import { Head, Link } from '@inertiajs/react';
 import {
     AlertCircle,
+    ArrowRight,
     ArrowLeft,
     BarChart3,
     Clock3,
@@ -8,7 +9,10 @@ import {
     Mic2,
     Target,
 } from 'lucide-react';
-import { create, index } from '@/actions/App/Http/Controllers/PracticeSessionController';
+import {
+    create,
+    index,
+} from '@/actions/App/Http/Controllers/PracticeSessionController';
 import {
     playback as playbackRecording,
     store as storeRecording,
@@ -78,8 +82,70 @@ function processingMessage(status: PracticeSession['status']): string | null {
     return null;
 }
 
+function nextAction(session: PracticeSession): {
+    title: string;
+    description: string;
+    label: string;
+    href: string;
+    variant: 'default' | 'outline';
+} {
+    if (session.status === 'draft') {
+        return {
+            title: 'Record this session',
+            description:
+                'Your setup is ready. Record a take, review it, then upload when it feels right.',
+            label: 'Go to recorder',
+            href: '#recording',
+            variant: 'default',
+        };
+    }
+
+    if (session.status === 'recorded') {
+        return {
+            title: 'Recording saved',
+            description:
+                'You can replace the recording before transcription begins, or wait for processing to continue.',
+            label: 'Review recording',
+            href: '#recording',
+            variant: 'outline',
+        };
+    }
+
+    if (session.status === 'analyzed' && session.feedback_report) {
+        return {
+            title: 'Feedback is ready',
+            description:
+                'Start with the top recommendations, then use one point as your next practice focus.',
+            label: 'View feedback report',
+            href: showFeedbackReport.url(session.feedback_report.id),
+            variant: 'default',
+        };
+    }
+
+    if (session.status === 'failed') {
+        return {
+            title: 'Processing needs attention',
+            description:
+                'Use the retry option below to queue the failed step again.',
+            label: 'Review issue',
+            href: '#processing-status',
+            variant: 'outline',
+        };
+    }
+
+    return {
+        title: 'Processing in progress',
+        description:
+            'You can leave this page and come back when transcription or analysis finishes.',
+        label: 'Check status',
+        href: '#processing-status',
+        variant: 'outline',
+    };
+}
+
 export default function Show({ session }: ShowProps) {
     const message = processingMessage(session.status);
+    const action = nextAction(session);
     const recordingLocked = [
         'transcribing',
         'transcribed',
@@ -189,12 +255,43 @@ export default function Show({ session }: ShowProps) {
                         </div>
 
                         <div className="mt-6 rounded-2xl border border-border bg-background p-5">
-                            <h2 className="text-lg font-semibold">
-                                Objective
-                            </h2>
+                            <h2 className="text-lg font-semibold">Objective</h2>
                             <p className="mt-3 text-sm leading-7 text-muted-foreground">
                                 {session.objective}
                             </p>
+                        </div>
+
+                        <div
+                            id="processing-status"
+                            className="mt-6 rounded-2xl border border-cyan-500/25 bg-cyan-500/10 p-5"
+                        >
+                            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                                <div>
+                                    <h2 className="font-semibold">
+                                        {action.title}
+                                    </h2>
+                                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                        {action.description}
+                                    </p>
+                                </div>
+                                <Button
+                                    asChild
+                                    variant={action.variant}
+                                    className="w-full sm:w-auto"
+                                >
+                                    {action.href.startsWith('#') ? (
+                                        <a href={action.href}>
+                                            {action.label}
+                                            <ArrowRight className="size-4" />
+                                        </a>
+                                    ) : (
+                                        <Link href={action.href}>
+                                            {action.label}
+                                            <ArrowRight className="size-4" />
+                                        </Link>
+                                    )}
+                                </Button>
+                            </div>
                         </div>
 
                         {message && (
@@ -225,12 +322,16 @@ export default function Show({ session }: ShowProps) {
                                     </div>
                                     {canRetryAnalysis ? (
                                         <RetryProcessingButton
-                                            action={retryAnalysis.url(session.id)}
+                                            action={retryAnalysis.url(
+                                                session.id,
+                                            )}
                                             label="Retry analysis"
                                         />
                                     ) : (
                                         <RetryProcessingButton
-                                            action={retryTranscription.url(session.id)}
+                                            action={retryTranscription.url(
+                                                session.id,
+                                            )}
                                             label="Retry transcription"
                                         />
                                     )}
@@ -239,7 +340,7 @@ export default function Show({ session }: ShowProps) {
                         )}
                     </div>
 
-                    <div className="mt-6">
+                    <div className="mt-6" id="recording">
                         <StoredRecordingPlayer
                             recording={session.recording}
                             playbackUrl={playbackRecording.url(session.id)}

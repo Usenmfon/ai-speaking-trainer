@@ -2,18 +2,21 @@ import { Head, Link } from '@inertiajs/react';
 import {
     AlertCircle,
     ArrowLeft,
+    ArrowRight,
     CheckCircle2,
     Clock3,
     Lightbulb,
     MessageSquareText,
     Mic2,
     Sparkles,
+    Target,
 } from 'lucide-react';
 
-import { show as showSession } from '@/actions/App/Http/Controllers/PracticeSessionController';
 import {
-    index as reportsIndex,
-} from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
+    create,
+    show as showSession,
+} from '@/actions/App/Http/Controllers/PracticeSessionController';
+import { index as reportsIndex } from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
 import { FeedbackList } from '@/components/feedback/feedback-list';
 import { ReportStatusPanel } from '@/components/feedback/report-status-panel';
 import { getScoreTone, ScoreCard } from '@/components/feedback/score-card';
@@ -46,6 +49,10 @@ export default function Show({ report, session: fallbackSession }: ShowProps) {
     const session = report?.practice_session ?? fallbackSession ?? null;
     const transcript = report?.transcript ?? session?.transcript ?? null;
     const overallTone = getScoreTone(report?.overall_score ?? null);
+    const topRecommendation =
+        report?.recommendations?.[0] ??
+        report?.weaknesses?.[0] ??
+        'Complete analysis to unlock a focused next step.';
 
     return (
         <>
@@ -103,7 +110,8 @@ export default function Show({ report, session: fallbackSession }: ShowProps) {
                                             {report?.overall_score ?? '--'}
                                         </span>
                                         {report?.overall_score !== null &&
-                                            report?.overall_score !== undefined && (
+                                            report?.overall_score !==
+                                                undefined && (
                                                 <span className="pb-1 text-sm text-muted-foreground">
                                                     /100
                                                 </span>
@@ -135,6 +143,30 @@ export default function Show({ report, session: fallbackSession }: ShowProps) {
                     <div className="mt-6">
                         <ReportStatusPanel report={report} />
                     </div>
+
+                    <section className="mt-6 rounded-2xl border border-cyan-500/25 bg-cyan-500/10 p-5 shadow-sm">
+                        <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
+                            <div className="min-w-0">
+                                <p className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
+                                    <Target className="size-4" />
+                                    Fix this next
+                                </p>
+                                <h2 className="mt-3 text-xl font-semibold">
+                                    {topRecommendation}
+                                </h2>
+                                <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                                    Use this as the focus for your next short
+                                    recording before trying another full take.
+                                </p>
+                            </div>
+                            <Button asChild className="w-full lg:w-auto">
+                                <Link href={create()}>
+                                    Practice this
+                                    <ArrowRight className="size-4" />
+                                </Link>
+                            </Button>
+                        </div>
+                    </section>
 
                     <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
                         <ScoreCard
@@ -241,7 +273,7 @@ export default function Show({ report, session: fallbackSession }: ShowProps) {
 
                     <section className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
                         <h2 className="text-lg font-semibold">Transcript</h2>
-                        <p className="mt-4 whitespace-pre-wrap text-sm leading-7 text-muted-foreground">
+                        <p className="mt-4 text-sm leading-7 whitespace-pre-wrap text-muted-foreground">
                             {transcript?.text ??
                                 'Transcript is not available yet.'}
                         </p>

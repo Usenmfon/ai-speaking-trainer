@@ -149,7 +149,7 @@ export default function Welcome() {
                                     href={register()}
                                     className="px-4 sm:px-5"
                                 >
-                                    Start
+                                    Start practicing
                                 </GradientButton>
                             </>
                         )}

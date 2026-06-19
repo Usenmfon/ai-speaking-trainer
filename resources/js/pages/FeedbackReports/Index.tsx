@@ -54,21 +54,44 @@ export default function Index({ reports }: IndexProps) {
                     </div>
 
                     {reports.length === 0 ? (
-                        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-8 text-center">
-                            <FileText className="mx-auto size-10 text-cyan-700 dark:text-cyan-200" />
-                            <h2 className="mt-4 text-xl font-semibold">
-                                No feedback reports yet
-                            </h2>
-                            <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-                                Complete a recording and analysis will generate
-                                a detailed report here.
-                            </p>
-                            <Button asChild className="mt-5">
-                                <Link href={create()}>
-                                    <Plus className="size-4" />
-                                    Start a session
-                                </Link>
-                            </Button>
+                        <div className="mt-8 rounded-2xl border border-dashed border-border bg-card p-6 shadow-sm sm:p-8">
+                            <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+                                <div>
+                                    <FileText className="size-10 text-cyan-700 dark:text-cyan-200" />
+                                    <h2 className="mt-4 text-xl font-semibold">
+                                        No feedback reports yet
+                                    </h2>
+                                    <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
+                                        Reports appear after you upload a
+                                        recording and the AI analysis finishes.
+                                    </p>
+                                    <Button asChild className="mt-5">
+                                        <Link href={create()}>
+                                            <Plus className="size-4" />
+                                            Start a session
+                                        </Link>
+                                    </Button>
+                                </div>
+                                <div className="grid gap-3">
+                                    {[
+                                        'Create a practice session',
+                                        'Record and confirm an upload',
+                                        'Open your report for scores and next steps',
+                                    ].map((step, index) => (
+                                        <div
+                                            key={step}
+                                            className="flex items-center gap-3 rounded-xl border border-border bg-background p-3"
+                                        >
+                                            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/10 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
+                                                {index + 1}
+                                            </span>
+                                            <span className="text-sm font-medium">
+                                                {step}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     ) : (
                         <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -84,11 +107,10 @@ export default function Index({ reports }: IndexProps) {
                                         <div className="flex items-start justify-between gap-3">
                                             <div>
                                                 <p className="text-sm text-muted-foreground">
-                                                    {report.practice_session
-                                                        ?.session_type.replaceAll(
-                                                            '_',
-                                                            ' ',
-                                                        ) ?? 'Practice session'}
+                                                    {report.practice_session?.session_type.replaceAll(
+                                                        '_',
+                                                        ' ',
+                                                    ) ?? 'Practice session'}
                                                 </p>
                                                 <h2 className="mt-2 line-clamp-2 text-lg font-semibold">
                                                     {report.practice_session
@@ -107,7 +129,12 @@ export default function Index({ reports }: IndexProps) {
                                         </div>
 
                                         <div className="mt-5 flex items-end gap-1">
-                                            <span className={cn('text-4xl font-semibold', tone.text)}>
+                                            <span
+                                                className={cn(
+                                                    'text-4xl font-semibold',
+                                                    tone.text,
+                                                )}
+                                            >
                                                 {report.overall_score ?? '--'}
                                             </span>
                                             {report.overall_score !== null && (
@@ -120,7 +147,9 @@ export default function Index({ reports }: IndexProps) {
                                         <div className="mt-5 flex items-center justify-between gap-3 text-sm text-muted-foreground">
                                             <span className="inline-flex items-center gap-2">
                                                 <Clock3 className="size-4" />
-                                                {formatDate(report.processed_at)}
+                                                {formatDate(
+                                                    report.processed_at,
+                                                )}
                                             </span>
                                             <span className="inline-flex items-center gap-2 font-medium text-cyan-700 transition group-hover:translate-x-0.5 dark:text-cyan-200">
                                                 <BarChart3 className="size-4" />

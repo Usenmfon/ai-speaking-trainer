@@ -1,5 +1,6 @@
 import { Head, Link, router, useForm } from '@inertiajs/react';
 import {
+    ArrowRight,
     CalendarDays,
     FilePlus2,
     Filter,
@@ -9,7 +10,11 @@ import {
     Timer,
 } from 'lucide-react';
 import type { FormEvent } from 'react';
-import { create, index, show } from '@/actions/App/Http/Controllers/PracticeSessionController';
+import {
+    create,
+    index,
+    show,
+} from '@/actions/App/Http/Controllers/PracticeSessionController';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,7 +43,11 @@ type IndexProps = {
     };
 };
 
-type PracticeSessionSort = 'newest' | 'oldest' | 'highest_score' | 'lowest_score';
+type PracticeSessionSort =
+    | 'newest'
+    | 'oldest'
+    | 'highest_score'
+    | 'lowest_score';
 
 type PracticeSessionFilters = {
     search: string | null;
@@ -108,13 +117,49 @@ function statusTone(status: PracticeSessionStatus): string {
     return 'border-border bg-muted text-muted-foreground';
 }
 
-function compactFilters(filters: PracticeSessionFilters): Record<string, string> {
+function nextActionLabel(status: PracticeSessionStatus): string {
+    if (status === 'draft') {
+        return 'Record now';
+    }
+
+    if (status === 'recorded') {
+        return 'Review recording';
+    }
+
+    if (status === 'transcribing' || status === 'transcribed') {
+        return 'Check transcript status';
+    }
+
+    if (status === 'analyzing') {
+        return 'Check analysis status';
+    }
+
+    if (status === 'analyzed') {
+        return 'View feedback';
+    }
+
+    if (status === 'failed') {
+        return 'Retry processing';
+    }
+
+    return 'Open session';
+}
+
+function compactFilters(
+    filters: PracticeSessionFilters,
+): Record<string, string> {
     return Object.fromEntries(
-        Object.entries(filters).filter(([, value]) => value !== null && value !== ''),
+        Object.entries(filters).filter(
+            ([, value]) => value !== null && value !== '',
+        ),
     ) as Record<string, string>;
 }
 
-export default function Index({ sessions, filters, filterOptions }: IndexProps) {
+export default function Index({
+    sessions,
+    filters,
+    filterOptions,
+}: IndexProps) {
     const { data, setData } = useForm<PracticeSessionFilters>({
         search: filters.search ?? '',
         session_type: filters.session_type ?? null,
@@ -126,20 +171,24 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
 
     const hasActiveFilters = Boolean(
         filters.search ||
-            filters.session_type ||
-            filters.status ||
-            filters.date_from ||
-            filters.date_to,
+        filters.session_type ||
+        filters.status ||
+        filters.date_from ||
+        filters.date_to,
     );
 
     function applyFilters(event: FormEvent<HTMLFormElement>): void {
         event.preventDefault();
 
-        router.get(index.url({ query: compactFilters(data) }), {}, {
-            preserveScroll: true,
-            preserveState: true,
-            replace: true,
-        });
+        router.get(
+            index.url({ query: compactFilters(data) }),
+            {},
+            {
+                preserveScroll: true,
+                preserveState: true,
+                replace: true,
+            },
+        );
     }
 
     return (
@@ -188,7 +237,10 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
                                         id="session-search"
                                         value={data.search ?? ''}
                                         onChange={(event) =>
-                                            setData('search', event.target.value)
+                                            setData(
+                                                'search',
+                                                event.target.value,
+                                            )
                                         }
                                         placeholder="Search title or topic"
                                         className="pl-9"
@@ -213,12 +265,19 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
                                         <SelectValue placeholder="All types" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All types</SelectItem>
-                                        {filterOptions.sessionTypes.map((type) => (
-                                            <SelectItem key={type} value={type}>
-                                                {formatOption(type)}
-                                            </SelectItem>
-                                        ))}
+                                        <SelectItem value="all">
+                                            All types
+                                        </SelectItem>
+                                        {filterOptions.sessionTypes.map(
+                                            (type) => (
+                                                <SelectItem
+                                                    key={type}
+                                                    value={type}
+                                                >
+                                                    {formatOption(type)}
+                                                </SelectItem>
+                                            ),
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -240,12 +299,19 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
                                         <SelectValue placeholder="All statuses" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">All statuses</SelectItem>
-                                        {filterOptions.statuses.map((status) => (
-                                            <SelectItem key={status} value={status}>
-                                                {formatOption(status)}
-                                            </SelectItem>
-                                        ))}
+                                        <SelectItem value="all">
+                                            All statuses
+                                        </SelectItem>
+                                        {filterOptions.statuses.map(
+                                            (status) => (
+                                                <SelectItem
+                                                    key={status}
+                                                    value={status}
+                                                >
+                                                    {formatOption(status)}
+                                                </SelectItem>
+                                            ),
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -283,21 +349,26 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
                                 <Select
                                     value={data.sort}
                                     onValueChange={(value) =>
-                                        setData('sort', value as PracticeSessionSort)
+                                        setData(
+                                            'sort',
+                                            value as PracticeSessionSort,
+                                        )
                                     }
                                 >
                                     <SelectTrigger className="mt-2 w-full">
                                         <SelectValue placeholder="Sort sessions" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {filterOptions.sortOptions.map((option) => (
-                                            <SelectItem
-                                                key={option.value}
-                                                value={option.value}
-                                            >
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
+                                        {filterOptions.sortOptions.map(
+                                            (option) => (
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </SelectItem>
+                                            ),
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -315,29 +386,62 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
                     </form>
 
                     {sessions.data.length === 0 ? (
-                        <div className="mt-10 rounded-2xl border border-dashed border-border bg-card p-10 text-center shadow-sm">
-                            <div className="mx-auto flex size-14 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-200">
-                                <Mic2 className="size-7" />
+                        <div className="mt-10 rounded-2xl border border-dashed border-border bg-card p-6 shadow-sm sm:p-10">
+                            <div className="grid gap-6 lg:grid-cols-[0.8fr_1.2fr] lg:items-center">
+                                <div>
+                                    <div className="flex size-14 items-center justify-center rounded-2xl bg-cyan-500/10 text-cyan-700 dark:text-cyan-200">
+                                        <Mic2 className="size-7" />
+                                    </div>
+                                    <h2 className="mt-5 text-xl font-semibold">
+                                        {hasActiveFilters
+                                            ? 'No matching sessions'
+                                            : 'No practice sessions yet'}
+                                    </h2>
+                                    <p className="mt-3 max-w-md text-sm leading-6 text-muted-foreground">
+                                        {hasActiveFilters
+                                            ? 'Try a broader search, clear a date range, or reset the filters to view your full practice history.'
+                                            : 'Create a session, record a take, then use the feedback report to choose your next rep.'}
+                                    </p>
+                                    {hasActiveFilters ? (
+                                        <Button
+                                            asChild
+                                            className="mt-6"
+                                            variant="outline"
+                                        >
+                                            <Link href={index()}>
+                                                Reset filters
+                                            </Link>
+                                        </Button>
+                                    ) : (
+                                        <Button asChild className="mt-6">
+                                            <Link href={create()}>
+                                                Create first session
+                                            </Link>
+                                        </Button>
+                                    )}
+                                </div>
+                                {!hasActiveFilters && (
+                                    <div className="grid gap-3">
+                                        {[
+                                            'Choose a speaking goal and target duration',
+                                            'Record, preview, and upload your best take',
+                                            'Open the report and practice one recommendation',
+                                        ].map((step, stepIndex) => (
+                                            <div
+                                                key={step}
+                                                className="flex items-center gap-3 rounded-xl border border-border bg-background p-3"
+                                            >
+                                                <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-cyan-500/10 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
+                                                    {stepIndex + 1}
+                                                </span>
+                                                <span className="text-sm font-medium">
+                                                    {step}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                            <h2 className="mt-5 text-xl font-semibold">
-                                {hasActiveFilters
-                                    ? 'No matching sessions'
-                                    : 'No practice sessions yet'}
-                            </h2>
-                            <p className="mx-auto mt-3 max-w-md text-sm leading-6 text-muted-foreground">
-                                {hasActiveFilters
-                                    ? 'Try a broader search, clear a date range, or reset the filters to view your full practice history.'
-                                    : 'Create your first draft session with a topic, duration, and objective before recording.'}
-                            </p>
-                            {hasActiveFilters ? (
-                                <Button asChild className="mt-6" variant="outline">
-                                    <Link href={index()}>Reset filters</Link>
-                                </Button>
-                            ) : (
-                                <Button asChild className="mt-6">
-                                    <Link href={create()}>Create first session</Link>
-                                </Button>
-                            )}
                         </div>
                     ) : (
                         <>
@@ -346,12 +450,16 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
                                     Showing {sessions.from}-{sessions.to} of{' '}
                                     {sessions.total} sessions
                                 </p>
-                                <p>Page {sessions.current_page} of {sessions.last_page}</p>
+                                <p>
+                                    Page {sessions.current_page} of{' '}
+                                    {sessions.last_page}
+                                </p>
                             </div>
 
                             <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {sessions.data.map((session) => {
-                                    const score = session.feedback_report?.overall_score;
+                                    const score =
+                                        session.feedback_report?.overall_score;
 
                                     return (
                                         <Link
@@ -371,17 +479,23 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
                                                 <span
                                                     className={cn(
                                                         'rounded-full border px-3 py-1 text-xs font-medium',
-                                                        statusTone(session.status),
+                                                        statusTone(
+                                                            session.status,
+                                                        ),
                                                     )}
                                                 >
-                                                    {formatOption(session.status)}
+                                                    {formatOption(
+                                                        session.status,
+                                                    )}
                                                 </span>
                                             </div>
 
                                             <div className="mt-5 flex flex-wrap gap-3 text-xs text-muted-foreground">
                                                 <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1">
                                                     <Mic2 className="size-3" />
-                                                    {formatOption(session.session_type)}
+                                                    {formatOption(
+                                                        session.session_type,
+                                                    )}
                                                 </span>
                                                 <span className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1">
                                                     <Timer className="size-3" />
@@ -409,8 +523,11 @@ export default function Index({ sessions, filters, filterOptions }: IndexProps) 
                                                         ? 'No score yet'
                                                         : `${score}/100`}
                                                 </span>
-                                                <span className="text-sm font-medium text-cyan-700 transition group-hover:translate-x-0.5 dark:text-cyan-200">
-                                                    Open session
+                                                <span className="inline-flex items-center gap-1 text-sm font-medium text-cyan-700 transition group-hover:translate-x-0.5 dark:text-cyan-200">
+                                                    {nextActionLabel(
+                                                        session.status,
+                                                    )}
+                                                    <ArrowRight className="size-4" />
                                                 </span>
                                             </div>
                                         </Link>

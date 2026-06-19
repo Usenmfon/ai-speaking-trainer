@@ -1,5 +1,5 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowLeft, Gift, Lightbulb, Mic2 } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Gift, Lightbulb, Mic2 } from 'lucide-react';
 import type { FormEvent } from 'react';
 import {
     create,
@@ -87,9 +87,8 @@ export default function Create({
                                 Create a practice session
                             </h1>
                             <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                                Define what you want to practice. The session is
-                                saved as a draft until recording and analysis
-                                are added.
+                                Define what you want to practice, then continue
+                                straight to the recorder.
                             </p>
                             <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-1 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
                                 <Gift className="size-4" />
@@ -250,8 +249,11 @@ export default function Create({
                                     className="min-w-40"
                                 >
                                     {form.processing
-                                        ? 'Saving...'
-                                        : 'Save draft'}
+                                        ? 'Creating...'
+                                        : 'Continue to recording'}
+                                    {!form.processing && (
+                                        <ArrowRight className="size-4" />
+                                    )}
                                 </Button>
                                 <Button asChild variant="outline">
                                     <Link href={index()}>Cancel</Link>
