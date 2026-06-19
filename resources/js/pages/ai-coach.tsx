@@ -8,6 +8,7 @@ import {
     Lightbulb,
     MessageSquareText,
     Mic2,
+    Pause,
     Play,
     Sparkles,
     Square,
@@ -153,6 +154,7 @@ export default function AiCoach({
     );
     const activeDrill = selectedDrill ?? availableDrills[0] ?? null;
     const [isAudioPlaying, setIsAudioPlaying] = useState(false);
+    const [isAudioPaused, setIsAudioPaused] = useState(false);
     const [audioError, setAudioError] = useState<string | null>(null);
     const performanceHacks = [
         availableSignals[0]?.value
@@ -207,17 +209,52 @@ export default function AiCoach({
         const utterance = new SpeechSynthesisUtterance(audioBriefing);
         utterance.rate = 0.95;
         utterance.pitch = 1;
-        utterance.onend = () => setIsAudioPlaying(false);
+        utterance.onend = () => {
+            setIsAudioPlaying(false);
+            setIsAudioPaused(false);
+        };
         utterance.onerror = () => {
             setIsAudioPlaying(false);
+            setIsAudioPaused(false);
             setAudioError(
                 'Voice playback stopped unexpectedly. Try again or read the coach briefing below.',
             );
         };
+        utterance.onpause = () => {
+            setIsAudioPlaying(false);
+            setIsAudioPaused(true);
+        };
+        utterance.onresume = () => {
+            setIsAudioPlaying(true);
+            setIsAudioPaused(false);
+        };
 
         setAudioError(null);
         setIsAudioPlaying(true);
+        setIsAudioPaused(false);
         window.speechSynthesis.speak(utterance);
+    }
+
+    function pauseOrResumeAudioBriefing(): void {
+        if (!('speechSynthesis' in window)) {
+            setAudioError(
+                'Voice playback is not supported in this browser. You can still read the coach briefing below.',
+            );
+
+            return;
+        }
+
+        if (isAudioPaused) {
+            window.speechSynthesis.resume();
+            setIsAudioPlaying(true);
+            setIsAudioPaused(false);
+
+            return;
+        }
+
+        window.speechSynthesis.pause();
+        setIsAudioPlaying(false);
+        setIsAudioPaused(true);
     }
 
     function stopAudioBriefing(): void {
@@ -226,6 +263,7 @@ export default function AiCoach({
         }
 
         setIsAudioPlaying(false);
+        setIsAudioPaused(false);
     }
 
     return (
@@ -319,19 +357,43 @@ export default function AiCoach({
                                             type="button"
                                             className="w-full sm:w-auto"
                                             onClick={playAudioBriefing}
-                                            disabled={isAudioPlaying}
+                                            disabled={
+                                                isAudioPlaying || isAudioPaused
+                                            }
                                         >
                                             <Play className="size-4" />
                                             {isAudioPlaying
                                                 ? 'Playing briefing'
-                                                : 'Play briefing'}
+                                                : isAudioPaused
+                                                  ? 'Briefing paused'
+                                                  : 'Play briefing'}
+                                        </Button>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="w-full bg-background sm:w-auto"
+                                            onClick={pauseOrResumeAudioBriefing}
+                                            disabled={
+                                                !isAudioPlaying &&
+                                                !isAudioPaused
+                                            }
+                                        >
+                                            {isAudioPaused ? (
+                                                <Play className="size-4" />
+                                            ) : (
+                                                <Pause className="size-4" />
+                                            )}
+                                            {isAudioPaused ? 'Resume' : 'Pause'}
                                         </Button>
                                         <Button
                                             type="button"
                                             variant="outline"
                                             className="w-full bg-background sm:w-auto"
                                             onClick={stopAudioBriefing}
-                                            disabled={!isAudioPlaying}
+                                            disabled={
+                                                !isAudioPlaying &&
+                                                !isAudioPaused
+                                            }
                                         >
                                             <Square className="size-4" />
                                             Stop
@@ -352,7 +414,9 @@ export default function AiCoach({
                                                     className={`w-1 rounded-full bg-cyan-500/70 dark:bg-cyan-200/80 ${
                                                         isAudioPlaying
                                                             ? 'waveform-bar'
-                                                            : ''
+                                                            : isAudioPaused
+                                                              ? 'opacity-45'
+                                                              : ''
                                                     }`}
                                                     style={{
                                                         height: `${12 + ((index * 17) % 44)}px`,
