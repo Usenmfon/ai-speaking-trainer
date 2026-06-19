@@ -1,8 +1,12 @@
 import { Link } from '@inertiajs/react';
 import { BarChart3, Sparkles } from 'lucide-react';
 
-import { show } from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
+import {
+    index,
+    show,
+} from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
 import { getScoreTone } from '@/components/feedback/score-card';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { SpeakingFeedbackReport } from '@/types';
 
@@ -22,7 +26,12 @@ export function RecentReportList({ reports }: RecentReportListProps) {
                         Scores and coaching summaries.
                     </p>
                 </div>
-                <BarChart3 className="size-5 shrink-0 text-cyan-700 dark:text-cyan-200" />
+                <Button asChild size="sm" variant="outline">
+                    <Link href={index()}>
+                        <BarChart3 className="size-4" />
+                        View all
+                    </Link>
+                </Button>
             </div>
 
             <div className="mt-5 flex flex-col gap-3">

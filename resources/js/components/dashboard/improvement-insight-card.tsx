@@ -1,4 +1,8 @@
+import { Link } from '@inertiajs/react';
 import { Lightbulb, Target } from 'lucide-react';
+
+import { create } from '@/actions/App/Http/Controllers/PracticeSessionController';
+import { Button } from '@/components/ui/button';
 
 type ImprovementInsightCardProps = {
     latestSessionTitle: string | null;
@@ -43,10 +47,14 @@ export function ImprovementInsightCard({
             </div>
 
             {latestSessionTitle && (
-                <p className="mt-4 break-words text-sm text-muted-foreground">
+                <p className="mt-4 text-sm break-words text-muted-foreground">
                     Latest session: {latestSessionTitle}
                 </p>
             )}
+
+            <Button asChild className="mt-5 w-full" variant="outline">
+                <Link href={create()}>Practice this next</Link>
+            </Button>
         </section>
     );
 }

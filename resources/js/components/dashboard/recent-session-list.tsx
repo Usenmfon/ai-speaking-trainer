@@ -1,7 +1,11 @@
 import { Link } from '@inertiajs/react';
 import { Clock3, Mic2 } from 'lucide-react';
 
-import { show } from '@/actions/App/Http/Controllers/PracticeSessionController';
+import {
+    index,
+    show,
+} from '@/actions/App/Http/Controllers/PracticeSessionController';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { PracticeSession } from '@/types';
 
@@ -50,7 +54,12 @@ export function RecentSessionList({ sessions }: RecentSessionListProps) {
                         Your latest practice work.
                     </p>
                 </div>
-                <Mic2 className="size-5 shrink-0 text-cyan-700 dark:text-cyan-200" />
+                <Button asChild size="sm" variant="outline">
+                    <Link href={index()}>
+                        <Mic2 className="size-4" />
+                        View all
+                    </Link>
+                </Button>
             </div>
 
             <div className="mt-5 flex flex-col gap-3">
