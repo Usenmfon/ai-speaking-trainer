@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
+use App\Services\PracticeStreakService;
 use App\Services\ReferralService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,7 +14,10 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __construct(private readonly ReferralService $referrals) {}
+    public function __construct(
+        private readonly ReferralService $referrals,
+        private readonly PracticeStreakService $streaks,
+    ) {}
 
     /**
      * Display the authenticated user's analytics dashboard.
@@ -64,6 +68,8 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
+        $streak = $this->streaks->summary($user->id);
+
         $weaknesses = (clone $reportQuery)
             ->select(['weaknesses'])
             ->whereNotNull('weaknesses')
@@ -87,6 +93,9 @@ class DashboardController extends Controller
                         ->whereNotNull('overall_score')
                         ->avg('overall_score')),
                     'bestScore' => $this->roundedNullable((clone $reportQuery)->max('overall_score')),
+                    'currentStreak' => $streak['current'],
+                    'longestStreak' => $streak['longest'],
+                    'practicedToday' => $streak['practiced_today'],
                 ],
                 'latestSession' => $latestSession,
                 'mostCommonWeakness' => $this->mostCommonValue($weaknesses),

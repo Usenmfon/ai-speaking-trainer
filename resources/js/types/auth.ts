@@ -136,6 +136,9 @@ export type DashboardAnalytics = {
         completedSessions: number;
         averageOverallScore: number | null;
         bestScore: number | null;
+        currentStreak: number;
+        longestStreak: number;
+        practicedToday: boolean;
     };
     latestSession: PracticeSession | null;
     mostCommonWeakness: string | null;

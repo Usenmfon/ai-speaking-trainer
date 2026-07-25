@@ -41,8 +41,23 @@ type WeeklyPlanItem = {
     description: string;
 };
 
+type StreakDay = {
+    date: string;
+    label: string;
+    practiced: boolean;
+};
+
+type PracticeStreak = {
+    current: number;
+    longest: number;
+    practiced_today: boolean;
+    last_practice_date: string | null;
+    week: StreakDay[];
+};
+
 type ProgressProps = {
     stats: ProgressStat[];
+    streak: PracticeStreak;
     skillTrends: SkillTrend[];
     milestones: Milestone[];
     weeklyPlan: WeeklyPlanItem[];
@@ -63,6 +78,7 @@ const firstReportSteps = [
 
 export default function Progress({
     stats,
+    streak,
     skillTrends,
     milestones,
     weeklyPlan,
@@ -139,6 +155,70 @@ export default function Progress({
                                 </div>
                             );
                         })}
+                    </section>
+
+                    <section className="rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-6">
+                        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+                            <div className="min-w-0">
+                                <p className="inline-flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
+                                    <Flame className="size-4" />
+                                    Streak tracker
+                                </p>
+                                <h2 className="mt-3 text-xl font-semibold tracking-normal sm:text-2xl">
+                                    {streak.current > 0
+                                        ? `${streak.current} day streak`
+                                        : 'Start your streak today'}
+                                </h2>
+                                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                    {streak.practiced_today
+                                        ? 'You practiced today. Come back tomorrow to keep it alive.'
+                                        : 'Record one completed session today to add another active day.'}
+                                </p>
+                            </div>
+
+                            <div className="grid gap-3 sm:grid-cols-2 lg:min-w-80">
+                                <div className="rounded-xl border border-border bg-background p-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Longest streak
+                                    </p>
+                                    <p className="mt-2 text-2xl font-semibold">
+                                        {streak.longest} days
+                                    </p>
+                                </div>
+                                <div className="rounded-xl border border-border bg-background p-4">
+                                    <p className="text-sm text-muted-foreground">
+                                        Last practice
+                                    </p>
+                                    <p className="mt-2 text-sm font-semibold">
+                                        {streak.last_practice_date ?? 'Not yet'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-5 grid grid-cols-7 gap-2">
+                            {streak.week.map((day) => (
+                                <div
+                                    key={day.date}
+                                    className={`rounded-xl border p-3 text-center ${
+                                        day.practiced
+                                            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-200'
+                                            : 'border-border bg-background text-muted-foreground'
+                                    }`}
+                                >
+                                    <p className="text-xs font-semibold">
+                                        {day.label}
+                                    </p>
+                                    <div
+                                        className={`mx-auto mt-2 size-2 rounded-full ${
+                                            day.practiced
+                                                ? 'bg-emerald-500'
+                                                : 'bg-muted-foreground/30'
+                                        }`}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </section>
 
                     <section className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">

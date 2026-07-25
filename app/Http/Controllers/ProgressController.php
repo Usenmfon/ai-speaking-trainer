@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
+use App\Services\PracticeStreakService;
 use App\Support\ContentLibrary;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Inertia\Inertia;
@@ -16,7 +16,7 @@ class ProgressController extends Controller
     /**
      * Display the progress page.
      */
-    public function __invoke(Request $request, ContentLibrary $content): Response
+    public function __invoke(Request $request, ContentLibrary $content, PracticeStreakService $streaks): Response
     {
         $user = $request->user();
 
@@ -37,13 +37,16 @@ class ProgressController extends Controller
 
         $bestScore = $reports->max('overall_score');
         $skillAverages = $this->skillAverages($reports);
+        $streak = $streaks->summary($user->id);
 
         return Inertia::render('progress', [
             'stats' => [
                 [
                     'label' => 'Practice streak',
-                    'value' => $this->practiceStreak($user->id).' days',
-                    'helper' => 'Keep momentum with one short drill today.',
+                    'value' => $streak['current'].' days',
+                    'helper' => $streak['practiced_today']
+                        ? 'Nice work. Today is already counted.'
+                        : 'Keep momentum with one short drill today.',
                     'icon' => 'flame',
                 ],
                 [
@@ -65,6 +68,7 @@ class ProgressController extends Controller
                     'icon' => 'target',
                 ],
             ],
+            'streak' => $streak,
             'skillTrends' => $this->skillTrends($reports),
             'milestones' => [
                 [
@@ -74,8 +78,8 @@ class ProgressController extends Controller
                 ],
                 [
                     'title' => 'Three-session streak',
-                    'description' => 'Practice three times in one week.',
-                    'complete' => $this->practiceStreak($user->id) >= 3,
+                    'description' => 'Practice three days in a row.',
+                    'complete' => $streak['current'] >= 3,
                 ],
                 [
                     'title' => 'Score above 85',
@@ -151,40 +155,5 @@ class ProgressController extends Controller
                 'change' => $change,
             ];
         })->values()->all();
-    }
-
-    private function practiceStreak(int $userId): int
-    {
-        $dates = PracticeSession::query()
-            ->where('user_id', $userId)
-            ->whereNotNull('completed_at')
-            ->orderByDesc('completed_at')
-            ->pluck('completed_at')
-            ->map(fn (mixed $date): string => Carbon::parse($date)->toDateString())
-            ->unique()
-            ->values();
-
-        $streak = 0;
-        $cursor = now()->toDateString();
-
-        foreach ($dates as $date) {
-            if ($date === $cursor) {
-                $streak++;
-                $cursor = now()->subDays($streak)->toDateString();
-
-                continue;
-            }
-
-            if ($streak === 0 && $date === now()->subDay()->toDateString()) {
-                $streak++;
-                $cursor = now()->subDays(2)->toDateString();
-
-                continue;
-            }
-
-            break;
-        }
-
-        return $streak;
     }
 }

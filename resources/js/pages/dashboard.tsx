@@ -7,6 +7,7 @@ import {
     CheckCircle2,
     Copy,
     FileText,
+    Flame,
     ListChecks,
     Mic2,
     Sparkles,
@@ -79,6 +80,11 @@ export default function Dashboard({ analytics }: DashboardProps) {
             : 0;
     const averageScoreStatus = scoreStatus(analytics.stats.averageOverallScore);
     const bestScoreStatus = scoreStatus(analytics.stats.bestScore);
+    const streakStatus = analytics.stats.practicedToday
+        ? 'Practiced today'
+        : analytics.stats.currentStreak > 0
+          ? 'Practice today to extend it'
+          : 'Start a streak today';
     const recommendedTitle = analytics.mostCommonWeakness
         ? `Practice ${analytics.mostCommonWeakness}`
         : hasActivity
@@ -199,7 +205,19 @@ export default function Dashboard({ analytics }: DashboardProps) {
                         </section>
                     )}
 
-                    <section className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <section className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-5">
+                        <StatCard
+                            icon={Flame}
+                            label="Current streak"
+                            value={`${analytics.stats.currentStreak} days`}
+                            helper={`Best streak: ${analytics.stats.longestStreak} days.`}
+                            status={streakStatus}
+                            tone={
+                                analytics.stats.currentStreak > 0
+                                    ? 'success'
+                                    : 'warning'
+                            }
+                        />
                         <StatCard
                             icon={CalendarDays}
                             label="Total practice sessions"
