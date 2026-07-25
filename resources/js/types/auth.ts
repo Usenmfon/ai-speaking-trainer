@@ -15,6 +15,13 @@ export type PracticeSessionType =
     | 'elevator_pitch'
     | 'impromptu';
 
+export type InterviewQuestionType =
+    | 'behavioral'
+    | 'technical'
+    | 'leadership'
+    | 'product'
+    | 'general';
+
 export type PracticeSessionStatus =
     | 'draft'
     | 'recorded'
@@ -85,6 +92,11 @@ export type PracticeSession = {
     session_type: PracticeSessionType;
     target_duration_seconds: number;
     objective: string;
+    interview_role_title: string | null;
+    interview_company: string | null;
+    interview_stage: string | null;
+    interview_question_type: InterviewQuestionType | null;
+    interview_job_description: string | null;
     status: PracticeSessionStatus;
     started_at: string | null;
     completed_at: string | null;

@@ -4,6 +4,7 @@ import {
     ArrowRight,
     ArrowLeft,
     BarChart3,
+    Briefcase,
     Clock3,
     FilePlus2,
     Mic2,
@@ -46,6 +47,22 @@ function formatDuration(seconds: number): string {
     const minutes = Math.round(seconds / 60);
 
     return `${minutes} minute${minutes === 1 ? '' : 's'}`;
+}
+
+function interviewDetails(
+    session: PracticeSession,
+): Array<{ label: string; value: string }> {
+    return [
+        { label: 'Target role', value: session.interview_role_title ?? '' },
+        { label: 'Company', value: session.interview_company ?? '' },
+        { label: 'Interview stage', value: session.interview_stage ?? '' },
+        {
+            label: 'Question type',
+            value: session.interview_question_type
+                ? formatOption(session.interview_question_type)
+                : '',
+        },
+    ].filter((detail) => detail.value.trim() !== '');
 }
 
 function statusTone(status: PracticeSession['status']): string {
@@ -149,6 +166,7 @@ export default function Show({ session }: ShowProps) {
     const [isRefreshingStatus, setIsRefreshingStatus] = useState(false);
     const message = processingMessage(session.status);
     const action = nextAction(session);
+    const interviewContext = interviewDetails(session);
     const isProcessing = ['transcribing', 'transcribed', 'analyzing'].includes(
         session.status,
     );
@@ -170,10 +188,7 @@ export default function Show({ session }: ShowProps) {
 
     usePoll(
         10000,
-        {
-            preserveScroll: true,
-            preserveState: true,
-        },
+        {},
         {
             autoStart: isProcessing,
         },
@@ -183,8 +198,6 @@ export default function Show({ session }: ShowProps) {
         setIsRefreshingStatus(true);
 
         router.reload({
-            preserveScroll: true,
-            preserveState: true,
             onFinish: () => setIsRefreshingStatus(false),
         });
     }
@@ -280,6 +293,42 @@ export default function Show({ session }: ShowProps) {
                                 </p>
                             </div>
                         </div>
+
+                        {session.session_type === 'interview' &&
+                            interviewContext.length > 0 && (
+                                <div className="mt-6 rounded-2xl border border-border bg-background p-5">
+                                    <div className="flex items-center gap-2">
+                                        <Briefcase className="size-5 text-cyan-700 dark:text-cyan-200" />
+                                        <h2 className="text-lg font-semibold">
+                                            Interview context
+                                        </h2>
+                                    </div>
+                                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                                        {interviewContext.map((detail) => (
+                                            <div key={detail.label}>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {detail.label}
+                                                </p>
+                                                <p className="mt-1 font-semibold">
+                                                    {detail.value}
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {session.interview_job_description && (
+                                        <div className="mt-5 border-t border-border pt-5">
+                                            <p className="text-sm text-muted-foreground">
+                                                Job description
+                                            </p>
+                                            <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                                                {
+                                                    session.interview_job_description
+                                                }
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
 
                         <div className="mt-6 rounded-2xl border border-border bg-background p-5">
                             <h2 className="text-lg font-semibold">Objective</h2>

@@ -1,5 +1,13 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { ArrowRight, ArrowLeft, Gift, Lightbulb, Mic2 } from 'lucide-react';
+import {
+    ArrowRight,
+    ArrowLeft,
+    Briefcase,
+    ClipboardList,
+    Gift,
+    Lightbulb,
+    Mic2,
+} from 'lucide-react';
 import type { FormEvent } from 'react';
 import {
     create,
@@ -11,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import type { PracticeSessionType } from '@/types';
+import type { InterviewQuestionType, PracticeSessionType } from '@/types';
 
 type DurationOption = {
     label: string;
@@ -20,6 +28,7 @@ type DurationOption = {
 
 type CreateProps = {
     sessionTypes: PracticeSessionType[];
+    interviewQuestionTypes: InterviewQuestionType[];
     topicSuggestions: string[];
     durations: DurationOption[];
     practiceSessionsRemaining: number;
@@ -31,6 +40,11 @@ type PracticeSessionForm = {
     session_type: PracticeSessionType | '';
     target_duration_seconds: number;
     objective: string;
+    interview_role_title: string;
+    interview_company: string;
+    interview_stage: string;
+    interview_question_type: InterviewQuestionType | '';
+    interview_job_description: string;
     practice_sessions_remaining?: string;
 };
 
@@ -43,6 +57,7 @@ function formatOption(value: string): string {
 
 export default function Create({
     sessionTypes,
+    interviewQuestionTypes,
     topicSuggestions,
     durations,
     practiceSessionsRemaining,
@@ -53,11 +68,33 @@ export default function Create({
         session_type: 'presentation',
         target_duration_seconds: durations[2]?.value ?? 300,
         objective: '',
+        interview_role_title: '',
+        interview_company: '',
+        interview_stage: '',
+        interview_question_type: 'behavioral',
+        interview_job_description: '',
     });
+    const isInterview = form.data.session_type === 'interview';
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         form.submit(store());
+    }
+
+    function selectSessionType(type: PracticeSessionType): void {
+        form.setData((data) => ({
+            ...data,
+            session_type: type,
+            interview_role_title:
+                type === 'interview' ? data.interview_role_title : '',
+            interview_company:
+                type === 'interview' ? data.interview_company : '',
+            interview_stage: type === 'interview' ? data.interview_stage : '',
+            interview_question_type:
+                type === 'interview' ? data.interview_question_type : '',
+            interview_job_description:
+                type === 'interview' ? data.interview_job_description : '',
+        }));
     }
 
     return (
@@ -147,8 +184,7 @@ export default function Create({
                                             id="session_type"
                                             value={form.data.session_type}
                                             onChange={(event) =>
-                                                form.setData(
-                                                    'session_type',
+                                                selectSessionType(
                                                     event.target
                                                         .value as PracticeSessionType,
                                                 )
@@ -209,6 +245,196 @@ export default function Create({
                                     </div>
                                 </div>
 
+                                {isInterview && (
+                                    <div className="grid gap-5 rounded-2xl border border-cyan-500/25 bg-cyan-500/10 p-4 sm:p-5">
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-cyan-700 dark:text-cyan-200">
+                                            <Briefcase className="size-4" />
+                                            Interview context
+                                        </div>
+
+                                        <div className="grid gap-5 sm:grid-cols-2">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="interview_role_title">
+                                                    Target role
+                                                </Label>
+                                                <Input
+                                                    id="interview_role_title"
+                                                    value={
+                                                        form.data
+                                                            .interview_role_title
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'interview_role_title',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Senior product manager"
+                                                    aria-invalid={Boolean(
+                                                        form.errors
+                                                            .interview_role_title,
+                                                    )}
+                                                />
+                                                <InputError
+                                                    message={
+                                                        form.errors
+                                                            .interview_role_title
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="interview_company">
+                                                    Company
+                                                </Label>
+                                                <Input
+                                                    id="interview_company"
+                                                    value={
+                                                        form.data
+                                                            .interview_company
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'interview_company',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Acme AI"
+                                                    aria-invalid={Boolean(
+                                                        form.errors
+                                                            .interview_company,
+                                                    )}
+                                                />
+                                                <InputError
+                                                    message={
+                                                        form.errors
+                                                            .interview_company
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-5 sm:grid-cols-2">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="interview_stage">
+                                                    Interview stage
+                                                </Label>
+                                                <Input
+                                                    id="interview_stage"
+                                                    value={
+                                                        form.data
+                                                            .interview_stage
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'interview_stage',
+                                                            event.target.value,
+                                                        )
+                                                    }
+                                                    placeholder="Recruiter screen"
+                                                    aria-invalid={Boolean(
+                                                        form.errors
+                                                            .interview_stage,
+                                                    )}
+                                                />
+                                                <InputError
+                                                    message={
+                                                        form.errors
+                                                            .interview_stage
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className="grid gap-2">
+                                                <Label htmlFor="interview_question_type">
+                                                    Question type
+                                                </Label>
+                                                <select
+                                                    id="interview_question_type"
+                                                    value={
+                                                        form.data
+                                                            .interview_question_type
+                                                    }
+                                                    onChange={(event) =>
+                                                        form.setData(
+                                                            'interview_question_type',
+                                                            event.target
+                                                                .value as InterviewQuestionType,
+                                                        )
+                                                    }
+                                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                                    aria-invalid={Boolean(
+                                                        form.errors
+                                                            .interview_question_type,
+                                                    )}
+                                                >
+                                                    {interviewQuestionTypes.map(
+                                                        (type) => (
+                                                            <option
+                                                                key={type}
+                                                                value={type}
+                                                            >
+                                                                {formatOption(
+                                                                    type,
+                                                                )}
+                                                            </option>
+                                                        ),
+                                                    )}
+                                                </select>
+                                                <InputError
+                                                    message={
+                                                        form.errors
+                                                            .interview_question_type
+                                                    }
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="interview_job_description">
+                                                Job description
+                                            </Label>
+                                            <textarea
+                                                id="interview_job_description"
+                                                value={
+                                                    form.data
+                                                        .interview_job_description
+                                                }
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'interview_job_description',
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                rows={5}
+                                                maxLength={5000}
+                                                placeholder="Paste the role description or key requirements."
+                                                className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                                aria-invalid={Boolean(
+                                                    form.errors
+                                                        .interview_job_description,
+                                                )}
+                                            />
+                                            <div className="flex items-center justify-between gap-4">
+                                                <InputError
+                                                    message={
+                                                        form.errors
+                                                            .interview_job_description
+                                                    }
+                                                />
+                                                <p className="ml-auto text-xs text-muted-foreground">
+                                                    {
+                                                        form.data
+                                                            .interview_job_description
+                                                            .length
+                                                    }
+                                                    /5000
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="grid gap-2">
                                     <Label htmlFor="objective">Objective</Label>
                                     <textarea
@@ -222,7 +448,11 @@ export default function Create({
                                         }
                                         rows={5}
                                         maxLength={2000}
-                                        placeholder="What should the AI coach pay attention to?"
+                                        placeholder={
+                                            isInterview
+                                                ? 'What should the AI coach pay attention to in your answer?'
+                                                : 'What should the AI coach pay attention to?'
+                                        }
                                         className="min-h-28 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background transition outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                                         aria-invalid={Boolean(
                                             form.errors.objective,
@@ -299,7 +529,14 @@ export default function Create({
                                                     : 'border-border bg-background',
                                             )}
                                         >
-                                            {suggestion}
+                                            <span className="flex items-start gap-2">
+                                                {suggestion.startsWith(
+                                                    'Answer:',
+                                                ) && (
+                                                    <ClipboardList className="mt-0.5 size-4 shrink-0 text-cyan-700 dark:text-cyan-200" />
+                                                )}
+                                                <span>{suggestion}</span>
+                                            </span>
                                         </button>
                                     );
                                 })}

@@ -328,6 +328,36 @@ class SpeakingFeedbackReportTest extends TestCase
             && $request['response_format']['type'] === 'json_object');
     }
 
+    public function test_interview_feedback_prompt_includes_interview_coaching_context(): void
+    {
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->create([
+            'title' => 'Behavioral interview practice',
+            'topic' => 'Tell me about a time you handled conflict',
+            'session_type' => 'interview',
+            'objective' => 'Use a clear STAR answer with measurable impact.',
+            'interview_role_title' => 'Senior product manager',
+            'interview_company' => 'Acme AI',
+            'interview_stage' => 'Hiring manager screen',
+            'interview_question_type' => 'behavioral',
+            'interview_job_description' => 'Own AI workflow launches for enterprise customers.',
+        ]);
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'text' => 'I aligned two teams by clarifying customer impact and shipping a smaller release.',
+            ]);
+
+        $prompt = (new SpeakingFeedbackService)->buildPrompt($transcript, $session);
+
+        $this->assertStringContainsString('STAR or situation-action-result structure', $prompt);
+        $this->assertStringContainsString('Interview role: Senior product manager', $prompt);
+        $this->assertStringContainsString('Company: Acme AI', $prompt);
+        $this->assertStringContainsString('Question type: behavioral', $prompt);
+        $this->assertStringContainsString('Own AI workflow launches for enterprise customers.', $prompt);
+    }
+
     public function test_failed_feedback_analysis_notifies_user_and_admins(): void
     {
         $admin = User::factory()->admin()->create();

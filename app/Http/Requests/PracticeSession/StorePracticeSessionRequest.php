@@ -30,6 +30,11 @@ class StorePracticeSessionRequest extends FormRequest
             'session_type' => ['required', 'string', Rule::in(PracticeSession::SessionTypes)],
             'target_duration_seconds' => ['required', 'integer', 'min:60', 'max:7200'],
             'objective' => ['required', 'string', 'max:2000'],
+            'interview_role_title' => ['nullable', 'required_if:session_type,interview', 'string', 'max:160'],
+            'interview_company' => ['nullable', 'string', 'max:160'],
+            'interview_stage' => ['nullable', 'string', 'max:160'],
+            'interview_question_type' => ['nullable', 'required_if:session_type,interview', 'string', Rule::in(PracticeSession::InterviewQuestionTypes)],
+            'interview_job_description' => ['nullable', 'string', 'max:5000'],
         ];
     }
 
@@ -53,6 +58,13 @@ class StorePracticeSessionRequest extends FormRequest
             'target_duration_seconds.max' => __('Choose a duration of two hours or less.'),
             'objective.required' => __('Describe what you want to improve in this session.'),
             'objective.max' => __('Keep the objective under 2,000 characters.'),
+            'interview_role_title.required_if' => __('Add the role you want to interview for.'),
+            'interview_role_title.max' => __('Keep the interview role under 160 characters.'),
+            'interview_company.max' => __('Keep the company name under 160 characters.'),
+            'interview_stage.max' => __('Keep the interview stage under 160 characters.'),
+            'interview_question_type.required_if' => __('Choose the kind of interview question you want to practice.'),
+            'interview_question_type.in' => __('Choose a valid interview question type.'),
+            'interview_job_description.max' => __('Keep the job description under 5,000 characters.'),
         ];
     }
 }

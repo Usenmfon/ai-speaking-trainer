@@ -158,6 +158,7 @@ class PracticeSessionTest extends TestCase
                 ->has('sessionTypes')
                 ->has('durations')
                 ->has('topicSuggestions')
+                ->has('interviewQuestionTypes')
                 ->where('practiceSessionsRemaining', 5)
             );
     }
@@ -203,6 +204,38 @@ class PracticeSessionTest extends TestCase
         ]);
     }
 
+    public function test_user_can_create_interview_practice_session_with_context(): void
+    {
+        $user = $this->completedUser();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.store'), [
+            'title' => 'Behavioral interview practice',
+            'topic' => 'Tell me about a time you handled conflict',
+            'session_type' => 'interview',
+            'target_duration_seconds' => 300,
+            'objective' => 'Use a clear STAR answer with measurable impact.',
+            'interview_role_title' => 'Senior product manager',
+            'interview_company' => 'Acme AI',
+            'interview_stage' => 'Hiring manager screen',
+            'interview_question_type' => 'behavioral',
+            'interview_job_description' => 'Own AI workflow launches for enterprise customers.',
+        ]);
+
+        $session = PracticeSession::query()->firstOrFail();
+
+        $response->assertRedirect(route('practice-sessions.show', $session));
+
+        $this->assertDatabaseHas('practice_sessions', [
+            'id' => $session->id,
+            'session_type' => 'interview',
+            'interview_role_title' => 'Senior product manager',
+            'interview_company' => 'Acme AI',
+            'interview_stage' => 'Hiring manager screen',
+            'interview_question_type' => 'behavioral',
+            'interview_job_description' => 'Own AI workflow launches for enterprise customers.',
+        ]);
+    }
+
     public function test_user_cannot_create_practice_session_without_remaining_free_sessions(): void
     {
         $user = $this->completedUser();
@@ -242,6 +275,27 @@ class PracticeSessionTest extends TestCase
             'target_duration_seconds',
             'objective',
         ]);
+    }
+
+    public function test_interview_practice_session_requires_role_and_question_type(): void
+    {
+        $user = $this->completedUser();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.store'), [
+            'title' => 'Behavioral interview practice',
+            'topic' => 'Tell me about a time you handled conflict',
+            'session_type' => 'interview',
+            'target_duration_seconds' => 300,
+            'objective' => 'Use a clear STAR answer with measurable impact.',
+            'interview_role_title' => '',
+            'interview_question_type' => '',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'interview_role_title',
+            'interview_question_type',
+        ]);
+        $this->assertDatabaseCount('practice_sessions', 0);
     }
 
     public function test_user_can_view_their_own_practice_session(): void

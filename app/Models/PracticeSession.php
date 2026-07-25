@@ -19,6 +19,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
     'session_type',
     'target_duration_seconds',
     'objective',
+    'interview_role_title',
+    'interview_company',
+    'interview_stage',
+    'interview_question_type',
+    'interview_job_description',
     'status',
     'started_at',
     'completed_at',
@@ -34,6 +39,14 @@ class PracticeSession extends Model
         'storytelling',
         'elevator_pitch',
         'impromptu',
+    ];
+
+    public const InterviewQuestionTypes = [
+        'behavioral',
+        'technical',
+        'leadership',
+        'product',
+        'general',
     ];
 
     public const Statuses = [

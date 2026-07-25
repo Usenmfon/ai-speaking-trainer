@@ -45,16 +45,13 @@ class SpeakingFeedbackService
      */
     public function buildPrompt(PracticeSessionTranscript $transcript, PracticeSession $practiceSession): string
     {
+        $analysisFocus = $practiceSession->session_type === 'interview'
+            ? "- answer relevance to the interview question\n- STAR or situation-action-result structure where appropriate\n- specificity of examples\n- role fit and seniority signal\n- concise, confident framing\n- missed follow-up opportunities\n- clarity\n- filler words\n- improvement tips"
+            : "- clarity\n- confidence\n- structure\n- filler words\n- grammar\n- delivery\n- persuasiveness\n- improvement tips";
+
         return <<<PROMPT
 You are an expert AI speaking coach. Analyze the transcript for:
-- clarity
-- confidence
-- structure
-- filler words
-- grammar
-- delivery
-- persuasiveness
-- improvement tips
+{$analysisFocus}
 
 Return only valid JSON. Do not wrap it in markdown.
 
@@ -79,10 +76,29 @@ Title: {$practiceSession->title}
 Topic: {$practiceSession->topic}
 Objective: {$practiceSession->objective}
 Session type: {$practiceSession->session_type}
+{$this->buildInterviewContext($practiceSession)}
 
 Transcript:
 {$transcript->text}
 PROMPT;
+    }
+
+    /**
+     * Build interview-specific context for AI feedback when available.
+     */
+    private function buildInterviewContext(PracticeSession $practiceSession): string
+    {
+        if ($practiceSession->session_type !== 'interview') {
+            return '';
+        }
+
+        return <<<CONTEXT
+Interview role: {$practiceSession->interview_role_title}
+Company: {$practiceSession->interview_company}
+Interview stage: {$practiceSession->interview_stage}
+Question type: {$practiceSession->interview_question_type}
+Job description: {$practiceSession->interview_job_description}
+CONTEXT;
     }
 
     /**

@@ -119,12 +119,13 @@ class PracticeSessionController extends Controller
     /**
      * Get form options for the practice session setup flow.
      *
-     * @return array{sessionTypes: array<int, string>, topicSuggestions: array<int, string>, durations: array<int, array{label: string, value: int}>}
+     * @return array{sessionTypes: array<int, string>, interviewQuestionTypes: array<int, string>, topicSuggestions: array<int, string>, durations: array<int, array{label: string, value: int}>}
      */
     private function formOptions(): array
     {
         return [
             'sessionTypes' => PracticeSession::SessionTypes,
+            'interviewQuestionTypes' => PracticeSession::InterviewQuestionTypes,
             'durations' => [
                 ['label' => '2 minutes', 'value' => 120],
                 ['label' => '3 minutes', 'value' => 180],
@@ -134,6 +135,8 @@ class PracticeSessionController extends Controller
             ],
             'topicSuggestions' => [
                 'Introduce yourself for a senior product role interview',
+                'Answer: Tell me about a time you handled conflict',
+                'Answer: Why are you interested in this role?',
                 'Pitch an AI tool to a skeptical executive team',
                 'Tell a story about overcoming a difficult project',
                 'Explain a technical idea to a non-technical audience',
