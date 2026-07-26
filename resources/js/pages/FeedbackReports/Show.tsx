@@ -18,6 +18,7 @@ import {
 } from '@/actions/App/Http/Controllers/PracticeSessionController';
 import { index as reportsIndex } from '@/actions/App/Http/Controllers/SpeakingFeedbackReportController';
 import { FeedbackList } from '@/components/feedback/feedback-list';
+import { FeedbackReader } from '@/components/feedback/feedback-reader';
 import { ReportStatusPanel } from '@/components/feedback/report-status-panel';
 import { getScoreTone, ScoreCard } from '@/components/feedback/score-card';
 import { Button } from '@/components/ui/button';
@@ -197,11 +198,14 @@ export default function Show({ report, session: fallbackSession }: ShowProps) {
                     </div>
 
                     <section className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm">
-                        <div className="flex items-center gap-2">
-                            <MessageSquareText className="size-5 text-cyan-700 dark:text-cyan-200" />
-                            <h2 className="text-lg font-semibold">
-                                Summary feedback
-                            </h2>
+                        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                            <div className="flex items-center gap-2">
+                                <MessageSquareText className="size-5 text-cyan-700 dark:text-cyan-200" />
+                                <h2 className="text-lg font-semibold">
+                                    Summary feedback
+                                </h2>
+                            </div>
+                            <FeedbackReader report={report} />
                         </div>
                         {report?.summary_feedback ? (
                             <p className="mt-4 text-sm leading-7 text-muted-foreground">
