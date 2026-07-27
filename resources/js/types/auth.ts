@@ -23,6 +23,14 @@ export type InterviewQuestionType =
     | 'product'
     | 'general';
 
+export type PublicSpeakingTemplate = {
+    key: string;
+    title: string;
+    category: string;
+    description: string;
+    script: string;
+};
+
 export type PracticeSessionStatus =
     | 'draft'
     | 'recorded'
@@ -98,6 +106,9 @@ export type PracticeSession = {
     interview_stage: string | null;
     interview_question_type: InterviewQuestionType | null;
     interview_job_description: string | null;
+    public_speaking_template_key: string | null;
+    public_speaking_template_title: string | null;
+    public_speaking_script: string | null;
     status: PracticeSessionStatus;
     started_at: string | null;
     completed_at: string | null;

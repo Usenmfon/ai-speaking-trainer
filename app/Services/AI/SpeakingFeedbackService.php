@@ -45,9 +45,11 @@ class SpeakingFeedbackService
      */
     public function buildPrompt(PracticeSessionTranscript $transcript, PracticeSession $practiceSession): string
     {
-        $analysisFocus = $practiceSession->session_type === 'interview'
-            ? "- answer relevance to the interview question\n- STAR or situation-action-result structure where appropriate\n- specificity of examples\n- role fit and seniority signal\n- concise, confident framing\n- missed follow-up opportunities\n- clarity\n- filler words\n- improvement tips"
-            : "- clarity\n- confidence\n- structure\n- filler words\n- grammar\n- delivery\n- persuasiveness\n- improvement tips";
+        $analysisFocus = match ($practiceSession->session_type) {
+            'interview' => "- answer relevance to the interview question\n- STAR or situation-action-result structure where appropriate\n- specificity of examples\n- role fit and seniority signal\n- concise, confident framing\n- missed follow-up opportunities\n- clarity\n- filler words\n- improvement tips",
+            'public_speaking' => "- audience connection\n- opening hook\n- script coverage and natural delivery\n- confidence without visual help\n- structure\n- pacing\n- filler words\n- memorable closing\n- improvement tips",
+            default => "- clarity\n- confidence\n- structure\n- filler words\n- grammar\n- delivery\n- persuasiveness\n- improvement tips",
+        };
 
         return <<<PROMPT
 You are an expert AI speaking coach. Analyze the transcript for:
@@ -77,6 +79,7 @@ Topic: {$practiceSession->topic}
 Objective: {$practiceSession->objective}
 Session type: {$practiceSession->session_type}
 {$this->buildInterviewContext($practiceSession)}
+{$this->buildPublicSpeakingContext($practiceSession)}
 
 Transcript:
 {$transcript->text}
@@ -98,6 +101,22 @@ Company: {$practiceSession->interview_company}
 Interview stage: {$practiceSession->interview_stage}
 Question type: {$practiceSession->interview_question_type}
 Job description: {$practiceSession->interview_job_description}
+CONTEXT;
+    }
+
+    /**
+     * Build public-speaking-specific context for AI feedback when available.
+     */
+    private function buildPublicSpeakingContext(PracticeSession $practiceSession): string
+    {
+        if ($practiceSession->session_type !== 'public_speaking') {
+            return '';
+        }
+
+        return <<<CONTEXT
+Public speaking template: {$practiceSession->public_speaking_template_title}
+Public speaking script to compare against:
+{$practiceSession->public_speaking_script}
 CONTEXT;
     }
 

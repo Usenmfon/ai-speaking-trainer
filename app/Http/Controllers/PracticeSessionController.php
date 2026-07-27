@@ -7,6 +7,7 @@ use App\Http\Requests\PracticeSession\StorePracticeSessionRequest;
 use App\Models\PracticeSession;
 use App\Models\SpeakingFeedbackReport;
 use App\Services\PracticeSessionCreditService;
+use App\Support\PublicSpeakingTemplates;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -119,13 +120,14 @@ class PracticeSessionController extends Controller
     /**
      * Get form options for the practice session setup flow.
      *
-     * @return array{sessionTypes: array<int, string>, interviewQuestionTypes: array<int, string>, topicSuggestions: array<int, string>, durations: array<int, array{label: string, value: int}>}
+     * @return array{sessionTypes: array<int, string>, interviewQuestionTypes: array<int, string>, publicSpeakingTemplates: array<int, array{key: string, title: string, category: string, description: string, script: string}>, topicSuggestions: array<int, string>, durations: array<int, array{label: string, value: int}>}
      */
     private function formOptions(): array
     {
         return [
             'sessionTypes' => PracticeSession::SessionTypes,
             'interviewQuestionTypes' => PracticeSession::InterviewQuestionTypes,
+            'publicSpeakingTemplates' => PublicSpeakingTemplates::all(),
             'durations' => [
                 ['label' => '2 minutes', 'value' => 120],
                 ['label' => '3 minutes', 'value' => 180],

@@ -358,6 +358,33 @@ class SpeakingFeedbackReportTest extends TestCase
         $this->assertStringContainsString('Own AI workflow launches for enterprise customers.', $prompt);
     }
 
+    public function test_public_speaking_feedback_prompt_includes_template_context(): void
+    {
+        $user = $this->completedUser();
+        $session = PracticeSession::factory()->for($user)->create([
+            'title' => 'Persuasive talk practice',
+            'topic' => 'Practice a persuasive speech about consistent rehearsal',
+            'session_type' => 'public_speaking',
+            'objective' => 'Sound natural without reading every line.',
+            'public_speaking_template_key' => 'persuasive_speech',
+            'public_speaking_template_title' => 'Persuasive speech',
+            'public_speaking_script' => 'Imagine what would change if we treated practice as a priority.',
+        ]);
+        $transcript = PracticeSessionTranscript::factory()
+            ->for($user)
+            ->for($session)
+            ->create([
+                'text' => 'Imagine what would change if we made practice part of every week.',
+            ]);
+
+        $prompt = (new SpeakingFeedbackService)->buildPrompt($transcript, $session);
+
+        $this->assertStringContainsString('audience connection', $prompt);
+        $this->assertStringContainsString('script coverage and natural delivery', $prompt);
+        $this->assertStringContainsString('Public speaking template: Persuasive speech', $prompt);
+        $this->assertStringContainsString('Imagine what would change if we treated practice as a priority.', $prompt);
+    }
+
     public function test_failed_feedback_analysis_notifies_user_and_admins(): void
     {
         $admin = User::factory()->admin()->create();

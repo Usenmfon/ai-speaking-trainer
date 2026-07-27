@@ -160,6 +160,8 @@ class PracticeSessionTest extends TestCase
                 ->has('durations')
                 ->has('topicSuggestions')
                 ->where('topicSuggestions.0', 'Open a five-minute talk with a strong hook and clear promise')
+                ->has('publicSpeakingTemplates', 5)
+                ->where('publicSpeakingTemplates.0.key', 'personal_introduction')
                 ->has('interviewQuestionTypes')
                 ->where('practiceSessionsRemaining', 5)
             );
@@ -216,6 +218,9 @@ class PracticeSessionTest extends TestCase
             'session_type' => 'public_speaking',
             'target_duration_seconds' => 300,
             'objective' => 'Sound clear, confident, and audience-aware.',
+            'public_speaking_template_key' => 'persuasive_speech',
+            'public_speaking_template_title' => 'Persuasive speech',
+            'public_speaking_script' => 'Imagine what would change if we treated practice as a priority.',
         ]);
 
         $session = PracticeSession::query()->firstOrFail();
@@ -229,8 +234,34 @@ class PracticeSessionTest extends TestCase
             'session_type' => 'public_speaking',
             'target_duration_seconds' => 300,
             'objective' => 'Sound clear, confident, and audience-aware.',
+            'public_speaking_template_key' => 'persuasive_speech',
+            'public_speaking_template_title' => 'Persuasive speech',
+            'public_speaking_script' => 'Imagine what would change if we treated practice as a priority.',
             'status' => 'draft',
         ]);
+    }
+
+    public function test_public_speaking_practice_session_requires_template_and_script(): void
+    {
+        $user = $this->completedUser();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.store'), [
+            'title' => 'Public speaking warmup',
+            'topic' => 'Open a five-minute talk with a strong hook and clear promise',
+            'session_type' => 'public_speaking',
+            'target_duration_seconds' => 300,
+            'objective' => 'Sound clear, confident, and audience-aware.',
+            'public_speaking_template_key' => '',
+            'public_speaking_template_title' => '',
+            'public_speaking_script' => '',
+        ]);
+
+        $response->assertSessionHasErrors([
+            'public_speaking_template_key',
+            'public_speaking_template_title',
+            'public_speaking_script',
+        ]);
+        $this->assertDatabaseCount('practice_sessions', 0);
     }
 
     public function test_user_can_create_interview_practice_session_with_context(): void

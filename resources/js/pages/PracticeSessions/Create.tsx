@@ -19,7 +19,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-import type { InterviewQuestionType, PracticeSessionType } from '@/types';
+import type {
+    InterviewQuestionType,
+    PracticeSessionType,
+    PublicSpeakingTemplate,
+} from '@/types';
 
 type DurationOption = {
     label: string;
@@ -29,6 +33,7 @@ type DurationOption = {
 type CreateProps = {
     sessionTypes: PracticeSessionType[];
     interviewQuestionTypes: InterviewQuestionType[];
+    publicSpeakingTemplates: PublicSpeakingTemplate[];
     topicSuggestions: string[];
     durations: DurationOption[];
     practiceSessionsRemaining: number;
@@ -45,6 +50,9 @@ type PracticeSessionForm = {
     interview_stage: string;
     interview_question_type: InterviewQuestionType | '';
     interview_job_description: string;
+    public_speaking_template_key: string;
+    public_speaking_template_title: string;
+    public_speaking_script: string;
     practice_sessions_remaining?: string;
 };
 
@@ -58,10 +66,13 @@ function formatOption(value: string): string {
 export default function Create({
     sessionTypes,
     interviewQuestionTypes,
+    publicSpeakingTemplates,
     topicSuggestions,
     durations,
     practiceSessionsRemaining,
 }: CreateProps) {
+    const defaultPublicSpeakingTemplate = publicSpeakingTemplates[0] ?? null;
+
     const form = useForm<PracticeSessionForm>({
         title: '',
         topic: '',
@@ -73,15 +84,33 @@ export default function Create({
         interview_stage: '',
         interview_question_type: 'behavioral',
         interview_job_description: '',
+        public_speaking_template_key: defaultPublicSpeakingTemplate?.key ?? '',
+        public_speaking_template_title:
+            defaultPublicSpeakingTemplate?.title ?? '',
+        public_speaking_script: defaultPublicSpeakingTemplate?.script ?? '',
     });
     const isInterview = form.data.session_type === 'interview';
+    const isPublicSpeaking = form.data.session_type === 'public_speaking';
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
         form.submit(store());
     }
 
+    function selectPublicSpeakingTemplate(
+        template: PublicSpeakingTemplate,
+    ): void {
+        form.setData((data) => ({
+            ...data,
+            public_speaking_template_key: template.key,
+            public_speaking_template_title: template.title,
+            public_speaking_script: template.script,
+        }));
+    }
+
     function selectSessionType(type: PracticeSessionType): void {
+        const template = defaultPublicSpeakingTemplate;
+
         form.setData((data) => ({
             ...data,
             session_type: type,
@@ -94,6 +123,20 @@ export default function Create({
                 type === 'interview' ? data.interview_question_type : '',
             interview_job_description:
                 type === 'interview' ? data.interview_job_description : '',
+            public_speaking_template_key:
+                type === 'public_speaking'
+                    ? data.public_speaking_template_key || template?.key || ''
+                    : '',
+            public_speaking_template_title:
+                type === 'public_speaking'
+                    ? data.public_speaking_template_title ||
+                      template?.title ||
+                      ''
+                    : '',
+            public_speaking_script:
+                type === 'public_speaking'
+                    ? data.public_speaking_script || template?.script || ''
+                    : '',
         }));
     }
 
@@ -244,6 +287,115 @@ export default function Create({
                                         />
                                     </div>
                                 </div>
+
+                                {isPublicSpeaking && (
+                                    <div className="grid gap-5 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-4 sm:p-5">
+                                        <div>
+                                            <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-200">
+                                                <ClipboardList className="size-4" />
+                                                Phase 1: choose a speech
+                                                template
+                                            </div>
+                                            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                                Pick a sample script to read
+                                                from first. You can edit it
+                                                before saving the session.
+                                            </p>
+                                        </div>
+
+                                        <div className="grid gap-3 md:grid-cols-2">
+                                            {publicSpeakingTemplates.map(
+                                                (template) => {
+                                                    const isSelected =
+                                                        form.data
+                                                            .public_speaking_template_key ===
+                                                        template.key;
+
+                                                    return (
+                                                        <button
+                                                            key={template.key}
+                                                            type="button"
+                                                            onClick={() =>
+                                                                selectPublicSpeakingTemplate(
+                                                                    template,
+                                                                )
+                                                            }
+                                                            className={cn(
+                                                                'rounded-xl border p-4 text-left transition hover:border-emerald-500/50 hover:bg-emerald-500/10 focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none',
+                                                                isSelected
+                                                                    ? 'border-emerald-500/60 bg-emerald-500/15'
+                                                                    : 'border-border bg-background',
+                                                            )}
+                                                        >
+                                                            <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-200">
+                                                                {
+                                                                    template.category
+                                                                }
+                                                            </span>
+                                                            <span className="mt-2 block font-semibold">
+                                                                {template.title}
+                                                            </span>
+                                                            <span className="mt-2 block text-sm leading-6 text-muted-foreground">
+                                                                {
+                                                                    template.description
+                                                                }
+                                                            </span>
+                                                        </button>
+                                                    );
+                                                },
+                                            )}
+                                        </div>
+                                        <InputError
+                                            message={
+                                                form.errors
+                                                    .public_speaking_template_key
+                                            }
+                                        />
+
+                                        <div className="grid gap-2">
+                                            <Label htmlFor="public_speaking_script">
+                                                Editable practice script
+                                            </Label>
+                                            <textarea
+                                                id="public_speaking_script"
+                                                value={
+                                                    form.data
+                                                        .public_speaking_script
+                                                }
+                                                onChange={(event) =>
+                                                    form.setData(
+                                                        'public_speaking_script',
+                                                        event.target.value,
+                                                    )
+                                                }
+                                                rows={12}
+                                                maxLength={6000}
+                                                placeholder="Choose a template or write the script you want to practice."
+                                                className="min-h-72 w-full rounded-md border border-input bg-background px-3 py-2 text-sm leading-6 ring-offset-background transition outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                                aria-invalid={Boolean(
+                                                    form.errors
+                                                        .public_speaking_script,
+                                                )}
+                                            />
+                                            <div className="flex items-center justify-between gap-4">
+                                                <InputError
+                                                    message={
+                                                        form.errors
+                                                            .public_speaking_script
+                                                    }
+                                                />
+                                                <p className="ml-auto text-xs text-muted-foreground">
+                                                    {
+                                                        form.data
+                                                            .public_speaking_script
+                                                            .length
+                                                    }
+                                                    /6000
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 {isInterview && (
                                     <div className="grid gap-5 rounded-2xl border border-cyan-500/25 bg-cyan-500/10 p-4 sm:p-5">
