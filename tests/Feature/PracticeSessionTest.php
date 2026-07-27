@@ -156,8 +156,10 @@ class PracticeSessionTest extends TestCase
             ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('PracticeSessions/Create')
                 ->has('sessionTypes')
+                ->where('sessionTypes.0', 'public_speaking')
                 ->has('durations')
                 ->has('topicSuggestions')
+                ->where('topicSuggestions.0', 'Open a five-minute talk with a strong hook and clear promise')
                 ->has('interviewQuestionTypes')
                 ->where('practiceSessionsRemaining', 5)
             );
@@ -200,6 +202,33 @@ class PracticeSessionTest extends TestCase
             'session_type' => 'presentation',
             'target_duration_seconds' => 300,
             'objective' => 'Sound clear, confident, and concise.',
+            'status' => 'draft',
+        ]);
+    }
+
+    public function test_user_can_create_public_speaking_practice_session(): void
+    {
+        $user = $this->completedUser();
+
+        $response = $this->actingAs($user)->post(route('practice-sessions.store'), [
+            'title' => 'Public speaking warmup',
+            'topic' => 'Open a five-minute talk with a strong hook and clear promise',
+            'session_type' => 'public_speaking',
+            'target_duration_seconds' => 300,
+            'objective' => 'Sound clear, confident, and audience-aware.',
+        ]);
+
+        $session = PracticeSession::query()->firstOrFail();
+
+        $response->assertRedirect(route('practice-sessions.show', $session));
+
+        $this->assertDatabaseHas('practice_sessions', [
+            'id' => $session->id,
+            'title' => 'Public speaking warmup',
+            'topic' => 'Open a five-minute talk with a strong hook and clear promise',
+            'session_type' => 'public_speaking',
+            'target_duration_seconds' => 300,
+            'objective' => 'Sound clear, confident, and audience-aware.',
             'status' => 'draft',
         ]);
     }

@@ -134,6 +134,9 @@ class PracticeSessionController extends Controller
                 ['label' => '15 minutes', 'value' => 900],
             ],
             'topicSuggestions' => [
+                'Open a five-minute talk with a strong hook and clear promise',
+                'Explain a personal lesson to an audience of new professionals',
+                'Practice a persuasive speech about a cause you care about',
                 'Introduce yourself for a senior product role interview',
                 'Answer: Tell me about a time you handled conflict',
                 'Answer: Why are you interested in this role?',

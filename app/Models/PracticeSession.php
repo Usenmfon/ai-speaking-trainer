@@ -34,6 +34,7 @@ class PracticeSession extends Model
     use HasFactory, HasUuids;
 
     public const SessionTypes = [
+        'public_speaking',
         'presentation',
         'interview',
         'storytelling',

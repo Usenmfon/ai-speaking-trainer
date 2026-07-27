@@ -9,6 +9,7 @@ export type MainGoal =
     | 'pronunciation';
 
 export type PracticeSessionType =
+    | 'public_speaking'
     | 'presentation'
     | 'interview'
     | 'storytelling'

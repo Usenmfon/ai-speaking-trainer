@@ -65,7 +65,7 @@ export default function Create({
     const form = useForm<PracticeSessionForm>({
         title: '',
         topic: '',
-        session_type: 'presentation',
+        session_type: 'public_speaking',
         target_duration_seconds: durations[2]?.value ?? 300,
         objective: '',
         interview_role_title: '',
@@ -167,7 +167,7 @@ export default function Create({
                                                 event.target.value,
                                             )
                                         }
-                                        placeholder="Pitch an AI tool to a skeptical executive team"
+                                        placeholder="Open a five-minute talk with a strong hook and clear promise"
                                         aria-invalid={Boolean(
                                             form.errors.topic,
                                         )}
