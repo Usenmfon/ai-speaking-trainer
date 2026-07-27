@@ -1,98 +1,214 @@
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
+    ArrowRight,
     AudioLines,
+    BadgeCheck,
+    BarChart3,
     BriefcaseBusiness,
-    CheckCircle2,
+    Check,
     ChevronRight,
+    CircleDot,
     GraduationCap,
     MessagesSquare,
+    Mic2,
     Monitor,
     Moon,
+    Play,
     Presentation,
+    Quote,
     Rocket,
+    ShieldCheck,
+    Sparkles,
     Sun,
+    TimerReset,
     UsersRound,
+    Volume2,
+    Zap,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { GlassCard } from '@/components/ai/glass-card';
-import { GradientButton } from '@/components/ai/gradient-button';
-import { WaveformMock } from '@/components/ai/waveform-mock';
+
 import AppLogoIcon from '@/components/app-logo-icon';
 import { useAppearance } from '@/hooks/use-appearance';
 import { cn } from '@/lib/utils';
 import { dashboard, login, register } from '@/routes';
 
-const highlights = [
-    'Practice with guided speech prompts',
-    'Get clear feedback after each session',
-    'Track confidence, pace, and filler words',
+const outcomes = [
+    'Interview answers that land cleanly',
+    'Presentation structure without rambling',
+    'Confidence, pace, and filler-word tracking',
 ];
 
-const coachingNotes = [
+const metrics = [
     {
         label: 'Pace',
-        value: '142 wpm',
+        value: '142',
+        suffix: 'wpm',
+        tone: 'text-emerald-600 dark:text-emerald-300',
     },
     {
         label: 'Confidence',
-        value: '91%',
+        value: '91',
+        suffix: '%',
+        tone: 'text-cyan-700 dark:text-cyan-300',
     },
     {
         label: 'Fillers',
         value: '3',
+        suffix: 'words',
+        tone: 'text-amber-600 dark:text-amber-300',
     },
 ];
 
-const practiceScenarios: Array<{
+const practiceModes: Array<{
     title: string;
     description: string;
     icon: LucideIcon;
-    accent: string;
-    stackClass: string;
 }> = [
     {
-        title: 'Interviews',
-        description: 'Answer with clarity',
+        title: 'Interview room',
+        description:
+            'Practice role-specific answers with crisp follow-through.',
         icon: BriefcaseBusiness,
-        accent: 'from-cyan-300 via-sky-500 to-slate-950',
-        stackClass: 'md:-rotate-8 md:translate-y-8',
     },
     {
-        title: 'Presentations',
-        description: 'Structure every point',
+        title: 'Presentation table',
+        description:
+            'Turn scattered talking points into a clean narrative arc.',
         icon: Presentation,
-        accent: 'from-emerald-300 via-teal-500 to-slate-950',
-        stackClass: 'md:-ml-12 md:-rotate-4 md:translate-y-2',
     },
     {
-        title: 'Startup pitch',
-        description: 'Make the ask land',
+        title: 'Pitch sprint',
+        description: 'Sharpen your opening, proof, and ask under pressure.',
         icon: Rocket,
-        accent: 'from-amber-300 via-orange-500 to-rose-700',
-        stackClass: 'md:-ml-12 md:rotate-1 md:-translate-y-3',
     },
     {
-        title: 'Panel Q&A',
-        description: 'Think on your feet',
+        title: 'Panel answer',
+        description: 'Handle fast questions without losing your thread.',
         icon: UsersRound,
-        accent: 'from-violet-300 via-fuchsia-500 to-slate-950',
-        stackClass: 'md:-ml-12 md:rotate-3 md:-translate-y-1',
     },
     {
-        title: 'Storytelling',
-        description: 'Keep the room with you',
+        title: 'Story practice',
+        description: 'Build momentum, contrast, and a memorable close.',
         icon: MessagesSquare,
-        accent: 'from-blue-200 via-indigo-500 to-slate-950',
-        stackClass: 'md:-ml-12 md:rotate-6 md:translate-y-4',
     },
     {
-        title: 'Pronunciation',
-        description: 'Polish hard sounds',
+        title: 'Pronunciation pass',
+        description:
+            'Slow down tough sounds and make delivery easier to follow.',
         icon: GraduationCap,
-        accent: 'from-lime-200 via-cyan-500 to-slate-950',
-        stackClass: 'md:-ml-12 md:rotate-9 md:translate-y-9',
     },
 ];
+
+const feedbackSteps = [
+    {
+        title: 'Record one focused take',
+        description:
+            'Choose a goal and speak naturally. No studio setup, no awkward ceremony.',
+        icon: Mic2,
+    },
+    {
+        title: 'Get scored feedback',
+        description:
+            'See clarity, structure, confidence, pace, and filler-word signals in one place.',
+        icon: BarChart3,
+    },
+    {
+        title: 'Practice the next move',
+        description:
+            'Leave with one concrete recommendation instead of a vague pep talk.',
+        icon: TimerReset,
+    },
+];
+
+function MiniWaveform({ compact = false }: { compact?: boolean }) {
+    return (
+        <div
+            className={cn('flex items-center gap-1', compact ? 'h-9' : 'h-24')}
+            aria-hidden="true"
+        >
+            {Array.from({ length: compact ? 18 : 36 }).map((_, index) => (
+                <span
+                    key={index}
+                    className="w-1 flex-1 rounded-full bg-current opacity-80"
+                    style={{
+                        height: `${18 + ((index * 23) % (compact ? 54 : 78))}%`,
+                    }}
+                />
+            ))}
+        </div>
+    );
+}
+
+function VoiceLabScene() {
+    return (
+        <div className="relative min-h-[520px] overflow-hidden rounded-lg border border-slate-950/10 bg-[#101820] shadow-2xl shadow-slate-950/20 dark:border-white/10 dark:bg-[#08110f]">
+            <div className="absolute inset-0 bg-[linear-gradient(110deg,rgba(20,184,166,0.18),transparent_34%),linear-gradient(252deg,rgba(245,158,11,0.22),transparent_30%)]" />
+            <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.18),transparent)]" />
+            <div className="absolute top-8 right-8 left-8 flex items-center justify-between text-white/70">
+                <div className="flex items-center gap-2 text-xs font-medium uppercase">
+                    <CircleDot className="size-4 text-rose-300" />
+                    Live rehearsal
+                </div>
+                <div className="flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs backdrop-blur">
+                    <Volume2 className="size-3.5" />
+                    Voice ready
+                </div>
+            </div>
+
+            <div className="absolute top-24 right-8 left-8 rounded-lg border border-white/10 bg-white/[0.08] p-5 text-white shadow-xl backdrop-blur-md">
+                <div className="flex items-start gap-3">
+                    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-teal-300 text-slate-950">
+                        <Sparkles className="size-5" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-medium text-white/55">
+                            Coach prompt
+                        </p>
+                        <p className="mt-2 text-lg leading-7 font-semibold">
+                            Walk me through a time you handled a difficult
+                            stakeholder.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div className="absolute right-8 bottom-[10.5rem] left-8 text-teal-200">
+                <MiniWaveform />
+            </div>
+
+            <div className="absolute right-8 bottom-8 left-8 grid gap-3 sm:grid-cols-3">
+                {metrics.map((metric) => (
+                    <div
+                        key={metric.label}
+                        className="rounded-lg border border-white/10 bg-white/[0.09] p-4 text-white backdrop-blur-md"
+                    >
+                        <p className="text-xs text-white/55">{metric.label}</p>
+                        <div className="mt-2 flex items-end gap-1">
+                            <span
+                                className={cn(
+                                    'text-3xl font-semibold',
+                                    metric.tone,
+                                )}
+                            >
+                                {metric.value}
+                            </span>
+                            <span className="pb-1 text-xs text-white/55">
+                                {metric.suffix}
+                            </span>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="absolute bottom-[7.75rem] left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm text-white backdrop-blur-md">
+                <span className="flex size-8 items-center justify-center rounded-full bg-white text-slate-950">
+                    <Play className="ml-0.5 size-4 fill-current" />
+                </span>
+                <span>Answer captured</span>
+            </div>
+        </div>
+    );
+}
 
 export default function Welcome() {
     const { auth } = usePage().props;
@@ -106,279 +222,267 @@ export default function Welcome() {
             : resolvedAppearance === 'dark'
               ? Moon
               : Sun;
+    const primaryHref = auth.user ? dashboard() : register();
 
     return (
         <>
-            <Head title="AI Speaking Coach" />
-            <main className="min-h-screen bg-slate-50 text-slate-950 dark:bg-[#070914] dark:text-white">
-                <header className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-8">
-                    <Link href="/" className="flex min-w-0 items-center gap-3">
-                        <AppLogoIcon className="size-10 rounded-xl" />
-                        <span className="truncate text-sm font-semibold">
-                            TWAC
-                        </span>
-                    </Link>
-
-                    <div className="flex items-center gap-2 sm:gap-3">
-                        <button
-                            type="button"
-                            onClick={() => updateAppearance(nextAppearance)}
-                            className="inline-flex size-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 transition hover:border-cyan-500/40 hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none dark:border-white/10 dark:bg-white/8 dark:text-slate-200 dark:hover:border-cyan-300/50 dark:hover:text-white"
-                            aria-label={`Switch to ${nextAppearance} theme`}
-                            title={`Switch to ${nextAppearance} theme`}
-                        >
-                            <ThemeIcon className="size-4" />
-                        </button>
-
-                        {auth.user ? (
-                            <GradientButton
-                                href={dashboard()}
-                                className="px-4 sm:px-5"
+            <Head title="AI Speaking Practice Coach" />
+            <main className="min-h-screen bg-[#f4f7f5] text-slate-950 dark:bg-[#07100e] dark:text-white">
+                <section className="relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(15,23,42,0.08)_1px,transparent_1px),linear-gradient(rgba(15,23,42,0.08)_1px,transparent_1px)] bg-[size:56px_56px] opacity-45 dark:bg-[linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px)]" />
+                    <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                        <header className="flex items-center justify-between gap-4 py-5">
+                            <Link
+                                href="/"
+                                className="flex min-w-0 items-center gap-3"
                             >
-                                Dashboard
-                            </GradientButton>
-                        ) : (
-                            <>
-                                <Link
-                                    href={login()}
-                                    className="hidden rounded-full px-4 py-2 text-sm text-slate-600 transition hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-cyan-300 focus-visible:outline-none sm:inline-flex dark:text-slate-300 dark:hover:text-white"
-                                >
-                                    Log in
-                                </Link>
-                                <GradientButton
-                                    href={register()}
-                                    className="px-3 py-2 text-xs whitespace-nowrap sm:px-5 sm:py-3 sm:text-sm"
-                                >
-                                    <span className="sm:hidden">Start</span>
-                                    <span className="hidden sm:inline">
-                                        Start practicing
-                                    </span>
-                                </GradientButton>
-                            </>
-                        )}
-                    </div>
-                </header>
-
-                <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,0.85fr)] lg:px-8">
-                    <div className="min-w-0">
-                        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-500/20 bg-cyan-500/10 px-4 py-2 text-sm text-cyan-700 dark:border-cyan-300/20 dark:bg-cyan-300/10 dark:text-cyan-100">
-                            <AudioLines className="size-4" />
-                            Simple speaking practice with AI feedback
-                        </div>
-
-                        <h1 className="max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 sm:text-5xl lg:text-6xl dark:text-white">
-                            Speak better with one focused practice session.
-                        </h1>
-
-                        <p className="mt-5 max-w-xl text-base leading-7 text-slate-600 sm:text-lg dark:text-slate-300">
-                            Record a speech, interview answer, or presentation
-                            draft. TWAC listens, then shows the few improvements
-                            that matter most.
-                        </p>
-
-                        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                            <GradientButton
-                                href={auth.user ? dashboard() : register()}
-                                className="w-full px-7 sm:w-auto"
-                            >
-                                Start practicing
-                                <ChevronRight className="size-4" />
-                            </GradientButton>
-                            {!auth.user && (
-                                <GradientButton
-                                    href={login()}
-                                    variant="secondary"
-                                    className="w-full sm:w-auto"
-                                >
-                                    Log in
-                                </GradientButton>
-                            )}
-                        </div>
-
-                        <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-                            No credit card required. Your practice sessions stay
-                            private.
-                        </p>
-
-                        <div className="mt-8 grid gap-3 text-sm text-slate-600 dark:text-slate-300">
-                            {highlights.map((item) => (
-                                <div
-                                    key={item}
-                                    className="flex items-center gap-2"
-                                >
-                                    <CheckCircle2 className="size-4 shrink-0 text-cyan-500 dark:text-cyan-300" />
-                                    <span>{item}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <GlassCard className="p-4 sm:p-5" glow>
-                        <div className="rounded-xl border border-slate-200 bg-white p-4 dark:border-white/10 dark:bg-slate-950/70">
-                            <div className="mb-5 flex items-start justify-between gap-4">
-                                <div className="flex min-w-0 items-start gap-3">
-                                    <AppLogoIcon className="size-11 rounded-xl" />
-                                    <div className="min-w-0">
-                                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                                            Practice session
-                                        </p>
-                                        <h2 className="mt-1 truncate text-xl font-semibold">
-                                            Interview answer
-                                        </h2>
-                                    </div>
-                                </div>
-                                <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-xs text-emerald-700 dark:bg-emerald-300/10 dark:text-emerald-200">
-                                    Ready
+                                <AppLogoIcon className="size-10 rounded-lg" />
+                                <span className="truncate text-sm font-semibold tracking-normal">
+                                    TWAC
                                 </span>
+                            </Link>
+
+                            <div className="flex items-center gap-2 sm:gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() =>
+                                        updateAppearance(nextAppearance)
+                                    }
+                                    className="inline-flex size-10 items-center justify-center rounded-lg border border-slate-950/10 bg-white/70 text-slate-700 transition hover:border-teal-500/50 hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:outline-none dark:border-white/10 dark:bg-white/8 dark:text-slate-200 dark:hover:border-teal-300/50 dark:hover:text-white"
+                                    aria-label={`Switch to ${nextAppearance} theme`}
+                                    title={`Switch to ${nextAppearance} theme`}
+                                >
+                                    <ThemeIcon className="size-4" />
+                                </button>
+
+                                {auth.user ? (
+                                    <Link
+                                        href={dashboard()}
+                                        className="inline-flex h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-teal-700 focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:outline-none dark:bg-white dark:text-slate-950 dark:hover:bg-teal-100"
+                                    >
+                                        Dashboard
+                                        <ArrowRight className="size-4" />
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <Link
+                                            href={login()}
+                                            className="hidden h-10 items-center rounded-lg px-4 text-sm font-medium text-slate-700 transition hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:outline-none sm:inline-flex dark:text-slate-300 dark:hover:text-white"
+                                        >
+                                            Log in
+                                        </Link>
+                                        <Link
+                                            href={register()}
+                                            className="inline-flex h-10 items-center gap-2 rounded-lg bg-slate-950 px-4 text-sm font-semibold text-white transition hover:bg-teal-700 focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:outline-none dark:bg-white dark:text-slate-950 dark:hover:bg-teal-100"
+                                        >
+                                            Start
+                                            <ChevronRight className="size-4" />
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+                        </header>
+
+                        <div className="grid min-h-[calc(100vh-80px)] items-center gap-10 py-10 lg:grid-cols-[minmax(0,0.88fr)_minmax(480px,0.9fr)] lg:py-14">
+                            <div className="max-w-3xl">
+                                <div className="inline-flex items-center gap-2 rounded-lg border border-teal-600/20 bg-white/60 px-3 py-2 text-sm font-medium text-teal-800 shadow-sm dark:border-teal-300/20 dark:bg-white/8 dark:text-teal-100">
+                                    <AudioLines className="size-4" />
+                                    AI feedback for real speaking reps
+                                </div>
+
+                                <h1 className="mt-6 text-5xl leading-[0.95] font-semibold tracking-normal text-slate-950 sm:text-6xl lg:text-7xl dark:text-white">
+                                    AI speaking practice coach
+                                </h1>
+
+                                <p className="mt-6 max-w-2xl text-base leading-7 text-slate-700 sm:text-lg dark:text-slate-300">
+                                    Rehearse interviews, presentations, pitches,
+                                    and tough Q&A in a private voice-first
+                                    workspace. Record a take, get precise
+                                    feedback, and know exactly what to improve
+                                    next.
+                                </p>
+
+                                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                                    <Link
+                                        href={primaryHref}
+                                        className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-teal-600 px-6 text-sm font-semibold text-white shadow-lg shadow-teal-600/20 transition hover:bg-teal-700 focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:outline-none"
+                                    >
+                                        {auth.user
+                                            ? 'Open dashboard'
+                                            : 'Start practicing'}
+                                        <ArrowRight className="size-4" />
+                                    </Link>
+                                    {!auth.user && (
+                                        <Link
+                                            href={login()}
+                                            className="inline-flex h-12 items-center justify-center gap-2 rounded-lg border border-slate-950/10 bg-white/70 px-6 text-sm font-semibold text-slate-900 transition hover:border-slate-950/25 focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:outline-none dark:border-white/10 dark:bg-white/8 dark:text-white dark:hover:border-white/25"
+                                        >
+                                            Log in
+                                        </Link>
+                                    )}
+                                </div>
+
+                                <div className="mt-8 grid gap-3 sm:grid-cols-3">
+                                    {outcomes.map((item) => (
+                                        <div
+                                            key={item}
+                                            className="flex items-start gap-2 text-sm leading-6 text-slate-700 dark:text-slate-300"
+                                        >
+                                            <Check className="mt-1 size-4 shrink-0 text-teal-600 dark:text-teal-300" />
+                                            <span>{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
 
-                            <WaveformMock bars={28} />
+                            <VoiceLabScene />
+                        </div>
+                    </div>
+                </section>
 
-                            <div className="mt-5 grid gap-3 sm:grid-cols-3">
-                                {coachingNotes.map((note) => (
-                                    <div
-                                        key={note.label}
-                                        className="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-white/10 dark:bg-white/[0.05]"
+                <section className="px-4 py-16 sm:px-6 lg:px-8">
+                    <div className="mx-auto max-w-7xl">
+                        <div className="grid gap-6 lg:grid-cols-[0.72fr_1fr] lg:items-end">
+                            <div>
+                                <p className="text-sm font-semibold text-teal-700 dark:text-teal-300">
+                                    Practice modes
+                                </p>
+                                <h2 className="mt-3 max-w-xl text-3xl font-semibold tracking-normal sm:text-4xl">
+                                    Designed around the rooms you actually need
+                                    to speak in.
+                                </h2>
+                            </div>
+                            <p className="max-w-2xl text-sm leading-7 text-slate-700 lg:justify-self-end dark:text-slate-300">
+                                The experience shifts with your goal: interviews
+                                get sharper answer structure, presentations get
+                                narrative flow, and impromptu practice keeps you
+                                calm when the script disappears.
+                            </p>
+                        </div>
+
+                        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                            {practiceModes.map((mode) => {
+                                const Icon = mode.icon;
+
+                                return (
+                                    <article
+                                        key={mode.title}
+                                        className="group rounded-lg border border-slate-950/10 bg-white/70 p-5 shadow-sm transition hover:-translate-y-1 hover:border-teal-500/40 hover:shadow-xl hover:shadow-slate-950/10 dark:border-white/10 dark:bg-white/[0.06] dark:hover:border-teal-300/35"
                                     >
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                                            {note.label}
+                                        <div className="flex items-start justify-between gap-4">
+                                            <div className="flex size-11 items-center justify-center rounded-lg bg-slate-950 text-white transition group-hover:bg-teal-600 dark:bg-white dark:text-slate-950">
+                                                <Icon className="size-5" />
+                                            </div>
+                                            <ChevronRight className="size-5 text-slate-400 transition group-hover:translate-x-1 group-hover:text-teal-600 dark:text-slate-500 dark:group-hover:text-teal-300" />
+                                        </div>
+                                        <h3 className="mt-5 text-lg font-semibold">
+                                            {mode.title}
+                                        </h3>
+                                        <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
+                                            {mode.description}
                                         </p>
-                                        <p className="mt-1 text-lg font-semibold">
-                                            {note.value}
-                                        </p>
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                <section className="px-4 py-16 sm:px-6 lg:px-8">
+                    <div className="mx-auto grid max-w-7xl overflow-hidden rounded-lg border border-slate-950/10 bg-slate-950 text-white shadow-2xl shadow-slate-950/20 lg:grid-cols-[0.9fr_1.1fr] dark:border-white/10 dark:bg-white/[0.06]">
+                        <div className="p-6 sm:p-8 lg:p-10">
+                            <p className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-3 py-2 text-sm text-teal-100">
+                                <BadgeCheck className="size-4" />
+                                Coaching loop
+                            </p>
+                            <h2 className="mt-6 text-3xl font-semibold tracking-normal sm:text-4xl">
+                                From recorded answer to next rep in minutes.
+                            </h2>
+                            <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
+                                TWAC keeps feedback practical: score the
+                                delivery, explain the pattern, and turn it into
+                                the next focused practice session.
+                            </p>
+                        </div>
+
+                        <div className="grid border-t border-white/10 lg:border-t-0 lg:border-l">
+                            {feedbackSteps.map((step, index) => {
+                                const Icon = step.icon;
+
+                                return (
+                                    <div
+                                        key={step.title}
+                                        className="grid gap-4 border-b border-white/10 p-6 last:border-b-0 sm:grid-cols-[auto_1fr] sm:p-8"
+                                    >
+                                        <div className="flex size-12 items-center justify-center rounded-lg bg-teal-300 text-slate-950">
+                                            <Icon className="size-5" />
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-xs font-semibold text-teal-200">
+                                                    0{index + 1}
+                                                </span>
+                                                <h3 className="text-lg font-semibold">
+                                                    {step.title}
+                                                </h3>
+                                            </div>
+                                            <p className="mt-2 text-sm leading-6 text-slate-300">
+                                                {step.description}
+                                            </p>
+                                        </div>
                                     </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </section>
+
+                <section className="px-4 py-16 sm:px-6 lg:px-8">
+                    <div className="mx-auto grid max-w-7xl gap-6 lg:grid-cols-[1fr_0.85fr] lg:items-center">
+                        <div className="rounded-lg border border-slate-950/10 bg-white/70 p-6 shadow-sm sm:p-8 dark:border-white/10 dark:bg-white/[0.06]">
+                            <Quote className="size-8 text-teal-600 dark:text-teal-300" />
+                            <p className="mt-5 text-2xl leading-9 font-semibold tracking-normal">
+                                The best speaking practice is not more notes. It
+                                is hearing yourself, spotting the pattern, and
+                                trying again with one sharper intention.
+                            </p>
+                            <div className="mt-6 flex flex-wrap gap-2">
+                                {[
+                                    'Private sessions',
+                                    'Readable feedback',
+                                    'Streak tracking',
+                                    'Interview setup',
+                                ].map((item) => (
+                                    <span
+                                        key={item}
+                                        className="rounded-lg border border-slate-950/10 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 dark:border-white/10 dark:bg-white/8 dark:text-slate-200"
+                                    >
+                                        {item}
+                                    </span>
                                 ))}
                             </div>
-
-                            <div className="mt-5 rounded-xl border border-cyan-500/15 bg-cyan-500/10 p-4 text-sm leading-6 text-slate-700 dark:border-cyan-300/10 dark:bg-cyan-300/10 dark:text-slate-200">
-                                Slow down before your final point. Replace the
-                                next filler word with a short pause.
-                            </div>
                         </div>
-                    </GlassCard>
-                </section>
 
-                <section className="overflow-hidden px-4 pb-14 sm:px-6 lg:px-8">
-                    <div className="mx-auto max-w-6xl">
-                        <div className="mx-auto max-w-3xl text-center">
-                            <p className="text-sm font-semibold text-cyan-700 dark:text-cyan-200">
-                                Practice scenarios
-                            </p>
-                            <h2 className="mt-3 text-2xl font-semibold tracking-normal sm:text-4xl">
-                                Rehearse the speaking moments that matter.
+                        <div className="rounded-lg border border-teal-600/20 bg-teal-600 p-6 text-white shadow-xl shadow-teal-700/20 sm:p-8">
+                            <ShieldCheck className="size-8" />
+                            <h2 className="mt-5 text-3xl font-semibold tracking-normal">
+                                Build a better speaking streak.
                             </h2>
-                            <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                Pick a focused context, record a take, and get
-                                coaching that matches what you are preparing
-                                for.
+                            <p className="mt-3 text-sm leading-7 text-teal-50">
+                                Start with one short session today. Keep the
+                                habit visible, listen back to feedback, and make
+                                every rep less random.
                             </p>
-                        </div>
-
-                        <div className="relative mt-8">
-                            <div className="pointer-events-none absolute inset-x-8 bottom-2 hidden h-10 rounded-full bg-slate-950/20 blur-2xl md:block dark:bg-cyan-300/15" />
-                            <div className="-mx-4 flex snap-x snap-mandatory [scrollbar-width:none] gap-4 overflow-x-auto px-4 pb-5 sm:-mx-6 sm:px-6 md:mx-0 md:min-h-82 md:snap-none md:justify-center md:gap-0 md:overflow-visible md:px-0 md:pb-10 [&::-webkit-scrollbar]:hidden">
-                                {practiceScenarios.map((scenario) => {
-                                    const Icon = scenario.icon;
-
-                                    return (
-                                        <article
-                                            key={scenario.title}
-                                            className={cn(
-                                                'group relative flex h-72 w-58 shrink-0 snap-center flex-col justify-end overflow-hidden rounded-3xl border border-white/30 bg-linear-to-br p-5 text-white shadow-2xl shadow-slate-950/20 transition duration-300 hover:-translate-y-2 sm:w-64 md:h-76 md:w-54 md:snap-align-none md:hover:z-20',
-                                                scenario.accent,
-                                                scenario.stackClass,
-                                            )}
-                                        >
-                                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_18%,rgba(255,255,255,0.42),transparent_28%),linear-gradient(to_top,rgba(2,6,23,0.88),rgba(2,6,23,0.12)_58%,transparent)]" />
-                                            <div className="absolute top-8 right-5 flex size-20 items-center justify-center rounded-full border border-white/20 bg-white/15 text-white shadow-xl backdrop-blur">
-                                                <Icon className="size-9" />
-                                            </div>
-                                            <div className="absolute top-24 right-5 left-5 flex h-24 items-end gap-1 opacity-75">
-                                                {Array.from({
-                                                    length: 18,
-                                                }).map((_, index) => (
-                                                    <span
-                                                        key={index}
-                                                        className="w-1 flex-1 rounded-full bg-white/65"
-                                                        style={{
-                                                            height: `${22 + ((index * 19) % 72)}%`,
-                                                        }}
-                                                    />
-                                                ))}
-                                            </div>
-                                            <div className="relative">
-                                                <p className="text-xl font-semibold">
-                                                    {scenario.title}
-                                                </p>
-                                                <p className="mt-1 text-sm text-white/80">
-                                                    {scenario.description}
-                                                </p>
-                                            </div>
-                                        </article>
-                                    );
-                                })}
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section className="border-y border-slate-200 bg-white/70 px-4 py-14 sm:px-6 lg:px-8 dark:border-white/10 dark:bg-white/[0.03]">
-                    <div className="mx-auto grid max-w-6xl gap-5 md:grid-cols-3">
-                        {[
-                            [
-                                '1',
-                                'Choose a goal',
-                                'Pick interview, speech, or presentation practice.',
-                            ],
-                            [
-                                '2',
-                                'Record naturally',
-                                'Speak out loud and keep the session focused.',
-                            ],
-                            [
-                                '3',
-                                'Improve one thing',
-                                'Leave with a short, useful coaching note.',
-                            ],
-                        ].map(([step, title, description]) => (
-                            <div
-                                key={step}
-                                className="rounded-xl bg-transparent p-1"
+                            <Link
+                                href={primaryHref}
+                                className="mt-7 inline-flex h-11 items-center justify-center gap-2 rounded-lg bg-white px-5 text-sm font-semibold text-teal-800 transition hover:bg-teal-50 focus-visible:ring-2 focus-visible:ring-white focus-visible:outline-none"
                             >
-                                <div className="mb-4 flex size-9 items-center justify-center rounded-full bg-slate-950 text-sm font-semibold text-white dark:bg-white dark:text-slate-950">
-                                    {step}
-                                </div>
-                                <h3 className="text-lg font-semibold">
-                                    {title}
-                                </h3>
-                                <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">
-                                    {description}
-                                </p>
-                            </div>
-                        ))}
-                    </div>
-                </section>
-
-                <section className="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 sm:py-20 lg:px-8">
-                    <h2 className="text-2xl font-semibold sm:text-4xl">
-                        Less noise. Better practice.
-                    </h2>
-                    <p className="mx-auto mt-4 max-w-2xl text-slate-600 dark:text-slate-300">
-                        Start with one session and get a simple read on what to
-                        keep, what to adjust, and what to practice next.
-                    </p>
-                    <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
-                        Free to start. Private by default.
-                    </p>
-                    <div className="mt-8 flex justify-center">
-                        <GradientButton
-                            href={auth.user ? dashboard() : register()}
-                        >
-                            {auth.user
-                                ? 'Go to dashboard'
-                                : 'Create free account'}
-                            <ChevronRight className="size-4" />
-                        </GradientButton>
+                                {auth.user
+                                    ? 'Continue practicing'
+                                    : 'Create free account'}
+                                <Zap className="size-4" />
+                            </Link>
+                        </div>
                     </div>
                 </section>
             </main>
