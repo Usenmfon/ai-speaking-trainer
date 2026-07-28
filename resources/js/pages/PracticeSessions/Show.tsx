@@ -209,106 +209,6 @@ export default function Show({ session }: ShowProps) {
         });
     }
 
-    const publicSpeakingPanel = hasPublicSpeakingScript ? (
-        <div className="rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5">
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
-                <div>
-                    <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-200">
-                        <BookOpen className="size-5" />
-                        <h2 className="text-lg font-semibold">
-                            Public speaking phases
-                        </h2>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        Start by reading from the selected template, then hide
-                        the script and record a second run from memory.
-                    </p>
-                </div>
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full bg-background sm:w-auto"
-                    onClick={() => setIsScriptHidden((hidden) => !hidden)}
-                >
-                    {isScriptHidden ? (
-                        <Eye className="size-4" />
-                    ) : (
-                        <EyeOff className="size-4" />
-                    )}
-                    {isScriptHidden ? 'Show script' : 'Hide script'}
-                </Button>
-            </div>
-
-            <div className="mt-5 grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-emerald-500/25 bg-background p-4">
-                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-200">
-                        Phase 1
-                    </p>
-                    <h3 className="mt-2 font-semibold">Read from template</h3>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        Use the sample script as visual help. Notice structure,
-                        transitions, and the closing line.
-                    </p>
-                </div>
-                <div className="rounded-2xl border border-emerald-500/25 bg-background p-4">
-                    <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-200">
-                        Phase 2
-                    </p>
-                    <h3 className="mt-2 font-semibold">
-                        Practice without visual help
-                    </h3>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                        Hide the script, keep the same message, and record a
-                        natural delivery for feedback.
-                    </p>
-                </div>
-            </div>
-
-            <div className="mt-5 rounded-2xl border border-border bg-background p-5">
-                <p className="text-sm text-muted-foreground">
-                    Selected template
-                </p>
-                <p className="mt-1 font-semibold">
-                    {session.public_speaking_template_title ??
-                        'Custom public speaking script'}
-                </p>
-                {isScriptHidden ? (
-                    <div className="mt-4 rounded-xl border border-dashed border-emerald-500/40 bg-emerald-500/10 p-6 text-center text-sm font-medium text-emerald-700 dark:text-emerald-200">
-                        Script hidden. Practice the same talk without reading
-                        from the page.
-                    </div>
-                ) : (
-                    <p className="mt-4 max-h-[36rem] overflow-y-auto rounded-xl border border-border bg-muted/40 p-4 text-sm leading-7 whitespace-pre-wrap text-muted-foreground">
-                        {session.public_speaking_script}
-                    </p>
-                )}
-            </div>
-        </div>
-    ) : null;
-
-    const recorderPanel = (
-        <div id="recording">
-            <StoredRecordingPlayer
-                recording={session.recording}
-                playbackUrl={playbackRecording.url(session.id)}
-            />
-
-            <div className="mt-6">
-                <AudioRecorder
-                    targetDurationSeconds={session.target_duration_seconds}
-                    uploadUrl={storeRecording.url(session.id)}
-                    hasStoredRecording={Boolean(session.recording)}
-                    disabled={recordingLocked}
-                    disabledReason={
-                        session.status === 'analyzed'
-                            ? 'This session has already been analyzed, so recording is locked.'
-                            : 'This session is already being processed, so recording is locked.'
-                    }
-                />
-            </div>
-        </div>
-    );
-
     return (
         <>
             <Head title={session.title} />
@@ -322,6 +222,7 @@ export default function Show({ session }: ShowProps) {
                         <ArrowLeft className="size-4" />
                         Back to sessions
                     </Link>
+
                     <div className="mt-6 rounded-2xl border border-border bg-card p-5 shadow-sm sm:p-8">
                         <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-start">
                             <div>
@@ -436,6 +337,94 @@ export default function Show({ session }: ShowProps) {
                                 </div>
                             )}
 
+                        {hasPublicSpeakingScript && (
+                            <div className="mt-6 rounded-2xl border border-emerald-500/25 bg-emerald-500/10 p-5">
+                                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
+                                    <div>
+                                        <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-200">
+                                            <BookOpen className="size-5" />
+                                            <h2 className="text-lg font-semibold">
+                                                Public speaking phases
+                                            </h2>
+                                        </div>
+                                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                            Start by reading from the selected
+                                            template, then hide the script and
+                                            record a second run from memory.
+                                        </p>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        className="w-full bg-background sm:w-auto"
+                                        onClick={() =>
+                                            setIsScriptHidden(
+                                                (hidden) => !hidden,
+                                            )
+                                        }
+                                    >
+                                        {isScriptHidden ? (
+                                            <Eye className="size-4" />
+                                        ) : (
+                                            <EyeOff className="size-4" />
+                                        )}
+                                        {isScriptHidden
+                                            ? 'Show script'
+                                            : 'Hide script'}
+                                    </Button>
+                                </div>
+
+                                <div className="mt-5 grid gap-4 md:grid-cols-2">
+                                    <div className="rounded-2xl border border-emerald-500/25 bg-background p-4">
+                                        <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-200">
+                                            Phase 1
+                                        </p>
+                                        <h3 className="mt-2 font-semibold">
+                                            Read from template
+                                        </h3>
+                                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                            Use the sample script as visual
+                                            help. Notice structure, transitions,
+                                            and the closing line.
+                                        </p>
+                                    </div>
+                                    <div className="rounded-2xl border border-emerald-500/25 bg-background p-4">
+                                        <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-200">
+                                            Phase 2
+                                        </p>
+                                        <h3 className="mt-2 font-semibold">
+                                            Practice without visual help
+                                        </h3>
+                                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                                            Hide the script, keep the same
+                                            message, and record a natural
+                                            delivery for feedback.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-5 rounded-2xl border border-border bg-background p-5">
+                                    <p className="text-sm text-muted-foreground">
+                                        Selected template
+                                    </p>
+                                    <p className="mt-1 font-semibold">
+                                        {session.public_speaking_template_title ??
+                                            'Custom public speaking script'}
+                                    </p>
+                                    {isScriptHidden ? (
+                                        <div className="mt-4 rounded-xl border border-dashed border-emerald-500/40 bg-emerald-500/10 p-6 text-center text-sm font-medium text-emerald-700 dark:text-emerald-200">
+                                            Script hidden. Practice the same
+                                            talk without reading from the page.
+                                        </div>
+                                    ) : (
+                                        <p className="mt-4 rounded-xl border border-border bg-muted/40 p-4 text-sm leading-7 whitespace-pre-wrap text-muted-foreground">
+                                            {session.public_speaking_script}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="mt-6 rounded-2xl border border-border bg-background p-5">
                             <h2 className="text-lg font-semibold">Objective</h2>
                             <p className="mt-3 text-sm leading-7 text-muted-foreground">
@@ -543,16 +532,29 @@ export default function Show({ session }: ShowProps) {
                             </div>
                         )}
                     </div>
-                    {publicSpeakingPanel ? (
-                        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start">
-                            {publicSpeakingPanel}
-                            <div className="lg:sticky lg:top-6">
-                                {recorderPanel}
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="mt-6">{recorderPanel}</div>
-                    )}
+
+                    <div className="mt-6" id="recording">
+                        <StoredRecordingPlayer
+                            recording={session.recording}
+                            playbackUrl={playbackRecording.url(session.id)}
+                        />
+                    </div>
+
+                    <div className="mt-6">
+                        <AudioRecorder
+                            targetDurationSeconds={
+                                session.target_duration_seconds
+                            }
+                            uploadUrl={storeRecording.url(session.id)}
+                            hasStoredRecording={Boolean(session.recording)}
+                            disabled={recordingLocked}
+                            disabledReason={
+                                session.status === 'analyzed'
+                                    ? 'This session has already been analyzed, so recording is locked.'
+                                    : 'This session is already being processed, so recording is locked.'
+                            }
+                        />
+                    </div>
                 </div>
             </div>
         </>
