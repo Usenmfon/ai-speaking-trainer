@@ -10,9 +10,11 @@ import {
     Eye,
     EyeOff,
     FilePlus2,
+    Maximize2,
     Mic2,
     RefreshCw,
     Target,
+    X,
 } from 'lucide-react';
 import { useState } from 'react';
 import {
@@ -168,6 +170,7 @@ function nextAction(session: PracticeSession): {
 export default function Show({ session }: ShowProps) {
     const [isRefreshingStatus, setIsRefreshingStatus] = useState(false);
     const [isScriptHidden, setIsScriptHidden] = useState(false);
+    const [isTemplateOverlayOpen, setIsTemplateOverlayOpen] = useState(false);
     const message = processingMessage(session.status);
     const action = nextAction(session);
     const interviewContext = interviewDetails(session);
@@ -212,7 +215,6 @@ export default function Show({ session }: ShowProps) {
     return (
         <>
             <Head title={session.title} />
-
             <div className="min-h-full bg-background px-4 py-6 text-foreground sm:px-6 lg:px-8">
                 <div className="mx-auto max-w-5xl">
                     <Link
@@ -357,11 +359,19 @@ export default function Show({ session }: ShowProps) {
                                         type="button"
                                         variant="outline"
                                         className="w-full bg-background sm:w-auto"
-                                        onClick={() =>
-                                            setIsScriptHidden(
-                                                (hidden) => !hidden,
-                                            )
-                                        }
+                                        onClick={() => {
+                                            setIsScriptHidden((hidden) => {
+                                                const nextHidden = !hidden;
+
+                                                if (nextHidden) {
+                                                    setIsTemplateOverlayOpen(
+                                                        false,
+                                                    );
+                                                }
+
+                                                return nextHidden;
+                                            });
+                                        }}
                                     >
                                         {isScriptHidden ? (
                                             <Eye className="size-4" />
@@ -404,13 +414,32 @@ export default function Show({ session }: ShowProps) {
                                 </div>
 
                                 <div className="mt-5 rounded-2xl border border-border bg-background p-5">
-                                    <p className="text-sm text-muted-foreground">
-                                        Selected template
-                                    </p>
-                                    <p className="mt-1 font-semibold">
-                                        {session.public_speaking_template_title ??
-                                            'Custom public speaking script'}
-                                    </p>
+                                    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                                        <div>
+                                            <p className="text-sm text-muted-foreground">
+                                                Selected template
+                                            </p>
+                                            <p className="mt-1 font-semibold">
+                                                {session.public_speaking_template_title ??
+                                                    'Custom public speaking script'}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="w-full sm:w-auto"
+                                            onClick={() =>
+                                                setIsTemplateOverlayOpen(true)
+                                            }
+                                            disabled={isScriptHidden}
+                                            aria-expanded={
+                                                isTemplateOverlayOpen
+                                            }
+                                        >
+                                            <Maximize2 className="size-4" />
+                                            Open script
+                                        </Button>
+                                    </div>
                                     {isScriptHidden ? (
                                         <div className="mt-4 rounded-xl border border-dashed border-emerald-500/40 bg-emerald-500/10 p-6 text-center text-sm font-medium text-emerald-700 dark:text-emerald-200">
                                             Script hidden. Practice the same
@@ -557,6 +586,39 @@ export default function Show({ session }: ShowProps) {
                     </div>
                 </div>
             </div>
+            {hasPublicSpeakingScript && isTemplateOverlayOpen && (
+                <div className="pointer-events-none fixed inset-x-4 bottom-4 z-50 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-[min(34rem,calc(100vw-3rem))]">
+                    <div
+                        role="dialog"
+                        aria-label="Selected public speaking template"
+                        className="pointer-events-auto overflow-hidden rounded-2xl border border-emerald-500/30 bg-background shadow-2xl shadow-black/20 dark:shadow-black/40"
+                    >
+                        <div className="flex items-start justify-between gap-4 border-b border-border p-4">
+                            <div className="min-w-0">
+                                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-200">
+                                    Selected template
+                                </p>
+                                <h2 className="mt-1 truncate font-semibold">
+                                    {session.public_speaking_template_title ??
+                                        'Custom public speaking script'}
+                                </h2>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setIsTemplateOverlayOpen(false)}
+                                aria-label="Close script overlay"
+                            >
+                                <X className="size-4" />
+                            </Button>
+                        </div>
+                        <p className="max-h-[min(28rem,calc(100vh-12rem))] overflow-y-auto p-4 text-sm leading-7 whitespace-pre-wrap text-muted-foreground">
+                            {session.public_speaking_script}
+                        </p>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
